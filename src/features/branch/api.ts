@@ -43,6 +43,7 @@ export type BranchDetail = {
   phone: string | null;
   hours: BranchHours | null;
   priceLevel: number | null;
+  verificationStatus: "unverified" | "editor_verified" | "business_verified";
   rating: string;
   reviewCount: number;
   place: {

@@ -1,4 +1,8 @@
-import { Location01Icon, PencilEdit02Icon } from "@hugeicons/core-free-icons";
+import {
+  CheckmarkBadge01Icon,
+  Location01Icon,
+  PencilEdit02Icon,
+} from "@hugeicons/core-free-icons";
 import { colors } from "@/lib/theme";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
@@ -130,9 +134,18 @@ export default function BranchDetailScreen() {
                 {eyebrow}
               </ThemedText>
             ) : null}
-            <ThemedText size="3xl" weight="medium">
-              {data.place.name}
-            </ThemedText>
+            <View className="flex-row items-center gap-2">
+              <ThemedText className="shrink" size="3xl" weight="medium">
+                {data.place.name}
+              </ThemedText>
+              {data.verificationStatus !== "unverified" ? (
+                <AppIcon
+                  color={colors.success}
+                  icon={CheckmarkBadge01Icon}
+                  size={20}
+                />
+              ) : null}
+            </View>
 
             <View className="flex-row items-center gap-2">
               <Stars size={16} value={ratingValue} />

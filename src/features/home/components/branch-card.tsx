@@ -1,4 +1,8 @@
-import { FavouriteIcon, StarIcon } from "@hugeicons/core-free-icons";
+import {
+  CheckmarkBadge01Icon,
+  FavouriteIcon,
+  StarIcon,
+} from "@hugeicons/core-free-icons";
 import { colors } from "@/lib/theme";
 import { Image } from "expo-image";
 import { Pressable, View } from "react-native";
@@ -76,9 +80,24 @@ export function BranchCard({
       </View>
 
       <View className="mt-2">
-        <ThemedText numberOfLines={1} size="lg" weight="medium">
-          {branch.placeName}
-        </ThemedText>
+        <View className="flex-row items-center gap-1">
+          <ThemedText
+            className="shrink"
+            numberOfLines={1}
+            size="lg"
+            weight="medium"
+          >
+            {branch.placeName}
+          </ThemedText>
+          {branch.verificationStatus &&
+          branch.verificationStatus !== "unverified" ? (
+            <AppIcon
+              color={colors.success}
+              icon={CheckmarkBadge01Icon}
+              size={15}
+            />
+          ) : null}
+        </View>
         {subtitle ? (
           <ThemedText numberOfLines={1} tone="muted">
             {subtitle}

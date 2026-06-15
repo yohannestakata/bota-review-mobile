@@ -21,6 +21,7 @@ import {
 import type { BranchCard as BranchCardData } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
+import { useLocation } from "@/lib/use-location";
 
 const EMPTY_SAVED = new Set<string>();
 
@@ -41,6 +42,7 @@ export default function SearchScreen() {
   const debouncedQ = useDebouncedValue(text.trim(), 300);
   const cuisines = useCuisines();
   const tags = useTags();
+  const { coords } = useLocation();
   const { data: savedIds } = useSavedBranchIds();
   const toggleSave = useToggleSave();
 
@@ -51,8 +53,10 @@ export default function SearchScreen() {
       tagId: tagIds.length > 0 ? tagIds : undefined,
       priceLevel: priceLevels.length > 0 ? priceLevels : undefined,
       openNow: openNow || undefined,
+      lat: coords?.lat,
+      lng: coords?.lng,
     }),
-    [debouncedQ, cuisineIds, tagIds, priceLevels, openNow],
+    [debouncedQ, cuisineIds, tagIds, priceLevels, openNow, coords?.lat, coords?.lng],
   );
 
   const search = useSearch(params);

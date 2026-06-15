@@ -117,6 +117,7 @@ export type BranchCard = {
   displayOrder?: number;
   distanceKm?: number | null;
   isOpenNow?: boolean;
+  verificationStatus?: "unverified" | "editor_verified" | "business_verified";
 };
 
 export function getNeighborhoods(getToken: TokenGetter) {
