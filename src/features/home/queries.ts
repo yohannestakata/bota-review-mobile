@@ -5,6 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
+import { useSearch, useTags } from "@/features/search";
 import { debugLog } from "@/lib/debug";
 import {
   getCollection,
@@ -14,6 +15,7 @@ import {
   saveBranch,
   unsaveBranch,
 } from "./api";
+import { mealTimeNow } from "./meal-time";
 
 export const homeKeys = {
   all: ["home"] as const,
@@ -38,6 +40,25 @@ export function useHomeFeed() {
     queryKey: homeKeys.feed(),
     queryFn: () => getHome(getToken),
   });
+}
+
+// Time-of-day rail: filters by the current meal-time tag, sorted by distance
+// when location is available.
+export function useMealRail(coords: { lat: number; lng: number } | null) {
+  const meal = mealTimeNow();
+  const tags = useTags();
+  const tagId = tags.data?.find((tag) => tag.slug === meal.slug)?.id;
+
+  const query = useSearch({
+    q: "",
+    tagId: tagId ? [tagId] : undefined,
+    lat: coords?.lat,
+    lng: coords?.lng,
+    sort: coords ? "distance" : "rating",
+    limit: 10,
+  });
+
+  return { label: meal.label, query };
 }
 
 export function useCollection(slug: string) {

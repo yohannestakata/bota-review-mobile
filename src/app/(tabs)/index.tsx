@@ -18,6 +18,7 @@ import {
   HomeSection,
   LocationPill,
   useHomeFeed,
+  useMealRail,
   useSavedBranchIds,
   useToggleSave,
 } from "@/features/home";
@@ -38,6 +39,7 @@ export default function Index() {
   const toggleSave = useToggleSave();
   const location = useLocation();
   const nearby = useNearby(location.coords);
+  const mealRail = useMealRail(location.coords);
 
   useEffect(() => {
     if (nearby.data) {
@@ -156,6 +158,19 @@ export default function Index() {
               onPress={(slug) => router.push(`/collection/${slug}`)}
             />
           </View>
+        ) : null}
+
+        {mealRail.query.data && mealRail.query.data.length > 0 ? (
+          <HomeSection
+            onPressBranch={(branch) => router.push(`/branch/${branch.id}`)}
+            onToggleSave={onToggleSave}
+            savedIds={savedIds ?? EMPTY_SAVED}
+            section={{
+              type: "highly_rated",
+              title: mealRail.label,
+              items: mealRail.query.data,
+            }}
+          />
         ) : null}
 
         {nearbyItems.length > 0 ? (
