@@ -3,7 +3,8 @@ import { Redirect, router } from "expo-router";
 import type { Href } from "expo-router";
 import { useState } from "react";
 
-import { AuthButton, AuthField, AuthScreen } from "@/components/auth/auth-screen";
+import { AuthField, AuthScreen } from "@/components/auth/auth-screen";
+import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 import { getAuthMessage } from "@/lib/auth";
 import { debugLog } from "@/lib/debug";
@@ -78,7 +79,7 @@ export default function CompleteProfileScreen() {
           {error}
         </ThemedText>
       ) : null}
-      <AuthButton label="Finish" loading={loading} onPress={onSubmit} />
+      <Button label="Finish" loading={loading} onPress={onSubmit} />
     </AuthScreen>
   );
 }

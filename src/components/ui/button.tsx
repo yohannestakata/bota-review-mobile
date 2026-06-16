@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { ActivityIndicator, Pressable } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
@@ -17,6 +17,7 @@ type ButtonProps = {
   loading?: boolean;
   disabled?: boolean;
   icon?: IconType;
+  leftSlot?: ReactNode;
   className?: string;
 };
 
@@ -46,6 +47,7 @@ export function Button({
   loading = false,
   disabled = false,
   icon,
+  leftSlot,
   className = "",
 }: ButtonProps) {
   const v = VARIANTS[variant];
@@ -61,6 +63,7 @@ export function Button({
         <ActivityIndicator color={v.color} />
       ) : (
         <>
+          {leftSlot ?? null}
           {icon ? <AppIcon color={v.color} icon={icon} size={18} /> : null}
           <ThemedText tone={v.tone} weight="semibold">
             {label}

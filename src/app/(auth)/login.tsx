@@ -3,13 +3,9 @@ import { Link, router } from "expo-router";
 import type { Href } from "expo-router";
 import { useState } from "react";
 
-import {
-  AuthButton,
-  AuthField,
-  AuthScreen,
-  AuthSecondaryButton,
-} from "@/components/auth/auth-screen";
+import { AuthField, AuthScreen } from "@/components/auth/auth-screen";
 import { GoogleMark } from "@/components/auth/google-mark";
+import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   getAuthMessage,
@@ -91,7 +87,7 @@ export default function LoginScreen() {
         // requires. Finish the sign-up on the next screen.
         router.push("/complete-profile" as Href);
       } else {
-        setError("Google sign in returned without a session. Check the logs.");
+        setError("That didn't go through. Mind trying again?");
       }
     } catch (err) {
       debugLog("auth", "Google OAuth failed", {
@@ -105,7 +101,7 @@ export default function LoginScreen() {
 
   return (
     <AuthScreen
-      body="Sign in to keep your saved places, reviews, and submissions synced."
+      body="Pick up right where you left off — your saved spots and reviews are waiting."
       eyebrow="Welcome back"
       footer={
         <ThemedText className="text-center" tone="muted">
@@ -140,13 +136,14 @@ export default function LoginScreen() {
           {error}
         </ThemedText>
       ) : null}
-      <AuthSecondaryButton
-        icon={<GoogleMark />}
+      <Button
         label="Continue with Google"
+        leftSlot={<GoogleMark />}
         loading={googleLoading}
         onPress={onGooglePress}
+        variant="secondary"
       />
-      <AuthButton label="Log in" loading={loading} onPress={onSubmit} />
+      <Button label="Log in" loading={loading} onPress={onSubmit} />
     </AuthScreen>
   );
 }

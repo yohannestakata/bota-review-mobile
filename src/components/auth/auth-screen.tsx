@@ -1,10 +1,8 @@
 import type { ReactNode } from "react";
 import { colors } from "@/lib/theme";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   TextInput,
   View,
 } from "react-native";
@@ -35,16 +33,6 @@ type AuthFieldProps = {
     | "username-new";
   keyboardType?: "default" | "email-address" | "number-pad";
   secureTextEntry?: boolean;
-};
-
-type AuthButtonProps = {
-  label: string;
-  loading?: boolean;
-  onPress: () => void;
-};
-
-type AuthSecondaryButtonProps = AuthButtonProps & {
-  icon?: ReactNode;
 };
 
 export function AuthScreen({
@@ -111,47 +99,5 @@ export function AuthField({
         value={value}
       />
     </View>
-  );
-}
-
-export function AuthButton({ label, loading, onPress }: AuthButtonProps) {
-  return (
-    <Pressable
-      className="h-16 items-center justify-center rounded-full bg-black px-6"
-      disabled={loading}
-      onPress={onPress}
-    >
-      {loading ? (
-        <ActivityIndicator color={colors.inverse} />
-      ) : (
-        <ThemedText tone="inverse" weight="semibold">
-          {label}
-        </ThemedText>
-      )}
-    </Pressable>
-  );
-}
-
-export function AuthSecondaryButton({
-  icon,
-  label,
-  loading,
-  onPress,
-}: AuthSecondaryButtonProps) {
-  return (
-    <Pressable
-      className="h-16 flex-row items-center justify-center gap-3 rounded-full bg-white px-6"
-      disabled={loading}
-      onPress={onPress}
-    >
-      {loading ? (
-        <ActivityIndicator color={colors.foreground} />
-      ) : (
-        <>
-          {icon}
-          <ThemedText weight="semibold">{label}</ThemedText>
-        </>
-      )}
-    </Pressable>
   );
 }

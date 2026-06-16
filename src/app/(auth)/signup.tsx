@@ -3,13 +3,9 @@ import { Link, router } from "expo-router";
 import type { Href } from "expo-router";
 import { useState } from "react";
 
-import {
-  AuthButton,
-  AuthField,
-  AuthScreen,
-  AuthSecondaryButton,
-} from "@/components/auth/auth-screen";
+import { AuthField, AuthScreen } from "@/components/auth/auth-screen";
 import { GoogleMark } from "@/components/auth/google-mark";
+import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   getAuthMessage,
@@ -90,7 +86,7 @@ export default function SignupScreen() {
         // requires. Finish the sign-up on the next screen.
         router.push("/complete-profile" as Href);
       } else {
-        setError("Google sign in returned without a session. Check the logs.");
+        setError("That didn't go through. Mind trying again?");
       }
     } catch (err) {
       debugLog("auth", "Google OAuth failed", {
@@ -117,7 +113,7 @@ export default function SignupScreen() {
         await setActive({ session: result.createdSessionId });
         router.replace("/");
       } else {
-        setError("We could not finish verification yet. Try the code again.");
+        setError("That code didn't match — give it another go.");
       }
     } catch (err) {
       setError(getAuthMessage(err));
@@ -130,10 +126,10 @@ export default function SignupScreen() {
     <AuthScreen
       body={
         pendingVerification
-          ? "Enter the code Clerk sent to your email to finish creating your account."
-          : "Create an account to save places, submit updates, and build your local taste map."
+          ? "We sent a code to your email — pop it in to finish up."
+          : "Save the spots you love, share your takes, and help the city find its next favorite place."
       }
-      eyebrow={pendingVerification ? "Check your email" : "Start fresh"}
+      eyebrow={pendingVerification ? "Check your email" : "Join Bota"}
       footer={
         <ThemedText className="text-center" tone="muted">
           Already have an account?{" "}
@@ -188,14 +184,15 @@ export default function SignupScreen() {
         </ThemedText>
       ) : null}
       {!pendingVerification ? (
-        <AuthSecondaryButton
-          icon={<GoogleMark />}
+        <Button
           label="Continue with Google"
+          leftSlot={<GoogleMark />}
           loading={googleLoading}
           onPress={onGooglePress}
+          variant="secondary"
         />
       ) : null}
-      <AuthButton
+      <Button
         label={pendingVerification ? "Verify email" : "Create account"}
         loading={loading}
         onPress={pendingVerification ? onVerify : onCreateAccount}
