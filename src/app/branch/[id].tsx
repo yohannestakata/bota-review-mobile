@@ -24,14 +24,21 @@ import {
   BranchHero,
   BranchStickyHeader,
   isOpenNow,
+  formatBirr,
+  lowestPrice,
   OpeningHours,
   PhotoViewer,
   QuickActions,
   ReviewRow,
+  SiblingCard,
+  totalItemCount,
   useBranch,
+  useBranchMenus,
+  useBranchSiblings,
 } from "@/features/branch";
 import { useSavedBranchIds, useToggleSave } from "@/features/home";
 import { priceLabel } from "@/lib/api";
+import { useLocation } from "@/lib/use-location";
 
 function Chip({ label }: { label: string }) {
   return (
@@ -60,6 +67,9 @@ function capitalize(value: string) {
 export default function BranchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const branch = useBranch(id);
+  const { coords } = useLocation();
+  const siblings = useBranchSiblings(id, coords ?? undefined);
+  const menus = useBranchMenus(id);
   const { data: savedIds } = useSavedBranchIds();
   const toggleSave = useToggleSave();
 
@@ -108,6 +118,11 @@ export default function BranchDetailScreen() {
     .join("  ·  ");
   const chips = [...data.cuisines, ...data.tags];
   const openNow = isOpenNow(data.hours);
+
+  const menuData = menus.data ?? [];
+  const menuItemCount = totalItemCount(menuData);
+  const menuFrom = lowestPrice(menuData);
+  const menuPreview = menuData[0]?.items.slice(0, 3) ?? [];
 
   return (
     <View className="flex-1 bg-white">
@@ -207,6 +222,53 @@ export default function BranchDetailScreen() {
             </View>
           ) : null}
 
+          {/* Menu */}
+          {menuItemCount > 0 ? (
+            <>
+              <View className="mt-7">
+                <Divider />
+              </View>
+              <View className="mt-6 gap-2 px-6">
+                <View className="flex-row items-center justify-between">
+                  <ThemedText size="xl" weight="semibold">
+                    Menu
+                  </ThemedText>
+                  {menuFrom ? (
+                    <ThemedText size="sm" tone="muted">
+                      from {menuFrom}
+                    </ThemedText>
+                  ) : null}
+                </View>
+
+                {menuPreview.map((item) => (
+                  <View
+                    className="flex-row items-center justify-between gap-3"
+                    key={item.id}
+                  >
+                    <ThemedText className="shrink" numberOfLines={1}>
+                      {item.name}
+                    </ThemedText>
+                    <ThemedText tone="muted">{formatBirr(item.price)}</ThemedText>
+                  </View>
+                ))}
+
+                <Pressable
+                  className="mt-2 h-12 flex-row items-center justify-center rounded-full border border-border"
+                  onPress={() =>
+                    router.push({
+                      pathname: "/menu/[branchId]",
+                      params: { branchId: data.id, name: data.place.name },
+                    })
+                  }
+                >
+                  <ThemedText weight="medium">
+                    {`See full menu (${menuItemCount} ${menuItemCount === 1 ? "item" : "items"})`}
+                  </ThemedText>
+                </Pressable>
+              </View>
+            </>
+          ) : null}
+
           {/* Amenities */}
           {data.amenities.length > 0 ? (
             <>
@@ -262,6 +324,31 @@ export default function BranchDetailScreen() {
                         transition={150}
                       />
                     </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            </>
+          ) : null}
+
+          {/* Other locations of the same place (chains) */}
+          {siblings.data && siblings.data.length > 0 ? (
+            <>
+              <View className="mt-7">
+                <Divider />
+              </View>
+              <View className="mt-6 gap-3">
+                <SectionTitle title="Other locations" />
+                <ScrollView
+                  contentContainerClassName="gap-3 px-6"
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                >
+                  {siblings.data.map((sibling) => (
+                    <SiblingCard
+                      branch={sibling}
+                      key={sibling.id}
+                      onPress={(b) => router.push(`/branch/${b.id}`)}
+                    />
                   ))}
                 </ScrollView>
               </View>

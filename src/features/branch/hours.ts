@@ -43,9 +43,21 @@ export function isOpenNow(hours: BranchHours | null): boolean {
   );
 }
 
+// "17:00" -> "5 PM", "09:30" -> "9:30 AM" (minutes dropped when :00).
+function to12Hour(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h % 12 === 0 ? 12 : h % 12;
+  return m === 0
+    ? `${hour12} ${period}`
+    : `${hour12}:${String(m).padStart(2, "0")} ${period}`;
+}
+
 export function formatDayHours(intervals: [string, string][] | undefined): string {
   if (!intervals || intervals.length === 0) {
     return "Closed";
   }
-  return intervals.map(([open, close]) => `${open} – ${close}`).join(", ");
+  return intervals
+    .map(([open, close]) => `${to12Hour(open)} – ${to12Hour(close)}`)
+    .join(", ");
 }

@@ -1,5 +1,6 @@
 import {
   apiFetch,
+  type BranchCard,
   type Cuisine,
   type Neighborhood,
   type Tag,
@@ -63,6 +64,48 @@ export type BranchDetail = {
 
 export function getBranch(id: string, getToken: TokenGetter) {
   return apiFetch<BranchDetail>(`/branches/${id}`, getToken);
+}
+
+export type MenuItem = {
+  id: string;
+  menuId: string;
+  name: string;
+  description: string | null;
+  price: string;
+  category: string | null;
+  imageUrl: string | null;
+  isAvailable: boolean;
+  displayOrder: number;
+};
+
+export type Menu = {
+  id: string;
+  branchId: string;
+  name: string;
+  displayOrder: number;
+  lastVerifiedAt: string | null;
+  items: MenuItem[];
+};
+
+export function getBranchMenus(branchId: string, getToken: TokenGetter) {
+  return apiFetch<Menu[]>(`/branches/${branchId}/menus`, getToken);
+}
+
+// Other locations of the same place (chains). Passing coords orders them
+// nearest-first and adds a distance to each card.
+export function getBranchSiblings(
+  id: string,
+  coords: { lat?: number; lng?: number } | undefined,
+  getToken: TokenGetter,
+) {
+  const params = new URLSearchParams();
+  if (coords?.lat != null) params.set("lat", String(coords.lat));
+  if (coords?.lng != null) params.set("lng", String(coords.lng));
+  const qs = params.toString();
+  return apiFetch<BranchCard[]>(
+    `/branches/${id}/siblings${qs ? `?${qs}` : ""}`,
+    getToken,
+  );
 }
 
 export type CreateReviewBody = {

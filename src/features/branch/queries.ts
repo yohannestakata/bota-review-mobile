@@ -5,6 +5,8 @@ import {
   archiveReview,
   createReview,
   getBranch,
+  getBranchMenus,
+  getBranchSiblings,
   updateReview,
   type CreateReviewBody,
   type UpdateReviewBody,
@@ -13,6 +15,8 @@ import {
 export const branchKeys = {
   all: ["branch"] as const,
   detail: (id: string) => [...branchKeys.all, id] as const,
+  siblings: (id: string) => [...branchKeys.detail(id), "siblings"] as const,
+  menus: (id: string) => [...branchKeys.detail(id), "menus"] as const,
 };
 
 export function useBranch(id: string) {
@@ -21,6 +25,29 @@ export function useBranch(id: string) {
   return useQuery({
     queryKey: branchKeys.detail(id),
     queryFn: () => getBranch(id, getToken),
+    enabled: Boolean(id),
+  });
+}
+
+export function useBranchSiblings(
+  id: string,
+  coords?: { lat?: number; lng?: number },
+) {
+  const { getToken } = useAuth();
+
+  return useQuery({
+    queryKey: [...branchKeys.siblings(id), coords?.lat ?? null, coords?.lng ?? null],
+    queryFn: () => getBranchSiblings(id, coords, getToken),
+    enabled: Boolean(id),
+  });
+}
+
+export function useBranchMenus(id: string) {
+  const { getToken } = useAuth();
+
+  return useQuery({
+    queryKey: branchKeys.menus(id),
+    queryFn: () => getBranchMenus(id, getToken),
     enabled: Boolean(id),
   });
 }
