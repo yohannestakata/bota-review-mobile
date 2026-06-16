@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
+import { ObserveRoot, useObserve } from "expo-observe";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as WebBrowser from "expo-web-browser";
@@ -21,7 +22,8 @@ if (!clerkPublishableKey) {
   throw new Error("Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY");
 }
 
-export default function RootLayout() {
+function RootLayout() {
+  const { markInteractive } = useObserve();
   const [fontsLoaded] = useFonts({
     "Outfit-Black": require("../../assets/fonts/Outfit-Black.ttf"),
     "Outfit-Bold": require("../../assets/fonts/Outfit-Bold.ttf"),
@@ -38,8 +40,10 @@ export default function RootLayout() {
     if (fontsLoaded) {
       debugLog("root", "fonts loaded");
       void SplashScreen.hideAsync();
+      // App is ready to render and accept input — mark Time to Interactive.
+      markInteractive();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, markInteractive]);
 
   useEffect(() => {
     void Linking.getInitialURL().then((url) => {
@@ -68,3 +72,5 @@ export default function RootLayout() {
     </ClerkProvider>
   );
 }
+
+export default ObserveRoot.wrap(RootLayout);

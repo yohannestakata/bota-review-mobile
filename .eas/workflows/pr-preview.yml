@@ -1,0 +1,14 @@
+name: PR preview
+
+# Every PR against main produces an internal-distribution build testers can install.
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Preview build
+    type: build
+    params:
+      platform: all
+      profile: preview
