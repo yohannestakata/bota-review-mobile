@@ -23,7 +23,7 @@ export type BranchSubmissionBody =
       type: "field_correction";
       fieldName: string;
       currentValue?: string;
-      suggestedValue: string;
+      suggestedValue?: string;
       note?: string;
     }
   | { type: "temporarily_closed"; note?: string }

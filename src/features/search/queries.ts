@@ -40,7 +40,8 @@ export function hasActiveFilters(params: SearchParams): boolean {
     params.cuisineId?.length ||
       params.tagId?.length ||
       params.priceLevel?.length ||
-      params.openNow,
+      params.openNow ||
+      params.sort === "distance",
   );
 }
 

@@ -30,7 +30,27 @@ const KINDS: { value: Kind; label: string }[] = [
   { value: "permanently_closed", label: "Permanently closed" },
 ];
 
-const FIELDS = ["Name", "Phone", "Address", "Hours", "Price", "Other"];
+const FIELDS = [
+  { value: "Name", label: "Name", mode: "value" },
+  { value: "Phone", label: "Phone", mode: "value" },
+  { value: "Address", label: "Address", mode: "value" },
+  { value: "Price", label: "Price", mode: "price" },
+  { value: "Hours", label: "Hours", mode: "note" },
+  { value: "Menu/prices", label: "Menu/prices", mode: "note" },
+  { value: "Photos", label: "Photos", mode: "note" },
+  { value: "Tags/amenities", label: "Tags/amenities", mode: "note" },
+  { value: "Wrong info", label: "Wrong info", mode: "note" },
+  { value: "Duplicate", label: "Duplicate", mode: "note" },
+] as const;
+
+type FieldOption = (typeof FIELDS)[number];
+
+const PRICE_LEVELS = [
+  { value: "1", label: "$" },
+  { value: "2", label: "$$" },
+  { value: "3", label: "$$$" },
+  { value: "4", label: "$$$$" },
+] as const;
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Something went wrong";
@@ -75,9 +95,19 @@ export default function SuggestEditScreen() {
   const [error, setError] = useState("");
 
   const isCorrection = kind === "field_correction";
+  const selectedField = FIELDS.find(
+    (field): field is FieldOption => field.value === fieldName,
+  );
+  const isValueCorrection = isCorrection && selectedField?.mode === "value";
+  const isPriceCorrection = isCorrection && selectedField?.mode === "price";
+  const isNoteCorrection = isCorrection && selectedField?.mode === "note";
   const canSubmit =
     !submit.isPending &&
-    (!isCorrection || (Boolean(fieldName) && suggestedValue.trim().length > 0));
+    (!isCorrection ||
+      (Boolean(fieldName) &&
+        (isValueCorrection || isPriceCorrection
+          ? suggestedValue.trim().length > 0
+          : note.trim().length > 0)));
 
   function onSubmit() {
     if (!canSubmit) {
@@ -86,11 +116,13 @@ export default function SuggestEditScreen() {
 
     setError("");
 
+    const correctionValue =
+      isValueCorrection || isPriceCorrection ? suggestedValue.trim() : "";
     const body: BranchSubmissionBody = isCorrection
       ? {
           type: "field_correction",
           fieldName,
-          suggestedValue: suggestedValue.trim(),
+          ...(correctionValue ? { suggestedValue: correctionValue } : {}),
           ...(note.trim() ? { note: note.trim() } : {}),
         }
       : { type: kind, ...(note.trim() ? { note: note.trim() } : {}) };
@@ -139,7 +171,12 @@ export default function SuggestEditScreen() {
               <Pill
                 key={option.value}
                 label={option.label}
-                onPress={() => setKind(option.value)}
+                onPress={() => {
+                  setKind(option.value);
+                  setFieldName("");
+                  setSuggestedValue("");
+                  setNote("");
+                }}
                 selected={kind === option.value}
               />
             ))}
@@ -154,38 +191,82 @@ export default function SuggestEditScreen() {
                 <View className="flex-row flex-wrap gap-2">
                   {FIELDS.map((field) => (
                     <Pill
-                      key={field}
-                      label={field}
-                      onPress={() => setFieldName(field)}
-                      selected={fieldName === field}
+                      key={field.value}
+                      label={field.label}
+                      onPress={() => {
+                        setFieldName(field.value);
+                        setSuggestedValue("");
+                        setNote("");
+                      }}
+                      selected={fieldName === field.value}
                     />
                   ))}
                 </View>
               </View>
 
-              <AuthField
-                label="Correct value"
-                onChangeText={setSuggestedValue}
-                placeholder="What should it say?"
-                value={suggestedValue}
-              />
+              {isValueCorrection ? (
+                <AuthField
+                  label="Correct value"
+                  onChangeText={setSuggestedValue}
+                  placeholder="What should it say?"
+                  value={suggestedValue}
+                />
+              ) : null}
+
+              {isPriceCorrection ? (
+                <View className="gap-2">
+                  <ThemedText size="sm" weight="medium">
+                    What is the price level?
+                  </ThemedText>
+                  <View className="flex-row flex-wrap gap-2">
+                    {PRICE_LEVELS.map((level) => (
+                      <Pill
+                        key={level.value}
+                        label={level.label}
+                        onPress={() => setSuggestedValue(level.value)}
+                        selected={suggestedValue === level.value}
+                      />
+                    ))}
+                  </View>
+                </View>
+              ) : null}
+
+              {isNoteCorrection ? (
+                <View>
+                  <ThemedText size="sm" weight="medium">
+                    What should we know?
+                  </ThemedText>
+                  <TextInput
+                    className="mt-2 min-h-28 rounded-2xl bg-surface px-4 py-3 font-outfit text-md text-foreground"
+                    multiline
+                    onChangeText={setNote}
+                    placeholder="Tell us what needs attention."
+                    placeholderTextColor={colors.muted}
+                    textAlignVertical="top"
+                    value={note}
+                  />
+                </View>
+              ) : null}
+
             </>
           ) : null}
 
-          <View>
-            <ThemedText size="sm" weight="medium">
-              Note {isCorrection ? "(optional)" : ""}
-            </ThemedText>
-            <TextInput
-              className="mt-2 min-h-24 rounded-2xl bg-surface px-4 py-3 font-outfit text-md text-foreground"
-              multiline
-              onChangeText={setNote}
-              placeholder="Anything else we should know?"
-              placeholderTextColor={colors.muted}
-              textAlignVertical="top"
-              value={note}
-            />
-          </View>
+          {!isNoteCorrection ? (
+            <View>
+              <ThemedText size="sm" weight="medium">
+                Note {isCorrection ? "(optional)" : ""}
+              </ThemedText>
+              <TextInput
+                className="mt-2 min-h-24 rounded-2xl bg-surface px-4 py-3 font-outfit text-md text-foreground"
+                multiline
+                onChangeText={setNote}
+                placeholder="Anything else we should know?"
+                placeholderTextColor={colors.muted}
+                textAlignVertical="top"
+                value={note}
+              />
+            </View>
+          ) : null}
 
           {error ? (
             <ThemedText size="sm" tone="brand">

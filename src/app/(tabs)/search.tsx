@@ -104,6 +104,8 @@ export default function SearchScreen() {
     setCuisineIds([]);
     setTagIds([]);
     setPriceLevels([]);
+    setOpenNow(false);
+    setNearby(false);
   }
 
   return (
