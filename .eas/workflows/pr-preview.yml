@@ -6,9 +6,16 @@ on:
     branches: [main]
 
 jobs:
-  build:
-    name: Preview build
+  build_ios:
+    name: Preview build iOS
     type: build
     params:
-      platform: all
+      platform: ios
+      profile: preview
+
+  build_android:
+    name: Preview build Android
+    type: build
+    params:
+      platform: android
       profile: preview
