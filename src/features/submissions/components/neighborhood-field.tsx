@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { Pressable, TextInput, View } from "react-native";
+import { Pressable, View } from "react-native";
 
+import { FormTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
-import { colors } from "@/lib/theme";
 
 import { useNeighborhoods } from "../queries";
 
@@ -27,8 +27,7 @@ export function NeighborhoodField({
     }
     return (neighborhoods.data ?? [])
       .filter(
-        (n) =>
-          n.name.toLowerCase().includes(q) && n.name.toLowerCase() !== q,
+        (n) => n.name.toLowerCase().includes(q) && n.name.toLowerCase() !== q,
       )
       .slice(0, 5);
   }, [value, neighborhoods.data]);
@@ -37,17 +36,13 @@ export function NeighborhoodField({
 
   return (
     <View>
-      <ThemedText size="sm" weight="medium">
-        Neighborhood
-      </ThemedText>
-      <TextInput
+      <FormTextInput
         autoCapitalize="words"
-        className="mt-2 h-16 rounded-full bg-surface px-6 font-outfit text-md text-foreground"
+        label="Neighborhood"
         onBlur={() => setTimeout(() => setFocused(false), 150)}
         onChangeText={onChangeText}
         onFocus={() => setFocused(true)}
         placeholder="e.g. Bole"
-        placeholderTextColor={colors.muted}
         value={value}
       />
 

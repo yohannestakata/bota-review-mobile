@@ -7,19 +7,21 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AuthField } from "@/components/auth/auth-screen";
 import { Button } from "@/components/ui/button";
+import { FormTextArea, FormTextInput } from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
+import { OptionalDetailsPanel } from "@/components/ui/optional-details-panel";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   useCreateBranchSubmission,
   type BranchSubmissionBody,
 } from "@/features/submissions";
+import { cn } from "@/lib/cn";
 import { colors } from "@/lib/theme";
 
 type Kind = "field_correction" | "temporarily_closed" | "permanently_closed";
@@ -52,6 +54,18 @@ const PRICE_LEVELS = [
   { value: "4", label: "$$$$" },
 ] as const;
 
+const AMENITIES = [
+  "Wi-Fi",
+  "Parking",
+  "Outdoor seating",
+  "Good for work",
+  "Good for groups",
+  "Fasting options",
+] as const;
+
+const LISTING_DETAILS_FIELD = "Listing details";
+const SUBMISSION_NOTE_LIMIT = 500;
+
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Something went wrong";
 }
@@ -60,14 +74,22 @@ function Pill({
   label,
   selected,
   onPress,
+  surface = "default",
 }: {
   label: string;
   selected: boolean;
   onPress: () => void;
+  surface?: "default" | "muted";
 }) {
   return (
     <Pressable
-      className={`rounded-full px-4 py-2 ${selected ? "bg-black" : "bg-surface"}`}
+      className={cn(
+        "rounded-full px-4 py-2",
+        surface === "muted" && "border",
+        selected && "bg-black",
+        !selected && surface === "default" && "bg-surface",
+        !selected && surface === "muted" && "border-border bg-background",
+      )}
       onPress={onPress}
     >
       <ThemedText
@@ -92,6 +114,13 @@ export default function SuggestEditScreen() {
   const [fieldName, setFieldName] = useState("");
   const [suggestedValue, setSuggestedValue] = useState("");
   const [note, setNote] = useState("");
+  const [helpMore, setHelpMore] = useState(false);
+  const [extraPriceLevel, setExtraPriceLevel] = useState("");
+  const [extraHours, setExtraHours] = useState("");
+  const [extraMenu, setExtraMenu] = useState("");
+  const [extraAddress, setExtraAddress] = useState("");
+  const [extraPhone, setExtraPhone] = useState("");
+  const [extraAmenities, setExtraAmenities] = useState<string[]>([]);
   const [error, setError] = useState("");
 
   const isCorrection = kind === "field_correction";
@@ -101,13 +130,65 @@ export default function SuggestEditScreen() {
   const isValueCorrection = isCorrection && selectedField?.mode === "value";
   const isPriceCorrection = isCorrection && selectedField?.mode === "price";
   const isNoteCorrection = isCorrection && selectedField?.mode === "note";
+  const hasPrimaryCorrection =
+    isValueCorrection || isPriceCorrection
+      ? suggestedValue.trim().length > 0
+      : note.trim().length > 0;
+  const hasExtraDetails =
+    Boolean(extraPriceLevel) ||
+    extraHours.trim().length > 0 ||
+    extraMenu.trim().length > 0 ||
+    extraAddress.trim().length > 0 ||
+    extraPhone.trim().length > 0 ||
+    extraAmenities.length > 0;
   const canSubmit =
     !submit.isPending &&
     (!isCorrection ||
-      (Boolean(fieldName) &&
-        (isValueCorrection || isPriceCorrection
-          ? suggestedValue.trim().length > 0
-          : note.trim().length > 0)));
+      (fieldName ? hasPrimaryCorrection || hasExtraDetails : hasExtraDetails));
+
+  function resetPrimaryFields() {
+    setSuggestedValue("");
+    setNote("");
+  }
+
+  function resetContributionFields() {
+    resetPrimaryFields();
+    setExtraPriceLevel("");
+    setExtraHours("");
+    setExtraMenu("");
+    setExtraAddress("");
+    setExtraPhone("");
+    setExtraAmenities([]);
+  }
+
+  function toggleAmenity(value: string) {
+    setExtraAmenities((current) =>
+      current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current, value],
+    );
+  }
+
+  function extraDetailsNote() {
+    const lines: string[] = [];
+    if (extraPriceLevel) {
+      lines.push(`Price range: ${"$".repeat(Number(extraPriceLevel))}`);
+    }
+    if (extraHours.trim()) lines.push(`Hours: ${extraHours.trim()}`);
+    if (extraMenu.trim()) lines.push(`Menu/prices: ${extraMenu.trim()}`);
+    if (extraAddress.trim()) lines.push(`Address: ${extraAddress.trim()}`);
+    if (extraPhone.trim()) lines.push(`Phone: ${extraPhone.trim()}`);
+    if (extraAmenities.length > 0) {
+      lines.push(`Amenities: ${extraAmenities.join(", ")}`);
+    }
+    return lines.length > 0
+      ? `Help complete this listing:\n${lines.join("\n")}`
+      : "";
+  }
+
+  function submissionNote() {
+    return [note.trim(), extraDetailsNote()].filter(Boolean).join("\n\n");
+  }
 
   function onSubmit() {
     if (!canSubmit) {
@@ -118,21 +199,24 @@ export default function SuggestEditScreen() {
 
     const correctionValue =
       isValueCorrection || isPriceCorrection ? suggestedValue.trim() : "";
+    const noteValue = submissionNote();
+    if (noteValue.length > SUBMISSION_NOTE_LIMIT) {
+      setError("Keep your note and extra details under 500 characters total.");
+      return;
+    }
+
     const body: BranchSubmissionBody = isCorrection
       ? {
           type: "field_correction",
-          fieldName,
+          fieldName: fieldName || LISTING_DETAILS_FIELD,
           ...(correctionValue ? { suggestedValue: correctionValue } : {}),
-          ...(note.trim() ? { note: note.trim() } : {}),
+          ...(noteValue ? { note: noteValue } : {}),
         }
-      : { type: kind, ...(note.trim() ? { note: note.trim() } : {}) };
+      : { type: kind, ...(noteValue ? { note: noteValue } : {}) };
 
     submit.mutate(body, {
       onSuccess: () => {
-        Alert.alert(
-          "Good catch!",
-          "Thanks — we'll review your suggestion.",
-        );
+        Alert.alert("Good catch!", "Thanks — we'll review your suggestion.");
         router.back();
       },
       onError: (err) => setError(getErrorMessage(err)),
@@ -174,8 +258,7 @@ export default function SuggestEditScreen() {
                 onPress={() => {
                   setKind(option.value);
                   setFieldName("");
-                  setSuggestedValue("");
-                  setNote("");
+                  resetContributionFields();
                 }}
                 selected={kind === option.value}
               />
@@ -195,8 +278,7 @@ export default function SuggestEditScreen() {
                       label={field.label}
                       onPress={() => {
                         setFieldName(field.value);
-                        setSuggestedValue("");
-                        setNote("");
+                        resetPrimaryFields();
                       }}
                       selected={fieldName === field.value}
                     />
@@ -232,40 +314,106 @@ export default function SuggestEditScreen() {
               ) : null}
 
               {isNoteCorrection ? (
-                <View>
-                  <ThemedText size="sm" weight="medium">
-                    What should we know?
-                  </ThemedText>
-                  <TextInput
-                    className="mt-2 min-h-28 rounded-2xl bg-surface px-4 py-3 font-outfit text-md text-foreground"
-                    multiline
-                    onChangeText={setNote}
-                    placeholder="Tell us what needs attention."
-                    placeholderTextColor={colors.muted}
-                    textAlignVertical="top"
-                    value={note}
-                  />
-                </View>
+                <FormTextArea
+                  inputClassName="min-h-28"
+                  label="What should we know?"
+                  onChangeText={setNote}
+                  placeholder="Tell us what needs attention."
+                  value={note}
+                />
               ) : null}
-
             </>
           ) : null}
 
-          {!isNoteCorrection ? (
-            <View>
-              <ThemedText size="sm" weight="medium">
-                Note {isCorrection ? "(optional)" : ""}
-              </ThemedText>
-              <TextInput
-                className="mt-2 min-h-24 rounded-2xl bg-surface px-4 py-3 font-outfit text-md text-foreground"
-                multiline
-                onChangeText={setNote}
-                placeholder="Anything else we should know?"
-                placeholderTextColor={colors.muted}
-                textAlignVertical="top"
-                value={note}
+          <OptionalDetailsPanel
+            expanded={helpMore}
+            onToggle={() => setHelpMore((value) => !value)}
+            subtitle="Add details only if they're handy."
+            title="Know a little more?"
+          >
+            {!isPriceCorrection ? (
+              <View className="gap-2">
+                <ThemedText size="sm" weight="medium">
+                  Price range
+                </ThemedText>
+                <View className="flex-row flex-wrap gap-2">
+                  {PRICE_LEVELS.map((level) => (
+                    <Pill
+                      key={level.value}
+                      label={level.label}
+                      onPress={() =>
+                        setExtraPriceLevel((current) =>
+                          current === level.value ? "" : level.value,
+                        )
+                      }
+                      selected={extraPriceLevel === level.value}
+                      surface="muted"
+                    />
+                  ))}
+                </View>
+              </View>
+            ) : null}
+
+            <FormTextArea
+              inputClassName="min-h-20"
+              label="Hours"
+              onChangeText={setExtraHours}
+              placeholder="e.g. Open until 10 most nights."
+              surface="muted"
+              value={extraHours}
+            />
+
+            <FormTextArea
+              inputClassName="min-h-20"
+              label="Menu or prices"
+              onChangeText={setExtraMenu}
+              placeholder="e.g. Macchiato is 90 birr now."
+              surface="muted"
+              value={extraMenu}
+            />
+
+            <View className="gap-3">
+              <FormTextInput
+                label="Address"
+                onChangeText={(value) => setExtraAddress(value.slice(0, 80))}
+                placeholder="Only if you know it"
+                surface="muted"
+                value={extraAddress}
+              />
+              <FormTextInput
+                label="Phone"
+                onChangeText={(value) => setExtraPhone(value.slice(0, 40))}
+                placeholder="Only if you know it"
+                surface="muted"
+                value={extraPhone}
               />
             </View>
+
+            <View className="gap-2">
+              <ThemedText size="sm" weight="medium">
+                Amenities
+              </ThemedText>
+              <View className="flex-row flex-wrap gap-2">
+                {AMENITIES.map((amenity) => (
+                  <Pill
+                    key={amenity}
+                    label={amenity}
+                    onPress={() => toggleAmenity(amenity)}
+                    selected={extraAmenities.includes(amenity)}
+                    surface="muted"
+                  />
+                ))}
+              </View>
+            </View>
+          </OptionalDetailsPanel>
+
+          {!isNoteCorrection ? (
+            <FormTextArea
+              label={`Note ${isCorrection ? "(optional)" : ""}`}
+              onChangeText={setNote}
+              placeholder="Anything else we should know?"
+              value={note}
+            />
           ) : null}
 
           {error ? (

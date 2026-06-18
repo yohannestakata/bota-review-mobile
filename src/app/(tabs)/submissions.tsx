@@ -3,24 +3,77 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AuthField } from "@/components/auth/auth-screen";
 import { Button } from "@/components/ui/button";
+import { FormTextArea, FormTextInput } from "@/components/ui/form-field";
+import { OptionalDetailsPanel } from "@/components/ui/optional-details-panel";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   NeighborhoodField,
   useReportMissingPlace,
   type PlaceMissingDetails,
 } from "@/features/submissions";
-import { colors } from "@/lib/theme";
+import { cn } from "@/lib/cn";
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Something went wrong";
+}
+
+const PRICE_LEVELS = [
+  { value: "1", label: "$" },
+  { value: "2", label: "$$" },
+  { value: "3", label: "$$$" },
+  { value: "4", label: "$$$$" },
+] as const;
+
+const AMENITIES = [
+  "Wi-Fi",
+  "Parking",
+  "Outdoor seating",
+  "Good for work",
+  "Good for groups",
+  "Fasting options",
+] as const;
+
+const SUBMISSION_NOTE_LIMIT = 500;
+
+function Pill({
+  label,
+  selected,
+  onPress,
+  surface = "default",
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  surface?: "default" | "muted";
+}) {
+  return (
+    <Pressable
+      className={cn(
+        "rounded-full px-4 py-2",
+        surface === "muted" && "border",
+        selected && "bg-black",
+        !selected && surface === "default" && "bg-surface",
+        !selected && surface === "muted" && "border-border bg-background",
+      )}
+      onPress={onPress}
+    >
+      <ThemedText
+        size="sm"
+        tone={selected ? "inverse" : "default"}
+        weight="medium"
+      >
+        {label}
+      </ThemedText>
+    </Pressable>
+  );
 }
 
 export default function SubmissionsScreen() {
@@ -31,6 +84,11 @@ export default function SubmissionsScreen() {
   const [description, setDescription] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
+  const [helpMore, setHelpMore] = useState(false);
+  const [priceLevel, setPriceLevel] = useState("");
+  const [hours, setHours] = useState("");
+  const [menu, setMenu] = useState("");
+  const [amenities, setAmenities] = useState<string[]>([]);
   const [error, setError] = useState("");
 
   const canSubmit = placeName.trim().length > 0 && !report.isPending;
@@ -41,6 +99,32 @@ export default function SubmissionsScreen() {
     setDescription("");
     setContactPhone("");
     setContactEmail("");
+    setHelpMore(false);
+    setPriceLevel("");
+    setHours("");
+    setMenu("");
+    setAmenities([]);
+  }
+
+  function toggleAmenity(value: string) {
+    setAmenities((current) =>
+      current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current, value],
+    );
+  }
+
+  function extraDetailsNote() {
+    const lines: string[] = [];
+    if (priceLevel)
+      lines.push(`Price range: ${"$".repeat(Number(priceLevel))}`);
+    if (hours.trim()) lines.push(`Hours: ${hours.trim()}`);
+    if (menu.trim()) lines.push(`Menu/prices: ${menu.trim()}`);
+    if (amenities.length > 0) lines.push(`Amenities: ${amenities.join(", ")}`);
+
+    return lines.length > 0
+      ? `Help complete this missing place:\n${lines.join("\n")}`
+      : "";
   }
 
   function onSubmit() {
@@ -56,16 +140,25 @@ export default function SubmissionsScreen() {
     if (contactPhone.trim()) details.contactPhone = contactPhone.trim();
     if (contactEmail.trim()) details.contactEmail = contactEmail.trim();
 
-    report.mutate(details, {
-      onSuccess: () => {
-        reset();
-        Alert.alert(
-          "Thanks for the tip!",
-          "We'll take a look and get it added soon.",
-        );
+    const note = extraDetailsNote();
+    if (note.length > SUBMISSION_NOTE_LIMIT) {
+      setError("Keep optional details under 500 characters total.");
+      return;
+    }
+
+    report.mutate(
+      { details, ...(note ? { note } : {}) },
+      {
+        onSuccess: () => {
+          reset();
+          Alert.alert(
+            "Thanks for the tip!",
+            "We'll take a look and get it added soon.",
+          );
+        },
+        onError: (err) => setError(getErrorMessage(err)),
       },
-      onError: (err) => setError(getErrorMessage(err)),
-    });
+    );
   }
 
   return (
@@ -75,7 +168,7 @@ export default function SubmissionsScreen() {
           Spotted a gem?
         </ThemedText>
         <ThemedText className="mt-1" tone="muted">
-          Found a place we&apos;re missing? Help us put it on the map.
+          Place name is enough. Add the area or details only if you know them.
         </ThemedText>
       </View>
 
@@ -100,36 +193,97 @@ export default function SubmissionsScreen() {
             value={neighborhood}
           />
 
-          <View>
-            <ThemedText size="sm" weight="medium">
-              Description
-            </ThemedText>
-            <TextInput
-              className="mt-2 min-h-28 rounded-2xl bg-surface px-4 py-3 font-outfit text-md text-foreground"
-              multiline
-              onChangeText={setDescription}
+          <OptionalDetailsPanel
+            expanded={helpMore}
+            onToggle={() => setHelpMore((value) => !value)}
+            subtitle="Add details only if they're handy."
+            title="Know a little more?"
+          >
+            <FormTextArea
+              inputClassName="min-h-28"
+              label="What is it like?"
+              onChangeText={(value) => setDescription(value.slice(0, 500))}
               placeholder="What kind of place is it? What's good there?"
-              placeholderTextColor={colors.muted}
-              textAlignVertical="top"
+              surface="muted"
               value={description}
             />
-          </View>
 
-          <AuthField
-            keyboardType="number-pad"
-            label="Contact phone (optional)"
-            onChangeText={setContactPhone}
-            placeholder="Their phone, if you know it"
-            value={contactPhone}
-          />
-          <AuthField
-            autoComplete="email"
-            keyboardType="email-address"
-            label="Contact email (optional)"
-            onChangeText={setContactEmail}
-            placeholder="Their email, if you know it"
-            value={contactEmail}
-          />
+            <View className="gap-2">
+              <ThemedText size="sm" weight="medium">
+                Price range
+              </ThemedText>
+              <View className="flex-row flex-wrap gap-2">
+                {PRICE_LEVELS.map((level) => (
+                  <Pill
+                    key={level.value}
+                    label={level.label}
+                    onPress={() =>
+                      setPriceLevel((current) =>
+                        current === level.value ? "" : level.value,
+                      )
+                    }
+                    selected={priceLevel === level.value}
+                    surface="muted"
+                  />
+                ))}
+              </View>
+            </View>
+
+            <FormTextArea
+              inputClassName="min-h-20"
+              label="Hours"
+              onChangeText={setHours}
+              placeholder="e.g. Open late on weekends."
+              surface="muted"
+              value={hours}
+            />
+
+            <FormTextArea
+              inputClassName="min-h-20"
+              label="Menu or prices"
+              onChangeText={setMenu}
+              placeholder="e.g. Great breakfast, juice is around 120 birr."
+              surface="muted"
+              value={menu}
+            />
+
+            <View className="gap-3">
+              <FormTextInput
+                keyboardType="number-pad"
+                label="Contact phone"
+                onChangeText={(value) => setContactPhone(value.slice(0, 60))}
+                placeholder="Their phone, if you know it"
+                surface="muted"
+                value={contactPhone}
+              />
+              <FormTextInput
+                autoComplete="email"
+                keyboardType="email-address"
+                label="Contact email"
+                onChangeText={setContactEmail}
+                placeholder="Their email, if you know it"
+                surface="muted"
+                value={contactEmail}
+              />
+            </View>
+
+            <View className="gap-2">
+              <ThemedText size="sm" weight="medium">
+                Amenities
+              </ThemedText>
+              <View className="flex-row flex-wrap gap-2">
+                {AMENITIES.map((amenity) => (
+                  <Pill
+                    key={amenity}
+                    label={amenity}
+                    onPress={() => toggleAmenity(amenity)}
+                    selected={amenities.includes(amenity)}
+                    surface="muted"
+                  />
+                ))}
+              </View>
+            </View>
+          </OptionalDetailsPanel>
 
           {error ? (
             <ThemedText size="sm" tone="brand">

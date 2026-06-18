@@ -1,13 +1,8 @@
 import type { ReactNode } from "react";
-import { colors } from "@/lib/theme";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  TextInput,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { FormTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
 
 type AuthScreenProps = {
@@ -83,21 +78,15 @@ export function AuthField({
   secureTextEntry,
 }: AuthFieldProps) {
   return (
-    <View>
-      <ThemedText size="sm" weight="medium">
-        {label}
-      </ThemedText>
-      <TextInput
-        autoCapitalize={autoCapitalize}
-        autoComplete={autoComplete}
-        className="mt-2 h-16 rounded-full bg-white px-6 font-outfit text-md text-neutral-950"
-        keyboardType={keyboardType}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={colors.muted}
-        secureTextEntry={secureTextEntry}
-        value={value}
-      />
-    </View>
+    <FormTextInput
+      autoCapitalize={autoCapitalize}
+      autoComplete={autoComplete}
+      keyboardType={keyboardType}
+      label={label}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      secureTextEntry={secureTextEntry}
+      value={value}
+    />
   );
 }

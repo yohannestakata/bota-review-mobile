@@ -10,6 +10,11 @@ import {
   type PlaceMissingDetails,
 } from "./api";
 
+type PlaceMissingSubmissionBody = {
+  details: PlaceMissingDetails;
+  note?: string;
+};
+
 export function useNeighborhoods() {
   const { getToken } = useAuth();
 
@@ -24,8 +29,8 @@ export function useReportMissingPlace() {
   const { getToken } = useAuth();
 
   return useMutation({
-    mutationFn: (details: PlaceMissingDetails) =>
-      reportMissingPlace(details, getToken),
+    mutationFn: ({ details, note }: PlaceMissingSubmissionBody) =>
+      reportMissingPlace(details, getToken, note),
   });
 }
 

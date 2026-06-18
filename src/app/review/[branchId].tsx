@@ -10,12 +10,12 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
+import { FormTextArea } from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
@@ -61,8 +61,7 @@ export default function WriteReviewScreen() {
   const [error, setError] = useState("");
 
   const trimmed = text.trim();
-  const busy =
-    createReview.isPending || updateReview.isPending || uploading;
+  const busy = createReview.isPending || updateReview.isPending || uploading;
   const canSubmit = rating >= 1 && trimmed.length >= MIN_CHARS && !busy;
 
   async function pickPhotos() {
@@ -173,17 +172,12 @@ export default function WriteReviewScreen() {
           </View>
 
           <View className="gap-2">
-            <ThemedText size="lg" weight="medium">
-              Spill the details
-            </ThemedText>
-            <TextInput
-              className="min-h-40 rounded-2xl bg-neutral-100 p-4 font-outfit text-md text-neutral-950"
+            <FormTextArea
+              inputClassName="min-h-40 bg-neutral-100"
+              label="Spill the details"
               maxLength={MAX_CHARS}
-              multiline
               onChangeText={setText}
               placeholder="What did you order? How was the vibe?"
-              placeholderTextColor={colors.muted}
-              textAlignVertical="top"
               value={text}
             />
             <ThemedText size="sm" tone="muted">

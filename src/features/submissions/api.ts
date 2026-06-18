@@ -11,10 +11,15 @@ export type PlaceMissingDetails = {
 export function reportMissingPlace(
   details: PlaceMissingDetails,
   getToken: TokenGetter,
+  note?: string,
 ) {
   return apiFetch("/submissions", getToken, {
     method: "POST",
-    body: JSON.stringify({ type: "place_missing", details }),
+    body: JSON.stringify({
+      type: "place_missing",
+      details,
+      ...(note ? { note } : {}),
+    }),
   });
 }
 
