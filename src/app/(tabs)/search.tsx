@@ -4,8 +4,8 @@ import {
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, TextInput, View } from "react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, Alert, FlatList, Pressable, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppIcon } from "@/components/ui/huge-icon";
@@ -37,14 +37,31 @@ export default function SearchScreen() {
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [priceLevels, setPriceLevels] = useState<number[]>([]);
   const [openNow, setOpenNow] = useState(false);
+  const [nearby, setNearby] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const debouncedQ = useDebouncedValue(text.trim(), 300);
   const cuisines = useCuisines();
   const tags = useTags();
-  const { coords } = useLocation();
+  const { coords, status, request } = useLocation();
   const { data: savedIds } = useSavedBranchIds();
   const toggleSave = useToggleSave();
+
+  // "Nearby" only sorts by distance once we actually have coordinates.
+  const sortByDistance = nearby && coords != null;
+  // Waiting on a granted-but-not-yet-resolved location fix.
+  const nearbyPending = nearby && coords == null && status !== "denied";
+
+  // If location is denied, don't leave the chip looking selected-but-inert.
+  useEffect(() => {
+    if (nearby && status === "denied") {
+      setNearby(false);
+      Alert.alert(
+        "Location is off",
+        "Turn on location access to find places near you.",
+      );
+    }
+  }, [nearby, status]);
 
   const params = useMemo(
     () => ({
@@ -53,15 +70,24 @@ export default function SearchScreen() {
       tagId: tagIds.length > 0 ? tagIds : undefined,
       priceLevel: priceLevels.length > 0 ? priceLevels : undefined,
       openNow: openNow || undefined,
+      sort: sortByDistance ? ("distance" as const) : undefined,
       lat: coords?.lat,
       lng: coords?.lng,
     }),
-    [debouncedQ, cuisineIds, tagIds, priceLevels, openNow, coords?.lat, coords?.lng],
+    [debouncedQ, cuisineIds, tagIds, priceLevels, openNow, sortByDistance, coords?.lat, coords?.lng],
   );
+
+  function toggleNearby() {
+    if (!nearby && coords == null) {
+      void request();
+    }
+    setNearby((v) => !v);
+  }
 
   const search = useSearch(params);
   const filterCount = cuisineIds.length + tagIds.length + priceLevels.length;
-  const active = debouncedQ.length >= 2 || filterCount > 0 || openNow;
+  const active =
+    debouncedQ.length >= 2 || filterCount > 0 || openNow || sortByDistance;
   const results = search.data ?? [];
 
   const onToggleSave = useCallback(
@@ -119,6 +145,12 @@ export default function SearchScreen() {
           </Pressable>
 
           <FilterChip
+            label="Nearby"
+            onPress={toggleNearby}
+            selected={nearby}
+          />
+
+          <FilterChip
             label="Open now"
             onPress={() => setOpenNow((v) => !v)}
             selected={openNow}
@@ -133,7 +165,11 @@ export default function SearchScreen() {
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
           <View className="mt-24 items-center px-6">
-            {!active ? (
+            {nearbyPending ? (
+              <ThemedText className="text-center" tone="muted">
+                Finding places near you…
+              </ThemedText>
+            ) : !active ? (
               <ThemedText className="text-center" tone="muted">
                 What are you in the mood for?
               </ThemedText>
