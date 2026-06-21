@@ -1,71 +1,87 @@
-// A pool of greetings per time-of-day bucket (aligned with the backend's meal
-// buckets). One is picked per app launch — varied across opens, stable within a
-// session (pass a seed pinned at mount). Entries are either a plain string or a
-// function that uses the name, so the name is optional.
+// Home greeting = a clock-accurate salutation (Morning/Afternoon/Evening, or
+// none late at night) + a meal-accurate question, combined. The two are derived
+// independently so each stays correct: at 11:58 the clock is "Morning" but the
+// meal is lunch -> "Morning, Yohannes. What's for lunch?".
 //
-// Note: a meal window is not a clock period — the lunch window starts at 11:00
-// (before "afternoon") and the dinner window at 16:00 (before "evening"), so
-// these avoid clock-time words that would be wrong at a bucket's edges. Only
-// "morning" (5–11) and the late-night phrasings are time-accurate everywhere.
+// One greeting is picked per app launch (pass a seed pinned at mount): varied
+// across opens, stable within a session.
 
 type MealBucket = "breakfast" | "lunch" | "dinner" | "late";
-type Greeting = string | ((name: string) => string);
 
-function bucketFor(date: Date): MealBucket {
-  const hour = date.getHours();
+// Clock brackets. Returns null late at night, where a salutation ("Night"/
+// "Good night") reads as a farewell — the late questions stand on their own.
+function salutationFor(hour: number): string | null {
+  if (hour >= 5 && hour < 12) return "Morning";
+  if (hour >= 12 && hour < 17) return "Afternoon";
+  if (hour >= 17 && hour < 21) return "Evening";
+  return null;
+}
+
+// Meal windows (aligned with the backend's meal buckets).
+function mealFor(hour: number): MealBucket {
   if (hour >= 5 && hour < 11) return "breakfast";
   if (hour >= 11 && hour < 16) return "lunch";
   if (hour >= 16 && hour < 22) return "dinner";
   return "late";
 }
 
-const GREETINGS: Record<MealBucket, Greeting[]> = {
+// Meal-specific questions — no clock words (the salutation owns the time).
+const QUESTIONS: Record<MealBucket, string[]> = {
   breakfast: [
-    (n) => `Morning, ${n}. What's for breakfast?`,
-    "Rise and shine. Breakfast time?",
-    (n) => `Good morning, ${n}. Coffee first?`,
-    "Up early? Let's find breakfast.",
-    "What's for breakfast this morning?",
-    (n) => `Hey ${n}, hungry for breakfast?`,
-    "Start the day with something good.",
-    "Coffee and a bite to start?",
+    "What's for breakfast?",
+    "Hungry for breakfast?",
+    "Coffee first?",
+    "Let's find breakfast.",
+    "What sounds good?",
+    "Time for a bite?",
+    "Breakfast on your mind?",
+    "Let's start the day right.",
   ],
   lunch: [
-    (n) => `Hey ${n}, what's for lunch today?`,
-    "Midday hunger? Let's find lunch.",
-    "Lunchtime. What sounds good?",
-    (n) => `Craving anything, ${n}?`,
+    "What's for lunch?",
+    "Hungry for lunch?",
+    "What sounds good?",
     "Time for a lunch break?",
-    (n) => `What's for lunch, ${n}?`,
-    "Hungry? Let's grab lunch.",
+    "Let's grab lunch.",
+    "Craving anything?",
     "Something good for lunch?",
+    "Where to for lunch?",
   ],
   dinner: [
-    (n) => `What's for dinner, ${n}?`,
-    "Where to for dinner?",
-    (n) => `Dinnertime, ${n}. What are you craving?`,
-    (n) => `Hey ${n}, what sounds good tonight?`,
-    "What's for dinner tonight?",
+    "What's for dinner?",
     "Hungry for dinner?",
-    (n) => `Let's find dinner, ${n}.`,
+    "What sounds good tonight?",
+    "Where to for dinner?",
+    "Let's find dinner.",
+    "What are you craving?",
     "Where are we eating tonight?",
+    "Dinner plans?",
   ],
   late: [
-    (n) => `Up late, ${n}? Late-night cravings?`,
-    "Still hungry? Let's find a spot.",
-    "Late-night bites? Let's go.",
-    (n) => `Burning the midnight oil, ${n}?`,
-    "Craving a late-night snack?",
-    "Up late and hungry?",
-    (n) => `Hey ${n}, late-night cravings?`,
+    "Late-night cravings?",
+    "Still hungry?",
+    "Late-night bites?",
+    "Craving a snack?",
     "Something to eat this late?",
+    "Up late and hungry?",
+    "Let's find a late-night spot.",
+    "Midnight snack?",
   ],
 };
 
 // `seed` is a number in [0, 1) (e.g. Math.random() captured once at mount).
 export function homeGreeting(date: Date, name: string, seed: number): string {
-  const pool = GREETINGS[bucketFor(date)];
-  const index = Math.min(pool.length - 1, Math.floor(seed * pool.length));
-  const entry = pool[index];
-  return typeof entry === "function" ? entry(name) : entry;
+  const hour = date.getHours();
+  const pool = QUESTIONS[mealFor(hour)];
+  const question = pool[Math.min(pool.length - 1, Math.floor(seed * pool.length))];
+  const salutation = salutationFor(hour);
+  // Drop the name on some launches so it isn't always present.
+  const useName = Math.floor(seed * 1000) % 3 !== 0;
+
+  if (!salutation) {
+    return useName ? `Hey ${name}. ${question}` : question;
+  }
+  return useName
+    ? `${salutation}, ${name}. ${question}`
+    : `${salutation}. ${question}`;
 }
