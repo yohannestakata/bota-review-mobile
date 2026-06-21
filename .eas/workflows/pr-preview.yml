@@ -1,9 +1,11 @@
-name: PR preview
+name: PR preview build
 
-# Every PR against main produces an internal-distribution build testers can install.
+# Opening a PR against preview produces an internal-distribution build for the
+# native changes in that PR. JS/asset-only changes ship via OTA on push to
+# preview instead — so only open a PR here when you have native changes.
 on:
   pull_request:
-    branches: [main]
+    branches: [preview]
 
 jobs:
   build_ios:
