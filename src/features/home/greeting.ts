@@ -1,8 +1,10 @@
-// A small pool of greetings per time-of-day bucket (aligned with the backend's
-// meal buckets). One is picked per app launch — varied across opens, stable
-// within a session (pass a seed pinned at mount).
+// A pool of greetings per time-of-day bucket (aligned with the backend's meal
+// buckets). One is picked per app launch — varied across opens, stable within a
+// session (pass a seed pinned at mount). Entries are either a plain string or a
+// function that uses the name, so the name is optional.
 
 type MealBucket = "breakfast" | "lunch" | "dinner" | "late";
+type Greeting = string | ((name: string) => string);
 
 function bucketFor(date: Date): MealBucket {
   const hour = date.getHours();
@@ -12,31 +14,46 @@ function bucketFor(date: Date): MealBucket {
   return "late";
 }
 
-// Kept ~2 lines at text-3xl so the header height stays consistent.
-const GREETINGS: Record<MealBucket, ((name: string) => string)[]> = {
+const GREETINGS: Record<MealBucket, Greeting[]> = {
   breakfast: [
-    (n) => `Morning, ${n} — what's for breakfast?`,
-    (n) => `Rise and shine, ${n}. Breakfast time?`,
+    (n) => `Morning, ${n}. What's for breakfast?`,
+    "Rise and shine. Breakfast time?",
     (n) => `Good morning, ${n}. Coffee first?`,
-    (n) => `Up early, ${n}? Let's find breakfast.`,
+    "Up early? Let's find breakfast.",
+    "What's for breakfast this morning?",
+    (n) => `Hey ${n}, hungry for breakfast?`,
+    "Start the day with something good.",
+    "Coffee and a bite to start?",
   ],
   lunch: [
     (n) => `Hey ${n}, what's for lunch today?`,
-    (n) => `Midday hunger, ${n}? Let's find lunch.`,
-    (n) => `Lunchtime, ${n} — what sounds good?`,
+    "Midday hunger? Let's find lunch.",
+    "Lunchtime. What sounds good?",
     (n) => `Afternoon, ${n}. Craving anything?`,
+    "Time for a lunch break?",
+    (n) => `What's for lunch, ${n}?`,
+    "Hungry? Let's grab lunch.",
+    "Something good for lunch?",
   ],
   dinner: [
     (n) => `Good evening, ${n}. What's for dinner?`,
-    (n) => `Evening, ${n} — where to for dinner?`,
+    "Evening. Where to for dinner?",
     (n) => `Dinnertime, ${n}. What are you craving?`,
     (n) => `Hey ${n}, what sounds good tonight?`,
+    "What's for dinner tonight?",
+    "Hungry for dinner?",
+    (n) => `Evening, ${n}. Let's find dinner.`,
+    "Where are we eating tonight?",
   ],
   late: [
     (n) => `Up late, ${n}? Late-night cravings?`,
-    (n) => `Still hungry, ${n}? Let's find a spot.`,
-    (n) => `Late-night bites, ${n}? Let's go.`,
+    "Still hungry? Let's find a spot.",
+    "Late-night bites? Let's go.",
     (n) => `Burning the midnight oil, ${n}?`,
+    "Craving a late-night snack?",
+    "Up late and hungry?",
+    (n) => `Hey ${n}, late-night cravings?`,
+    "Something to eat this late?",
   ],
 };
 
@@ -44,5 +61,6 @@ const GREETINGS: Record<MealBucket, ((name: string) => string)[]> = {
 export function homeGreeting(date: Date, name: string, seed: number): string {
   const pool = GREETINGS[bucketFor(date)];
   const index = Math.min(pool.length - 1, Math.floor(seed * pool.length));
-  return pool[index](name);
+  const entry = pool[index];
+  return typeof entry === "function" ? entry(name) : entry;
 }
