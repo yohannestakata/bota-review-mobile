@@ -24,10 +24,16 @@ export function AppLoadingSkeleton() {
           <Skeleton className="h-9 w-28 rounded-full" />
         </View>
 
-        {/* "Hey {name}, what are you craving?" wraps to two lines. */}
-        <View className="mt-4 gap-2">
-          <Skeleton className="h-8 w-4/5 rounded-full" />
-          <Skeleton className="h-8 w-1/2 rounded-full" />
+        {/* "Hey {name}, what are you craving?" — two lines of text-3xl, whose
+            line-height is 40px each, so each line reserves a 40px box to avoid
+            layout shift when the real header loads. */}
+        <View className="mt-4">
+          <View className="h-10 justify-center">
+            <Skeleton className="h-7 w-4/5 rounded-full" />
+          </View>
+          <View className="h-10 justify-center">
+            <Skeleton className="h-7 w-1/2 rounded-full" />
+          </View>
         </View>
 
         <Skeleton className="mt-6 h-16 w-full rounded-full" />
