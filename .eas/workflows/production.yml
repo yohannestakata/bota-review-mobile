@@ -1,0 +1,76 @@
+name: Production deploy
+
+# Every push to main:
+#   - always publishes an OTA update to the production channel
+#   - builds AND submits a new production build only when the native fingerprint
+#     changed. No native change = OTA is enough; no build, no store submission.
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish_update:
+    name: OTA to production
+    type: update
+    environment: production
+    params:
+      branch: production
+      platform: all
+      message: ${{ github.sha }}
+
+  fingerprint:
+    name: Compute fingerprint
+    type: fingerprint
+    environment: production
+
+  get_ios_build:
+    needs: [fingerprint]
+    type: get-build
+    params:
+      platform: ios
+      profile: production
+      fingerprint_hash: ${{ needs.fingerprint.outputs.ios_fingerprint_hash }}
+
+  get_android_build:
+    needs: [fingerprint]
+    type: get-build
+    params:
+      platform: android
+      profile: production
+      fingerprint_hash: ${{ needs.fingerprint.outputs.android_fingerprint_hash }}
+
+  build_ios:
+    name: Production build iOS (native changed)
+    needs: [get_ios_build]
+    if: ${{ !needs.get_ios_build.outputs.build_id }}
+    type: build
+    params:
+      platform: ios
+      profile: production
+
+  build_android:
+    name: Production build Android (native changed)
+    needs: [get_android_build]
+    if: ${{ !needs.get_android_build.outputs.build_id }}
+    type: build
+    params:
+      platform: android
+      profile: production
+
+  submit_ios:
+    name: Submit iOS
+    needs: [build_ios]
+    if: ${{ needs.build_ios.outputs.build_id }}
+    type: submit
+    params:
+      build_id: ${{ needs.build_ios.outputs.build_id }}
+      profile: production
+
+  submit_android:
+    name: Submit Android
+    needs: [build_android]
+    if: ${{ needs.build_android.outputs.build_id }}
+    type: submit
+    params:
+      build_id: ${{ needs.build_android.outputs.build_id }}
+      profile: production

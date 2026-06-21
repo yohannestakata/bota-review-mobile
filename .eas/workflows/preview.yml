@@ -1,0 +1,60 @@
+name: Preview deploy
+
+# Every push (merge) to preview:
+#   - always publishes an OTA update to the preview channel (cheap; JS/assets)
+#   - builds a NEW preview build only when the native fingerprint changed
+# Fingerprint runtime versions keep OTA updates from landing on incompatible
+# builds, so "always update" is safe; "build" only runs when there's no existing
+# preview build matching the current fingerprint.
+on:
+  push:
+    branches: [preview]
+
+jobs:
+  publish_update:
+    name: OTA to preview
+    type: update
+    environment: preview
+    params:
+      branch: preview
+      platform: all
+      message: ${{ github.sha }}
+
+  fingerprint:
+    name: Compute fingerprint
+    type: fingerprint
+    environment: preview
+
+  get_ios_build:
+    needs: [fingerprint]
+    type: get-build
+    params:
+      platform: ios
+      profile: preview
+      fingerprint_hash: ${{ needs.fingerprint.outputs.ios_fingerprint_hash }}
+
+  get_android_build:
+    needs: [fingerprint]
+    type: get-build
+    params:
+      platform: android
+      profile: preview
+      fingerprint_hash: ${{ needs.fingerprint.outputs.android_fingerprint_hash }}
+
+  build_ios:
+    name: Preview build iOS (native changed)
+    needs: [get_ios_build]
+    if: ${{ !needs.get_ios_build.outputs.build_id }}
+    type: build
+    params:
+      platform: ios
+      profile: preview
+
+  build_android:
+    name: Preview build Android (native changed)
+    needs: [get_android_build]
+    if: ${{ !needs.get_android_build.outputs.build_id }}
+    type: build
+    params:
+      platform: android
+      profile: preview
