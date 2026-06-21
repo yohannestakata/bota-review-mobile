@@ -1,21 +1,25 @@
-import { StarIcon } from "@hugeicons/core-free-icons";
+import {
+  CheckmarkBadge01Icon,
+  StarIcon,
+} from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
 import { Pressable, View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
+import { priceLabel, type BranchCard as BranchCardData } from "@/lib/api";
 import { colors } from "@/lib/theme";
-import type { BranchCard as BranchCardData } from "@/lib/api";
 
 type SiblingCardProps = {
   branch: BranchCardData;
   onPress: (branch: BranchCardData) => void;
 };
 
-// Compact card for the "Other locations" rail. The place is already obvious from
-// the detail page, so the neighborhood + distance + open status do the talking.
+// "Other locations" rail card. Same data + styling as BranchCard, but titled by
+// neighborhood (the place is already obvious here) and without the save heart.
 export function SiblingCard({ branch, onPress }: SiblingCardProps) {
   const title = branch.neighborhood?.name ?? branch.label ?? "Location";
+  const price = priceLabel(branch.priceLevel);
   const hasRating = branch.reviewCount > 0;
   const distance =
     branch.distanceKm != null
@@ -25,7 +29,7 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
       : null;
 
   return (
-    <Pressable className="w-44" onPress={() => onPress(branch)}>
+    <Pressable className="w-56" onPress={() => onPress(branch)}>
       <View className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-neutral-200">
         {branch.coverPhotoUrl ? (
           <Image
@@ -35,33 +39,71 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
             transition={150}
           />
         ) : null}
-      </View>
 
-      <View className="mt-2 gap-0.5">
-        <ThemedText numberOfLines={1} weight="medium">
-          {title}
-        </ThemedText>
-        <View className="flex-row items-center gap-1">
-          {branch.isOpenNow !== undefined ? (
+        {branch.isOpenNow !== undefined ? (
+          <View
+            className={`absolute left-2 top-2 rounded-full border bg-white px-2 py-0.5 ${
+              branch.isOpenNow ? "border-green-600" : "border-red-500"
+            }`}
+          >
             <ThemedText
               className={branch.isOpenNow ? "text-green-700" : "text-red-600"}
-              size="sm"
+              size="xs"
               weight="medium"
             >
               {branch.isOpenNow ? "Open" : "Closed"}
             </ThemedText>
+          </View>
+        ) : null}
+      </View>
+
+      <View className="mt-2">
+        <View className="flex-row items-center gap-1">
+          <ThemedText
+            className="shrink"
+            numberOfLines={1}
+            size="lg"
+            weight="medium"
+          >
+            {title}
+          </ThemedText>
+          {branch.verificationStatus &&
+          branch.verificationStatus !== "unverified" ? (
+            <AppIcon
+              color={colors.success}
+              icon={CheckmarkBadge01Icon}
+              size={15}
+            />
+          ) : null}
+        </View>
+
+        <View className="mt-0.5 flex-row items-center gap-1">
+          {hasRating ? (
+            <>
+              <AppIcon color={colors.foreground} icon={StarIcon} size={14} />
+              <ThemedText size="sm" weight="medium">
+                {Number(branch.rating).toFixed(1)}
+              </ThemedText>
+              <ThemedText size="sm" tone="muted">
+                ({branch.reviewCount})
+              </ThemedText>
+            </>
+          ) : (
+            <ThemedText size="sm" tone="muted">
+              New
+            </ThemedText>
+          )}
+          {price ? (
+            <ThemedText size="sm" tone="muted">
+              {" · "}
+              {price}
+            </ThemedText>
           ) : null}
           {distance ? (
             <ThemedText size="sm" tone="muted">
-              {branch.isOpenNow !== undefined ? ` · ${distance}` : distance}
+              {" · "}
+              {distance}
             </ThemedText>
-          ) : hasRating ? (
-            <View className="flex-row items-center gap-1">
-              <AppIcon color={colors.foreground} icon={StarIcon} size={13} />
-              <ThemedText size="sm" tone="muted">
-                {Number(branch.rating).toFixed(1)}
-              </ThemedText>
-            </View>
           ) : null}
         </View>
       </View>
