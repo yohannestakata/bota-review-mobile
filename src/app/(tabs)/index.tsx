@@ -1,7 +1,7 @@
 import { useUser } from "@clerk/clerk-expo";
 import { colors } from "@/lib/theme";
 import { router } from "expo-router";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -12,6 +12,7 @@ import {
   type HomeBranchSection,
   HomeSearchBar,
   HomeSection,
+  homeGreeting,
   LocationPill,
   useHomeFeed,
   useSavedBranchIds,
@@ -60,6 +61,11 @@ export default function Index() {
   );
 
   const firstName = user?.firstName ?? "there";
+  // Picked once per app launch — varies across opens, stable within a session.
+  const greeting = useMemo(
+    () => homeGreeting(new Date(), firstName, Math.random()),
+    [firstName],
+  );
   const allSections = home.data?.sections ?? [];
   const collections = allSections
     .filter((section) => section.type === "curated_collection")
@@ -111,7 +117,7 @@ export default function Index() {
             />
           </View>
           <ThemedText className="mt-4" size="3xl" weight="medium">
-            Hey {firstName}, what are you craving?
+            {greeting}
           </ThemedText>
         </View>
 
