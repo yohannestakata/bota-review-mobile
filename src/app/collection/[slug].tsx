@@ -1,13 +1,14 @@
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback } from "react";
-import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
+import { FlatList, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   BranchCard,
+  BranchListSkeleton,
   useCollection,
   useSavedBranchIds,
   useToggleSave,
@@ -45,12 +46,14 @@ export default function CollectionScreen() {
       </View>
 
       {collection.isPending ? (
-        <View className="mt-24 items-center">
-          <ActivityIndicator color={colors.foreground} />
+        <View className="px-6 pt-2">
+          <BranchListSkeleton />
         </View>
       ) : collection.isError || !collection.data ? (
         <View className="mt-24 items-center gap-3 px-6">
-          <ThemedText tone="muted">Couldn&apos;t load this collection.</ThemedText>
+          <ThemedText tone="muted">
+            Couldn&apos;t load this collection.
+          </ThemedText>
           <Pressable onPress={() => collection.refetch()}>
             <ThemedText tone="brand" weight="semibold">
               Try again

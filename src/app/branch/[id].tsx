@@ -7,7 +7,7 @@ import { colors } from "@/lib/theme";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
@@ -21,6 +21,7 @@ import { ThemedText } from "@/components/ui/themed-text";
 import {
   AmenityList,
   BranchHeaderButtons,
+  BranchDetailSkeleton,
   BranchHero,
   BranchStickyHeader,
   isOpenNow,
@@ -83,11 +84,7 @@ export default function BranchDetailScreen() {
   const isSaved = savedIds?.has(id) ?? false;
 
   if (branch.isPending) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator color={colors.foreground} />
-      </View>
-    );
+    return <BranchDetailSkeleton />;
   }
 
   if (branch.isError || !branch.data) {
@@ -135,9 +132,7 @@ export default function BranchDetailScreen() {
       >
         <BranchHero
           imageUrl={cover}
-          onPress={
-            data.photos.length > 0 ? () => setViewerIndex(0) : undefined
-          }
+          onPress={data.photos.length > 0 ? () => setViewerIndex(0) : undefined}
           scrollY={scrollY}
         />
 
@@ -193,7 +188,6 @@ export default function BranchDetailScreen() {
                 <ThemedText tone="muted">{data.addressText}</ThemedText>
               </View>
             ) : null}
-
           </View>
 
           {/* Quick actions */}
@@ -248,7 +242,9 @@ export default function BranchDetailScreen() {
                     <ThemedText className="shrink" numberOfLines={1}>
                       {item.name}
                     </ThemedText>
-                    <ThemedText tone="muted">{formatBirr(item.price)}</ThemedText>
+                    <ThemedText tone="muted">
+                      {formatBirr(item.price)}
+                    </ThemedText>
                   </View>
                 ))}
 

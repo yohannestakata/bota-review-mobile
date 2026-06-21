@@ -3,14 +3,7 @@ import { colors } from "@/lib/theme";
 import { PencilEdit02Icon, Share08Icon } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  Share,
-  View,
-} from "react-native";
+import { Alert, FlatList, Pressable, Share, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Avatar } from "@/components/ui/avatar";
@@ -21,6 +14,7 @@ import { useDeleteReview } from "@/features/branch";
 import { useSavedBranchIds } from "@/features/home";
 import {
   MyReviewRow,
+  ProfileReviewsSkeleton,
   useMe,
   useMyReviews,
   type MyReview,
@@ -58,7 +52,11 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
               hitSlop={8}
               onPress={() => router.push("/profile/edit")}
             >
-              <AppIcon color={colors.foreground} icon={PencilEdit02Icon} size={16} />
+              <AppIcon
+                color={colors.foreground}
+                icon={PencilEdit02Icon}
+                size={16}
+              />
               <ThemedText size="sm" weight="medium">
                 Edit
               </ThemedText>
@@ -186,15 +184,15 @@ export default function ProfileScreen() {
         keyExtractor={(item) => item.id}
         ListHeaderComponent={<ProfileHeader reviewCount={items.length} />}
         ListEmptyComponent={
-          <View className="mt-8 items-center px-6">
-            {reviews.isPending ? (
-              <ActivityIndicator color={colors.foreground} />
-            ) : (
+          reviews.isPending ? (
+            <ProfileReviewsSkeleton />
+          ) : (
+            <View className="mt-8 items-center px-6">
               <ThemedText className="text-center" tone="muted">
                 No reviews yet — go share a hot take.
               </ThemedText>
-            )}
-          </View>
+            </View>
+          )
         }
         ListFooterComponent={
           <Button

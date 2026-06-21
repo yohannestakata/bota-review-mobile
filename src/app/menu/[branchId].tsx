@@ -1,11 +1,16 @@
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
-import { MenuList, totalItemCount, useBranchMenus } from "@/features/branch";
+import {
+  MenuList,
+  MenuSkeleton,
+  totalItemCount,
+  useBranchMenus,
+} from "@/features/branch";
 import { colors } from "@/lib/theme";
 
 export default function MenuScreen() {
@@ -41,9 +46,7 @@ export default function MenuScreen() {
       </View>
 
       {menus.isPending ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color={colors.foreground} />
-        </View>
+        <MenuSkeleton />
       ) : itemCount === 0 ? (
         <View className="flex-1 items-center justify-center px-6">
           <ThemedText className="text-center" tone="muted">

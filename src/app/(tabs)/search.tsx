@@ -5,14 +5,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  TextInput,
-  View,
-} from "react-native";
+import { Alert, FlatList, Pressable, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppIcon } from "@/components/ui/huge-icon";
@@ -21,6 +14,7 @@ import { BranchCard, useSavedBranchIds, useToggleSave } from "@/features/home";
 import {
   FilterChip,
   FilterSheet,
+  SearchResultsSkeleton,
   useCuisines,
   useSearch,
   useTags,
@@ -177,23 +171,27 @@ export default function SearchScreen() {
         keyboardShouldPersistTaps="handled"
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
-          <View className="mt-24 items-center px-6">
-            {nearbyPending ? (
+          nearbyPending ? (
+            <View className="mt-24 items-center px-6">
               <ThemedText className="text-center" tone="muted">
                 Finding places near you…
               </ThemedText>
-            ) : !active ? (
+            </View>
+          ) : !active ? (
+            <View className="mt-24 items-center px-6">
               <ThemedText className="text-center" tone="muted">
                 What are you in the mood for?
               </ThemedText>
-            ) : search.isFetching ? (
-              <ActivityIndicator color={colors.foreground} />
-            ) : (
+            </View>
+          ) : search.isFetching ? (
+            <SearchResultsSkeleton />
+          ) : (
+            <View className="mt-24 items-center px-6">
               <ThemedText className="text-center" tone="muted">
                 Nothing matched — try different filters.
               </ThemedText>
-            )}
-          </View>
+            </View>
+          )
         }
         renderItem={({ item }) => (
           <BranchCard

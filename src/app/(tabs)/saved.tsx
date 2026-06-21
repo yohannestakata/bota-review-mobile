@@ -1,12 +1,12 @@
 import { router } from "expo-router";
-import { colors } from "@/lib/theme";
 import { useCallback } from "react";
-import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
+import { FlatList, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   BranchCard,
+  BranchListSkeleton,
   useSaves,
   useSavedBranchIds,
   useToggleSave,
@@ -45,25 +45,29 @@ export default function SavedScreen() {
         data={items}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
-          <View className="mt-24 items-center px-6">
-            {saves.isPending ? (
-              <ActivityIndicator color={colors.foreground} />
-            ) : saves.isError ? (
-              <View className="items-center gap-3">
-                <ThemedText tone="muted">Couldn&apos;t grab your saves.</ThemedText>
-                <Pressable onPress={() => saves.refetch()}>
-                  <ThemedText tone="brand" weight="semibold">
-                    Try again
+          saves.isPending ? (
+            <BranchListSkeleton />
+          ) : (
+            <View className="mt-24 items-center px-6">
+              {saves.isError ? (
+                <View className="items-center gap-3">
+                  <ThemedText tone="muted">
+                    Couldn&apos;t grab your saves.
                   </ThemedText>
-                </Pressable>
-              </View>
-            ) : (
-              <ThemedText className="text-center" tone="muted">
-                No saves yet. Tap the heart on places you love and they&apos;ll
-                live here.
-              </ThemedText>
-            )}
-          </View>
+                  <Pressable onPress={() => saves.refetch()}>
+                    <ThemedText tone="brand" weight="semibold">
+                      Try again
+                    </ThemedText>
+                  </Pressable>
+                </View>
+              ) : (
+                <ThemedText className="text-center" tone="muted">
+                  No saves yet. Tap the heart on places you love and
+                  they&apos;ll live here.
+                </ThemedText>
+              )}
+            </View>
+          )
         }
         onRefresh={() => saves.refetch()}
         refreshing={saves.isFetching && !saves.isPending}

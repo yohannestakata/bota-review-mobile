@@ -10,11 +10,12 @@ import {
 import { Redirect, Tabs } from "expo-router";
 import type { Href } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
+import { AppLoadingSkeleton } from "@/components/app-loading-skeleton";
 import { getCurrentUser } from "@/lib/api";
 import { debugLog } from "@/lib/debug";
 
@@ -28,9 +29,7 @@ const TAB_INACTIVE_COLOR = colors.muted;
 function TabsLoadingScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator color={colors.foreground} />
-      </View>
+      <AppLoadingSkeleton />
     </SafeAreaView>
   );
 }
