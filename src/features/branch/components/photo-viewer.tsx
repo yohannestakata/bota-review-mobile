@@ -7,7 +7,6 @@ import {
   Modal,
   Pressable,
   StyleSheet,
-  View,
 } from "react-native";
 import {
   Gesture,
@@ -178,10 +177,19 @@ export function PhotoViewer({
   });
 
   return (
-    <Modal animationType="fade" onRequestClose={onClose} transparent visible={visible}>
+    <Modal
+      animationType="fade"
+      onRequestClose={onClose}
+      transparent
+      visible={visible}
+    >
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Animated.View
-          style={[StyleSheet.absoluteFill, backdropStyle, { backgroundColor: "#000" }]}
+          style={[
+            StyleSheet.absoluteFill,
+            backdropStyle,
+            { backgroundColor: "#000" },
+          ]}
         />
 
         <GestureDetector gesture={dismiss}>

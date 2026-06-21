@@ -1,11 +1,11 @@
 import { useAuth } from "@clerk/clerk-expo";
 import {
+  keepPreviousData,
   useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 
-import { useSearch, useTags } from "@/features/search";
 import { debugLog } from "@/lib/debug";
 import {
   getCollection,
@@ -15,11 +15,11 @@ import {
   saveBranch,
   unsaveBranch,
 } from "./api";
-import { mealTimeNow } from "./meal-time";
 
 export const homeKeys = {
   all: ["home"] as const,
-  feed: () => [...homeKeys.all, "feed"] as const,
+  feed: (coords: { lat: number; lng: number } | null) =>
+    [...homeKeys.all, "feed", coords?.lat, coords?.lng] as const,
   savedIds: () => [...homeKeys.all, "saved-ids"] as const,
   saves: () => [...homeKeys.all, "saves"] as const,
 };
@@ -33,32 +33,14 @@ export function useSaves() {
   });
 }
 
-export function useHomeFeed() {
+export function useHomeFeed(coords: { lat: number; lng: number } | null) {
   const { getToken } = useAuth();
 
   return useQuery({
-    queryKey: homeKeys.feed(),
-    queryFn: () => getHome(getToken),
+    queryKey: homeKeys.feed(coords),
+    queryFn: () => getHome(coords, getToken),
+    placeholderData: keepPreviousData,
   });
-}
-
-// Time-of-day rail: filters by the current meal-time tag, sorted by distance
-// when location is available.
-export function useMealRail(coords: { lat: number; lng: number } | null) {
-  const meal = mealTimeNow();
-  const tags = useTags();
-  const tagId = tags.data?.find((tag) => tag.slug === meal.slug)?.id;
-
-  const query = useSearch({
-    q: "",
-    tagId: tagId ? [tagId] : undefined,
-    lat: coords?.lat,
-    lng: coords?.lng,
-    sort: coords ? "distance" : "rating",
-    limit: 10,
-  });
-
-  return { label: meal.label, query };
 }
 
 export function useCollection(slug: string) {

@@ -2,27 +2,21 @@ import { useUser } from "@clerk/clerk-expo";
 import { colors } from "@/lib/theme";
 import { router } from "expo-router";
 import { useCallback, useEffect } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  View,
-} from "react-native";
+import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   BranchCard,
   CollectionCircles,
+  HomeFeedSkeleton,
+  type HomeBranchSection,
   HomeSearchBar,
   HomeSection,
   LocationPill,
   useHomeFeed,
-  useMealRail,
   useSavedBranchIds,
   useToggleSave,
 } from "@/features/home";
-import { useNearby } from "@/features/search";
 import { Avatar } from "@/components/ui/avatar";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { BranchCard as BranchCardData } from "@/lib/api";
@@ -33,27 +27,23 @@ const EMPTY_SAVED = new Set<string>();
 
 export default function Index() {
   const { user } = useUser();
-  const home = useHomeFeed();
+  const location = useLocation();
+  const home = useHomeFeed(location.coords);
   const saved = useSavedBranchIds();
   const savedIds = saved.data;
   const toggleSave = useToggleSave();
-  const location = useLocation();
-  const nearby = useNearby(location.coords);
-  const mealRail = useMealRail(location.coords);
 
   useEffect(() => {
-    if (nearby.data) {
-      debugLog("home", "near you results", {
+    if (home.data) {
+      debugLog("home", "feed loaded", {
         from: location.coords,
-        count: nearby.data.length,
-        items: nearby.data.map((b) => ({
-          name: b.placeName,
-          neighborhood: b.neighborhood?.name,
-          km: b.distanceKm,
+        sections: home.data.sections.map((section) => ({
+          type: section.type,
+          count: "items" in section ? section.items.length : undefined,
         })),
       });
     }
-  }, [nearby.data, location.coords]);
+  }, [home.data, location.coords]);
 
   const onRefresh = useCallback(() => {
     void Promise.all([home.refetch(), saved.refetch()]);
@@ -78,17 +68,25 @@ export default function Index() {
       title: section.title,
       coverImageUrl: section.coverImageUrl,
     }));
-  const highlyRated = allSections.find(
+  const branchSections = allSections.filter(
+    (section): section is HomeBranchSection =>
+      section.type !== "curated_collection",
+  );
+  const highlyRated = branchSections.find(
     (section) => section.type === "highly_rated",
   );
-  const nearbyItems = nearby.data ?? [];
+  const railSections = branchSections.filter(
+    (section) => section.type !== "highly_rated" && section.items.length > 0,
+  );
   const isEmpty =
     collections.length === 0 &&
-    nearbyItems.length === 0 &&
-    (highlyRated?.items.length ?? 0) === 0;
+    branchSections.every((section) => section.items.length === 0);
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView
+      className="flex-1 bg-background"
+      edges={["top", "left", "right"]}
+    >
       <ScrollView
         className="flex-1"
         contentContainerClassName="pb-10"
@@ -121,13 +119,9 @@ export default function Index() {
           <HomeSearchBar onPress={() => router.push("/search")} />
         </View>
 
-        {home.isPending ? (
-          <View className="mt-24 items-center">
-            <ActivityIndicator color={colors.foreground} />
-          </View>
-        ) : null}
+        {home.isPending ? <HomeFeedSkeleton /> : null}
 
-        {home.isError ? (
+        {home.isError && !home.data ? (
           <View className="mt-24 items-center gap-3 px-6">
             <ThemedText size="lg" weight="medium">
               Well, this is awkward
@@ -160,31 +154,15 @@ export default function Index() {
           </View>
         ) : null}
 
-        {mealRail.query.data && mealRail.query.data.length > 0 ? (
+        {railSections.map((section) => (
           <HomeSection
+            key={section.type}
             onPressBranch={(branch) => router.push(`/branch/${branch.id}`)}
             onToggleSave={onToggleSave}
             savedIds={savedIds ?? EMPTY_SAVED}
-            section={{
-              type: "highly_rated",
-              title: mealRail.label,
-              items: mealRail.query.data,
-            }}
+            section={section}
           />
-        ) : null}
-
-        {nearbyItems.length > 0 ? (
-          <HomeSection
-            onPressBranch={(branch) => router.push(`/branch/${branch.id}`)}
-            onToggleSave={onToggleSave}
-            savedIds={savedIds ?? EMPTY_SAVED}
-            section={{
-              type: "highly_rated",
-              title: "Near you",
-              items: nearbyItems,
-            }}
-          />
-        ) : null}
+        ))}
 
         {home.isSuccess && highlyRated && highlyRated.items.length > 0 ? (
           <View className="mt-8 gap-4 px-6">

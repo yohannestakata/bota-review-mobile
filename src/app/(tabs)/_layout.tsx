@@ -10,7 +10,7 @@ import {
 import { Redirect, Tabs } from "expo-router";
 import type { Href } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppIcon } from "@/components/ui/huge-icon";
@@ -24,6 +24,16 @@ type SyncState = "pending" | "ready" | "error";
 const TAB_ICON_SIZE = 24;
 const TAB_ACTIVE_COLOR = colors.foreground;
 const TAB_INACTIVE_COLOR = colors.muted;
+
+function TabsLoadingScreen() {
+  return (
+    <SafeAreaView className="flex-1 bg-background">
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator color={colors.foreground} />
+      </View>
+    </SafeAreaView>
+  );
+}
 
 export default function TabLayout() {
   const { getToken, isLoaded, isSignedIn } = useAuth();
@@ -79,7 +89,7 @@ export default function TabLayout() {
   }, [getToken, isLoaded, isSignedIn, retryKey]);
 
   if (!isLoaded) {
-    return null;
+    return <TabsLoadingScreen />;
   }
 
   if (!isSignedIn) {
@@ -108,7 +118,7 @@ export default function TabLayout() {
   }
 
   if (syncState !== "ready") {
-    return null;
+    return <TabsLoadingScreen />;
   }
 
   return (
@@ -124,7 +134,11 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color }) => (
-            <AppIcon color={color as string} icon={Home01Icon} size={TAB_ICON_SIZE} />
+            <AppIcon
+              color={color as string}
+              icon={Home01Icon}
+              size={TAB_ICON_SIZE}
+            />
           ),
         }}
       />
@@ -133,7 +147,11 @@ export default function TabLayout() {
         options={{
           title: "Search",
           tabBarIcon: ({ color }) => (
-            <AppIcon color={color as string} icon={Search01Icon} size={TAB_ICON_SIZE} />
+            <AppIcon
+              color={color as string}
+              icon={Search01Icon}
+              size={TAB_ICON_SIZE}
+            />
           ),
         }}
       />
@@ -142,7 +160,11 @@ export default function TabLayout() {
         options={{
           title: "Saved",
           tabBarIcon: ({ color }) => (
-            <AppIcon color={color as string} icon={FavouriteIcon} size={TAB_ICON_SIZE} />
+            <AppIcon
+              color={color as string}
+              icon={FavouriteIcon}
+              size={TAB_ICON_SIZE}
+            />
           ),
         }}
       />
@@ -151,7 +173,11 @@ export default function TabLayout() {
         options={{
           title: "Submissions",
           tabBarIcon: ({ color }) => (
-            <AppIcon color={color as string} icon={Note01Icon} size={TAB_ICON_SIZE} />
+            <AppIcon
+              color={color as string}
+              icon={Note01Icon}
+              size={TAB_ICON_SIZE}
+            />
           ),
         }}
       />
@@ -162,7 +188,11 @@ export default function TabLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ color }) => (
-            <AppIcon color={color as string} icon={UserCircleIcon} size={TAB_ICON_SIZE} />
+            <AppIcon
+              color={color as string}
+              icon={UserCircleIcon}
+              size={TAB_ICON_SIZE}
+            />
           ),
         }}
       />

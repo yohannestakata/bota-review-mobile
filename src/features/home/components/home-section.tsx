@@ -3,11 +3,11 @@ import { ScrollView, View } from "react-native";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 
-import type { HomeSection as HomeSectionData } from "../api";
+import type { HomeBranchSection } from "../api";
 import { BranchCard } from "./branch-card";
 
 type HomeSectionProps = {
-  section: HomeSectionData;
+  section: HomeBranchSection;
   savedIds: Set<string>;
   onToggleSave: (branch: BranchCardData) => void;
   onPressBranch?: (branch: BranchCardData) => void;

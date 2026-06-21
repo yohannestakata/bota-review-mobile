@@ -7,17 +7,17 @@ import { colors } from "@/lib/theme";
 
 type LocationPillProps = {
   label: string | null;
-  status: "idle" | "granted" | "denied";
+  status: "idle" | "loading" | "granted" | "denied";
   onPress: () => void;
 };
 
 export function LocationPill({ label, status, onPress }: LocationPillProps) {
-  const text =
-    status === "granted"
-      ? (label ?? "Near you")
-      : status === "denied"
-        ? "Enable location"
-        : "Locating…";
+  const text = {
+    idle: "Use location",
+    loading: "Locating…",
+    granted: label ?? "Near you",
+    denied: "Enable location",
+  }[status];
 
   return (
     <Pressable

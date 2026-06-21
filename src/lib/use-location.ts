@@ -5,7 +5,7 @@ import { Linking } from "react-native";
 import { debugLog } from "@/lib/debug";
 
 export type Coords = { lat: number; lng: number };
-type LocationStatus = "idle" | "granted" | "denied";
+type LocationStatus = "idle" | "loading" | "granted" | "denied";
 
 // Requests foreground location, resolves coordinates + a human label (reverse
 // geocoded area), and exposes a `request` action to re-prompt or open Settings.
@@ -14,19 +14,10 @@ export function useLocation() {
   const [label, setLabel] = useState<string | null>(null);
   const [status, setStatus] = useState<LocationStatus>("idle");
 
-  const load = useCallback(async () => {
-    try {
-      const permission = await Location.requestForegroundPermissionsAsync();
-      debugLog("location", "permission", {
-        granted: permission.granted,
-        canAskAgain: permission.canAskAgain,
-        status: permission.status,
-      });
-      if (!permission.granted) {
-        setStatus("denied");
-        return;
-      }
+  const resolvePosition = useCallback(async () => {
+    setStatus("loading");
 
+    try {
       const position = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
@@ -59,27 +50,58 @@ export function useLocation() {
       } catch {
         // Label is optional; ignore reverse-geocode failures.
       }
+      return true;
     } catch (error) {
       debugLog("location", "failed to get position", {
         message: error instanceof Error ? error.message : "Unknown error",
       });
       setStatus("denied");
+      return false;
     }
   }, []);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    let active = true;
+
+    void Location.getForegroundPermissionsAsync().then((permission) => {
+      if (!active) return;
+
+      if (permission.granted) {
+        void resolvePosition();
+      } else {
+        setStatus(permission.canAskAgain ? "idle" : "denied");
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [resolvePosition]);
 
   // Re-prompt when possible; if the user permanently denied, open Settings.
   const request = useCallback(async () => {
     const permission = await Location.getForegroundPermissionsAsync();
     if (!permission.granted && !permission.canAskAgain) {
       void Linking.openSettings();
-      return;
+      return false;
     }
-    void load();
-  }, [load]);
+
+    const nextPermission = permission.granted
+      ? permission
+      : await Location.requestForegroundPermissionsAsync();
+    debugLog("location", "permission", {
+      granted: nextPermission.granted,
+      canAskAgain: nextPermission.canAskAgain,
+      status: nextPermission.status,
+    });
+
+    if (!nextPermission.granted) {
+      setStatus("denied");
+      return false;
+    }
+
+    return resolvePosition();
+  }, [resolvePosition]);
 
   return { coords, label, status, request };
 }

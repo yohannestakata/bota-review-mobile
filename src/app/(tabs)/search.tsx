@@ -4,8 +4,15 @@ import {
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, Pressable, TextInput, View } from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Pressable,
+  TextInput,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppIcon } from "@/components/ui/huge-icon";
@@ -52,17 +59,6 @@ export default function SearchScreen() {
   // Waiting on a granted-but-not-yet-resolved location fix.
   const nearbyPending = nearby && coords == null && status !== "denied";
 
-  // If location is denied, don't leave the chip looking selected-but-inert.
-  useEffect(() => {
-    if (nearby && status === "denied") {
-      setNearby(false);
-      Alert.alert(
-        "Location is off",
-        "Turn on location access to find places near you.",
-      );
-    }
-  }, [nearby, status]);
-
   const params = useMemo(
     () => ({
       q: debouncedQ,
@@ -74,14 +70,33 @@ export default function SearchScreen() {
       lat: coords?.lat,
       lng: coords?.lng,
     }),
-    [debouncedQ, cuisineIds, tagIds, priceLevels, openNow, sortByDistance, coords?.lat, coords?.lng],
+    [
+      debouncedQ,
+      cuisineIds,
+      tagIds,
+      priceLevels,
+      openNow,
+      sortByDistance,
+      coords?.lat,
+      coords?.lng,
+    ],
   );
 
-  function toggleNearby() {
-    if (!nearby && coords == null) {
-      void request();
+  async function toggleNearby() {
+    if (nearby) {
+      setNearby(false);
+      return;
     }
-    setNearby((v) => !v);
+
+    if (coords == null && !(await request())) {
+      Alert.alert(
+        "Location is off",
+        "Turn on location access to find places near you.",
+      );
+      return;
+    }
+
+    setNearby(true);
   }
 
   const search = useSearch(params);
@@ -146,11 +161,7 @@ export default function SearchScreen() {
             </ThemedText>
           </Pressable>
 
-          <FilterChip
-            label="Nearby"
-            onPress={toggleNearby}
-            selected={nearby}
-          />
+          <FilterChip label="Nearby" onPress={toggleNearby} selected={nearby} />
 
           <FilterChip
             label="Open now"

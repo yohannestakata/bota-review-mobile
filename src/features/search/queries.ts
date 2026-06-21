@@ -38,32 +38,11 @@ const MIN_QUERY_LENGTH = 2;
 export function hasActiveFilters(params: SearchParams): boolean {
   return Boolean(
     params.cuisineId?.length ||
-      params.tagId?.length ||
-      params.priceLevel?.length ||
-      params.openNow ||
-      params.sort === "distance",
+    params.tagId?.length ||
+    params.priceLevel?.length ||
+    params.openNow ||
+    params.sort === "distance",
   );
-}
-
-export function useNearby(coords: { lat: number; lng: number } | null) {
-  const { getToken } = useAuth();
-
-  return useQuery({
-    queryKey: [...searchKeys.all, "nearby", coords?.lat, coords?.lng],
-    queryFn: () =>
-      searchBranches(
-        {
-          q: "",
-          lat: coords?.lat,
-          lng: coords?.lng,
-          sort: "distance",
-          limit: 10,
-        },
-        getToken,
-      ),
-    enabled: Boolean(coords),
-    staleTime: 5 * 60 * 1000,
-  });
 }
 
 export function useSearch(params: SearchParams) {

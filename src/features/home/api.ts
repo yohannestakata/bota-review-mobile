@@ -1,22 +1,33 @@
 import { apiFetch, type BranchCard, type TokenGetter } from "@/lib/api";
 
-export type HomeSection = {
-  type:
-    | "curated_collection"
-    | "recently_verified"
-    | "highly_rated"
-    | "new_to_bota";
+export type CuratedCollectionSection = {
+  type: "curated_collection";
   title: string;
   slug?: string;
   description?: string | null;
   coverImageUrl?: string | null;
+};
+
+export type HomeBranchSection = {
+  type:
+    | "meal_time"
+    | "nearby"
+    | "recently_verified"
+    | "highly_rated"
+    | "new_to_bota";
+  title: string;
   items: BranchCard[];
 };
 
-export type HomeResponse = { sections: HomeSection[] };
+export type HomeSectionData = CuratedCollectionSection | HomeBranchSection;
+export type HomeResponse = { sections: HomeSectionData[] };
 
-export function getHome(getToken: TokenGetter) {
-  return apiFetch<HomeResponse>("/discovery/home", getToken);
+export function getHome(
+  coords: { lat: number; lng: number } | null,
+  getToken: TokenGetter,
+) {
+  const query = coords ? `?lat=${coords.lat}&lng=${coords.lng}` : "";
+  return apiFetch<HomeResponse>(`/discovery/home${query}`, getToken);
 }
 
 export type CollectionDetail = {
@@ -29,10 +40,7 @@ export type CollectionDetail = {
 };
 
 export function getCollection(slug: string, getToken: TokenGetter) {
-  return apiFetch<CollectionDetail>(
-    `/discovery/collections/${slug}`,
-    getToken,
-  );
+  return apiFetch<CollectionDetail>(`/discovery/collections/${slug}`, getToken);
 }
 
 export function getSavedBranchIds(getToken: TokenGetter) {

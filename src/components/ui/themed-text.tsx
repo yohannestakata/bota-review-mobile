@@ -46,7 +46,7 @@ const weightClass: Record<TextWeight, string> = {
   bold: "font-outfit-bold",
 };
 
-function classes(...values: Array<string | undefined>) {
+function classes(...values: (string | undefined)[]) {
   return values.filter(Boolean).join(" ");
 }
 
