@@ -1,0 +1,19 @@
+name: Preview update
+
+# JS/asset-only changes ship over-the-air to preview builds on every push to
+# develop, so testers don't wait on a rebuild. EAS filters by runtimeVersion, so
+# only compatible installed preview builds receive them — native changes still
+# need a fresh preview build (open a PR against main).
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  publish:
+    name: OTA to preview
+    type: update
+    environment: preview
+    params:
+      branch: preview
+      platform: all
+      message: ${{ github.sha }}
