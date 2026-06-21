@@ -9,12 +9,7 @@ export type CuratedCollectionSection = {
 };
 
 export type HomeBranchSection = {
-  type:
-    | "meal_time"
-    | "nearby"
-    | "recently_verified"
-    | "highly_rated"
-    | "new_to_bota";
+  type: "meal_time" | "nearby" | "highly_rated";
   title: string;
   items: BranchCard[];
 };
