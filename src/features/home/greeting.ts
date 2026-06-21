@@ -75,13 +75,17 @@ export function homeGreeting(date: Date, name: string, seed: number): string {
   const pool = QUESTIONS[mealFor(hour)];
   const question = pool[Math.min(pool.length - 1, Math.floor(seed * pool.length))];
   const salutation = salutationFor(hour);
-  // Drop the name on some launches so it isn't always present.
-  const useName = Math.floor(seed * 1000) % 3 !== 0;
 
-  if (!salutation) {
-    return useName ? `Hey ${name}. ${question}` : question;
-  }
-  return useName
-    ? `${salutation}, ${name}. ${question}`
-    : `${salutation}. ${question}`;
+  // A few forms — sometimes a salutation, sometimes a name, sometimes just the
+  // question. So we don't greet the same way (or at all) every time.
+  const forms = salutation
+    ? [
+        `${salutation}, ${name}. ${question}`,
+        `${salutation}. ${question}`,
+        `Hey ${name}. ${question}`,
+        question,
+      ]
+    : [`Hey ${name}. ${question}`, question];
+
+  return forms[Math.floor(seed * 1000) % forms.length];
 }
