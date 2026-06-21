@@ -23,13 +23,16 @@ jobs:
     type: fingerprint
     environment: production
 
-  get_ios_build:
-    needs: [fingerprint]
-    type: get-build
-    params:
-      platform: ios
-      profile: production
-      fingerprint_hash: ${{ needs.fingerprint.outputs.ios_fingerprint_hash }}
+  # iOS builds/submits are disabled until we have Apple developer credentials.
+  # Re-enable the three iOS jobs (get_ios_build + build_ios + submit_ios) once
+  # creds are set up.
+  # get_ios_build:
+  #   needs: [fingerprint]
+  #   type: get-build
+  #   params:
+  #     platform: ios
+  #     profile: production
+  #     fingerprint_hash: ${{ needs.fingerprint.outputs.ios_fingerprint_hash }}
 
   get_android_build:
     needs: [fingerprint]
@@ -39,14 +42,14 @@ jobs:
       profile: production
       fingerprint_hash: ${{ needs.fingerprint.outputs.android_fingerprint_hash }}
 
-  build_ios:
-    name: Production build iOS (native changed)
-    needs: [get_ios_build]
-    if: ${{ !needs.get_ios_build.outputs.build_id }}
-    type: build
-    params:
-      platform: ios
-      profile: production
+  # build_ios:
+  #   name: Production build iOS (native changed)
+  #   needs: [get_ios_build]
+  #   if: ${{ !needs.get_ios_build.outputs.build_id }}
+  #   type: build
+  #   params:
+  #     platform: ios
+  #     profile: production
 
   build_android:
     name: Production build Android (native changed)
@@ -57,14 +60,14 @@ jobs:
       platform: android
       profile: production
 
-  submit_ios:
-    name: Submit iOS
-    needs: [build_ios]
-    if: ${{ needs.build_ios.outputs.build_id }}
-    type: submit
-    params:
-      build_id: ${{ needs.build_ios.outputs.build_id }}
-      profile: production
+  # submit_ios:
+  #   name: Submit iOS
+  #   needs: [build_ios]
+  #   if: ${{ needs.build_ios.outputs.build_id }}
+  #   type: submit
+  #   params:
+  #     build_id: ${{ needs.build_ios.outputs.build_id }}
+  #     profile: production
 
   submit_android:
     name: Submit Android

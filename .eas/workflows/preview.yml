@@ -25,13 +25,15 @@ jobs:
     type: fingerprint
     environment: preview
 
-  get_ios_build:
-    needs: [fingerprint]
-    type: get-build
-    params:
-      platform: ios
-      profile: preview
-      fingerprint_hash: ${{ needs.fingerprint.outputs.ios_fingerprint_hash }}
+  # iOS builds are disabled until we have Apple developer credentials.
+  # Re-enable the two iOS jobs (get_ios_build + build_ios) once creds are set up.
+  # get_ios_build:
+  #   needs: [fingerprint]
+  #   type: get-build
+  #   params:
+  #     platform: ios
+  #     profile: preview
+  #     fingerprint_hash: ${{ needs.fingerprint.outputs.ios_fingerprint_hash }}
 
   get_android_build:
     needs: [fingerprint]
@@ -41,14 +43,14 @@ jobs:
       profile: preview
       fingerprint_hash: ${{ needs.fingerprint.outputs.android_fingerprint_hash }}
 
-  build_ios:
-    name: Preview build iOS (native changed)
-    needs: [get_ios_build]
-    if: ${{ !needs.get_ios_build.outputs.build_id }}
-    type: build
-    params:
-      platform: ios
-      profile: preview
+  # build_ios:
+  #   name: Preview build iOS (native changed)
+  #   needs: [get_ios_build]
+  #   if: ${{ !needs.get_ios_build.outputs.build_id }}
+  #   type: build
+  #   params:
+  #     platform: ios
+  #     profile: preview
 
   build_android:
     name: Preview build Android (native changed)
