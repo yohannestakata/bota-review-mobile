@@ -2,6 +2,11 @@
 // buckets). One is picked per app launch — varied across opens, stable within a
 // session (pass a seed pinned at mount). Entries are either a plain string or a
 // function that uses the name, so the name is optional.
+//
+// Note: a meal window is not a clock period — the lunch window starts at 11:00
+// (before "afternoon") and the dinner window at 16:00 (before "evening"), so
+// these avoid clock-time words that would be wrong at a bucket's edges. Only
+// "morning" (5–11) and the late-night phrasings are time-accurate everywhere.
 
 type MealBucket = "breakfast" | "lunch" | "dinner" | "late";
 type Greeting = string | ((name: string) => string);
@@ -29,20 +34,20 @@ const GREETINGS: Record<MealBucket, Greeting[]> = {
     (n) => `Hey ${n}, what's for lunch today?`,
     "Midday hunger? Let's find lunch.",
     "Lunchtime. What sounds good?",
-    (n) => `Afternoon, ${n}. Craving anything?`,
+    (n) => `Craving anything, ${n}?`,
     "Time for a lunch break?",
     (n) => `What's for lunch, ${n}?`,
     "Hungry? Let's grab lunch.",
     "Something good for lunch?",
   ],
   dinner: [
-    (n) => `Good evening, ${n}. What's for dinner?`,
-    "Evening. Where to for dinner?",
+    (n) => `What's for dinner, ${n}?`,
+    "Where to for dinner?",
     (n) => `Dinnertime, ${n}. What are you craving?`,
     (n) => `Hey ${n}, what sounds good tonight?`,
     "What's for dinner tonight?",
     "Hungry for dinner?",
-    (n) => `Evening, ${n}. Let's find dinner.`,
+    (n) => `Let's find dinner, ${n}.`,
     "Where are we eating tonight?",
   ],
   late: [
