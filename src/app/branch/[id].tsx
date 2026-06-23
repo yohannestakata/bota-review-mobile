@@ -431,11 +431,13 @@ export default function BranchDetailScreen() {
                     Claim it to manage your listing and get a verified badge.
                   </ThemedText>
                 </View>
-                <AppIcon
-                  color={colors.muted}
-                  icon={ArrowRight01Icon}
-                  size={18}
-                />
+                <View className="mt-0.5">
+                  <AppIcon
+                    color={colors.muted}
+                    icon={ArrowRight01Icon}
+                    size={18}
+                  />
+                </View>
               </Pressable>
             </View>
           ) : null}
