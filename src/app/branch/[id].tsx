@@ -408,7 +408,7 @@ export default function BranchDetailScreen() {
           {data.verificationStatus !== "business_verified" ? (
             <View className="mt-4 px-6">
               <Pressable
-                className="flex-row items-center gap-3 rounded-2xl border border-border p-4"
+                className="flex-row items-start gap-3 rounded-2xl border border-border p-4"
                 onPress={() =>
                   router.push({
                     pathname: "/claim/[branchId]",
@@ -416,11 +416,13 @@ export default function BranchDetailScreen() {
                   })
                 }
               >
-                <AppIcon
-                  color={colors.foreground}
-                  icon={CheckmarkBadge01Icon}
-                  size={22}
-                />
+                <View className="mt-0.5">
+                  <AppIcon
+                    color={colors.foreground}
+                    icon={CheckmarkBadge01Icon}
+                    size={22}
+                  />
+                </View>
                 <View className="flex-1">
                   <ThemedText weight="medium">
                     Is this your business?
