@@ -1,4 +1,5 @@
 import {
+  ArrowRight01Icon,
   CheckmarkBadge01Icon,
   Location01Icon,
   PencilEdit02Icon,
@@ -401,10 +402,13 @@ export default function BranchDetailScreen() {
             </Pressable>
           </View>
 
+          {/* Owner-targeted claim entry (Google/Yelp pattern): a quiet, distinct
+              card low on the page — clear copy + value prop, hidden once the
+              branch is owner-verified. */}
           {data.verificationStatus !== "business_verified" ? (
-            <View className="mt-3 items-center px-6">
+            <View className="mt-4 px-6">
               <Pressable
-                hitSlop={8}
+                className="flex-row items-center gap-3 rounded-2xl border border-border p-4"
                 onPress={() =>
                   router.push({
                     pathname: "/claim/[branchId]",
@@ -412,12 +416,24 @@ export default function BranchDetailScreen() {
                   })
                 }
               >
-                <ThemedText size="sm" tone="muted">
-                  Own this business?{" "}
-                  <ThemedText size="sm" tone="brand" weight="medium">
-                    Claim it
+                <AppIcon
+                  color={colors.foreground}
+                  icon={CheckmarkBadge01Icon}
+                  size={22}
+                />
+                <View className="flex-1">
+                  <ThemedText weight="medium">
+                    Is this your business?
                   </ThemedText>
-                </ThemedText>
+                  <ThemedText size="sm" tone="muted">
+                    Claim it to manage your listing and get a verified badge.
+                  </ThemedText>
+                </View>
+                <AppIcon
+                  color={colors.muted}
+                  icon={ArrowRight01Icon}
+                  size={18}
+                />
               </Pressable>
             </View>
           ) : null}
