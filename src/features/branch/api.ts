@@ -124,6 +124,36 @@ export function createReview(
   });
 }
 
+export type ClaimContactRole = "owner" | "manager" | "marketing";
+
+export type CreateClaimBody = {
+  contactName: string;
+  contactRole: ClaimContactRole;
+  contactPhone: string;
+  contactEmail: string;
+  note?: string;
+};
+
+export type BusinessClaim = {
+  id: string;
+  branchId: string;
+  status: "pending" | "verified" | "rejected";
+  createdAt: string;
+};
+
+// Submit a business-ownership claim for a branch. An admin verifies it, which
+// grants the claimant the business_owner role and marks the branch verified.
+export function createClaim(
+  branchId: string,
+  body: CreateClaimBody,
+  getToken: TokenGetter,
+) {
+  return apiFetch<BusinessClaim>(`/branches/${branchId}/claims`, getToken, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
 export type UpdateReviewBody = { rating?: number; text?: string };
 
 export function updateReview(

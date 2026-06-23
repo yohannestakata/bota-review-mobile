@@ -3,11 +3,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   archiveReview,
+  createClaim,
   createReview,
   getBranch,
   getBranchMenus,
   getBranchSiblings,
   updateReview,
+  type CreateClaimBody,
   type CreateReviewBody,
   type UpdateReviewBody,
 } from "./api";
@@ -49,6 +51,19 @@ export function useBranchMenus(id: string) {
     queryKey: branchKeys.menus(id),
     queryFn: () => getBranchMenus(id, getToken),
     enabled: Boolean(id),
+  });
+}
+
+export function useCreateClaim(branchId: string) {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CreateClaimBody) => createClaim(branchId, body, getToken),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: branchKeys.detail(branchId),
+      });
+    },
   });
 }
 

@@ -400,6 +400,27 @@ export default function BranchDetailScreen() {
               </ThemedText>
             </Pressable>
           </View>
+
+          {data.verificationStatus !== "business_verified" ? (
+            <View className="mt-3 items-center px-6">
+              <Pressable
+                hitSlop={8}
+                onPress={() =>
+                  router.push({
+                    pathname: "/claim/[branchId]",
+                    params: { branchId: data.id, name: data.place.name },
+                  })
+                }
+              >
+                <ThemedText size="sm" tone="muted">
+                  Own this business?{" "}
+                  <ThemedText size="sm" tone="brand" weight="medium">
+                    Claim it
+                  </ThemedText>
+                </ThemedText>
+              </Pressable>
+            </View>
+          ) : null}
         </View>
       </Animated.ScrollView>
 
