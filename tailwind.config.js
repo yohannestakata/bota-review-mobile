@@ -7,6 +7,7 @@ module.exports = {
       colors: {
         background: "var(--color-background)",
         surface: "var(--color-surface)",
+        "surface-muted": "var(--color-surface-muted)",
         border: "var(--color-border)",
         placeholder: "var(--color-placeholder)",
         foreground: "var(--color-foreground)",
@@ -17,7 +18,11 @@ module.exports = {
         rating: "var(--color-rating)",
         favorite: "var(--color-favorite)",
         success: "var(--color-success)",
+        "success-soft": "var(--color-success-soft)",
+        warning: "var(--color-warning)",
+        "warning-soft": "var(--color-warning-soft)",
         danger: "var(--color-danger)",
+        "danger-soft": "var(--color-danger-soft)",
       },
       fontFamily: {
         sans: ["Outfit-Regular"],

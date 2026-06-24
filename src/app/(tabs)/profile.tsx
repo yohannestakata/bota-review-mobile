@@ -1,16 +1,23 @@
-import { useClerk, useUser } from "@clerk/clerk-expo";
+import { useAuth, useClerk, useUser } from "@clerk/clerk-expo";
 import { colors } from "@/lib/theme";
-import { PencilEdit02Icon, Share08Icon } from "@hugeicons/core-free-icons";
+import {
+  ArrowRight01Icon,
+  PencilEdit02Icon,
+  Share08Icon,
+} from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Alert, FlatList, Pressable, Share, View } from "react-native";
+import { Pressable, Share, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Alert } from "@/components/ui/alert";
+import { AuthRequiredScreen } from "@/components/auth/auth-required-screen";
+import { FlashList, ListGapMd } from "@/components/ui/flash-list";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
-import { useDeleteReview } from "@/features/branch";
+import { useDeleteReview, useOwnClaims } from "@/features/branch";
 import { useSavedBranchIds } from "@/features/home";
 import {
   MyReviewRow,
@@ -24,6 +31,8 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
   const { user } = useUser();
   const me = useMe();
   const { data: savedIds } = useSavedBranchIds();
+  const claims = useOwnClaims();
+  const claimCount = claims.data?.length ?? 0;
 
   const name = user?.fullName ?? user?.firstName ?? "You";
   const handle =
@@ -70,14 +79,14 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
               </ThemedText>
             ) : null}
             {trustLevel ? (
-              <View className="rounded-full bg-neutral-100 px-2 py-0.5">
+              <View className="rounded-full bg-surface-muted px-2 py-0.5">
                 <ThemedText size="xs" tone="muted" weight="medium">
                   {trustLevel}
                 </ThemedText>
               </View>
             ) : null}
             {role && role !== "user" ? (
-              <View className="rounded-full bg-black px-2 py-0.5">
+              <View className="rounded-full bg-primary px-2 py-0.5">
                 <ThemedText size="xs" tone="inverse" weight="medium">
                   {role}
                 </ThemedText>
@@ -88,7 +97,7 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
       </View>
 
       <View className="mt-5 flex-row gap-3">
-        <View className="flex-1 items-center justify-center gap-0.5 rounded-2xl border border-neutral-100 bg-white py-3">
+        <View className="flex-1 items-center justify-center gap-0.5 rounded-2xl border border-border bg-surface py-3">
           <ThemedText size="xl" weight="semibold">
             {reviewCount}
           </ThemedText>
@@ -96,7 +105,7 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
             Reviews
           </ThemedText>
         </View>
-        <View className="flex-1 items-center justify-center gap-0.5 rounded-2xl border border-neutral-100 bg-white py-3">
+        <View className="flex-1 items-center justify-center gap-0.5 rounded-2xl border border-border bg-surface py-3">
           <ThemedText size="xl" weight="semibold">
             {savedCount}
           </ThemedText>
@@ -105,7 +114,7 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
           </ThemedText>
         </View>
         <Pressable
-          className="flex-1 items-center justify-center gap-1 rounded-2xl border border-neutral-100 bg-white py-3"
+          className="flex-1 items-center justify-center gap-1 rounded-2xl border border-border bg-surface py-3"
           onPress={() =>
             void Share.share({
               message: `See my food finds on Bota — ${name}`,
@@ -119,9 +128,26 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
         </Pressable>
       </View>
 
-      <View className="my-5 h-px bg-neutral-100" />
+      {claimCount > 0 ? (
+        <Pressable
+          className="mt-3 flex-row items-center justify-between rounded-2xl border border-border bg-surface px-4 py-3.5"
+          onPress={() => router.push("/profile/claims")}
+        >
+          <ThemedText weight="medium">My Claims</ThemedText>
+          <View className="flex-row items-center gap-1">
+            <ThemedText tone="muted">{claimCount}</ThemedText>
+            <AppIcon
+              color={colors.muted}
+              icon={ArrowRight01Icon}
+              size={18}
+            />
+          </View>
+        </Pressable>
+      ) : null}
 
-      <ThemedText size="lg" weight="semibold">
+      <View className="my-5 h-px bg-border" />
+
+      <ThemedText className="mb-4" size="lg" weight="semibold">
         Your reviews
       </ThemedText>
     </View>
@@ -129,6 +155,7 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
 }
 
 export default function ProfileScreen() {
+  const { isSignedIn } = useAuth();
   const { signOut } = useClerk();
   const reviews = useMyReviews();
   const deleteReview = useDeleteReview();
@@ -176,11 +203,21 @@ export default function ProfileScreen() {
 
   const items = reviews.data ?? [];
 
+  if (!isSignedIn) {
+    return (
+      <AuthRequiredScreen
+        body="Sign in to manage your reviews, saves, and account."
+        title="Welcome to Bota"
+      />
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <FlatList
-        contentContainerClassName="gap-4 px-6 pb-10 pt-4"
+      <FlashList
+        contentContainerClassName="px-6 pb-10 pt-4"
         data={items}
+        ItemSeparatorComponent={ListGapMd}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={<ProfileHeader reviewCount={items.length} />}
         ListEmptyComponent={

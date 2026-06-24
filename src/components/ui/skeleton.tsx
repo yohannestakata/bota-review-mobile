@@ -41,7 +41,7 @@ export function Skeleton({ className }: SkeletonProps) {
     backgroundColor: interpolateColor(
       progress.value,
       [0, 1],
-      [colors.placeholder, colors.border],
+      [colors.surfaceMuted, colors.placeholder],
     ),
   }));
 

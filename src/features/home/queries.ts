@@ -10,6 +10,7 @@ import { debugLog } from "@/lib/debug";
 import {
   getCollection,
   getHome,
+  getPlace,
   getSavedBranchIds,
   getSaves,
   saveBranch,
@@ -20,16 +21,20 @@ export const homeKeys = {
   all: ["home"] as const,
   feed: (coords: { lat: number; lng: number } | null) =>
     [...homeKeys.all, "feed", coords?.lat, coords?.lng] as const,
-  savedIds: () => [...homeKeys.all, "saved-ids"] as const,
-  saves: () => [...homeKeys.all, "saves"] as const,
+  savedIds: (userId: string | null | undefined) =>
+    [...homeKeys.all, "saved-ids", userId ?? "anonymous"] as const,
+  saves: (userId: string | null | undefined) =>
+    [...homeKeys.all, "saves", userId ?? "anonymous"] as const,
+  place: (id: string) => [...homeKeys.all, "place", id] as const,
 };
 
 export function useSaves() {
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn, userId } = useAuth();
 
   return useQuery({
-    queryKey: homeKeys.saves(),
+    queryKey: homeKeys.saves(userId),
     queryFn: () => getSaves(getToken),
+    enabled: isSignedIn === true,
   });
 }
 
@@ -53,14 +58,25 @@ export function useCollection(slug: string) {
   });
 }
 
-// Returns the user's saved branch IDs as a Set for O(1) membership checks on
-// cards. The cache stores the raw string[] so optimistic writes are simple.
-export function useSavedBranchIds() {
+export function usePlace(id: string) {
   const { getToken } = useAuth();
 
   return useQuery({
-    queryKey: homeKeys.savedIds(),
+    queryKey: homeKeys.place(id),
+    queryFn: () => getPlace(id, getToken),
+    enabled: Boolean(id),
+  });
+}
+
+// Returns the user's saved branch IDs as a Set for O(1) membership checks on
+// cards. The cache stores the raw string[] so optimistic writes are simple.
+export function useSavedBranchIds() {
+  const { getToken, isSignedIn, userId } = useAuth();
+
+  return useQuery({
+    queryKey: homeKeys.savedIds(userId),
     queryFn: async () => (await getSavedBranchIds(getToken)).branchIds,
+    enabled: isSignedIn === true,
     select: (ids) => new Set(ids),
   });
 }
@@ -69,11 +85,17 @@ type ToggleSaveVars = { branchId: string; isSaved: boolean };
 type ToggleSaveContext = { previous?: string[] };
 
 export function useToggleSave() {
-  const { getToken } = useAuth();
+  const { getToken, userId } = useAuth();
   const queryClient = useQueryClient();
+  const savedIdsKey = homeKeys.savedIds(userId);
+  const savesKey = homeKeys.saves(userId);
 
   return useMutation<void, Error, ToggleSaveVars, ToggleSaveContext>({
     mutationFn: async ({ branchId, isSaved }) => {
+      if (!userId) {
+        throw new Error("Sign in to save places");
+      }
+
       if (isSaved) {
         await unsaveBranch(branchId, getToken);
       } else {
@@ -81,10 +103,14 @@ export function useToggleSave() {
       }
     },
     onMutate: async ({ branchId, isSaved }) => {
-      await queryClient.cancelQueries({ queryKey: homeKeys.savedIds() });
-      const previous = queryClient.getQueryData<string[]>(homeKeys.savedIds());
+      if (!userId) {
+        return {};
+      }
 
-      queryClient.setQueryData<string[]>(homeKeys.savedIds(), (ids = []) =>
+      await queryClient.cancelQueries({ queryKey: savedIdsKey });
+      const previous = queryClient.getQueryData<string[]>(savedIdsKey);
+
+      queryClient.setQueryData<string[]>(savedIdsKey, (ids = []) =>
         isSaved ? ids.filter((id) => id !== branchId) : [...ids, branchId],
       );
 
@@ -95,12 +121,12 @@ export function useToggleSave() {
         message: error instanceof Error ? error.message : "Unknown error",
       });
       if (context?.previous) {
-        queryClient.setQueryData(homeKeys.savedIds(), context.previous);
+        queryClient.setQueryData(savedIdsKey, context.previous);
       }
     },
     onSettled: () => {
       // Refresh the saved-branches list so the Saved tab reflects the change.
-      void queryClient.invalidateQueries({ queryKey: homeKeys.saves() });
+      void queryClient.invalidateQueries({ queryKey: savesKey });
     },
   });
 }

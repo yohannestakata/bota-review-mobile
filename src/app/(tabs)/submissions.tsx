@@ -1,17 +1,19 @@
+import { useAuth } from "@clerk/clerk-expo";
+import { zodFormResolver } from "@/lib/zod-resolver";
 import { useState } from "react";
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { Controller, useForm } from "react-hook-form";
+import { Pressable, ScrollView, View } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { z } from "zod";
 
-import { AuthField } from "@/components/auth/auth-screen";
+import { Alert } from "@/components/ui/alert";
+import { AuthRequiredScreen } from "@/components/auth/auth-required-screen";
 import { Button } from "@/components/ui/button";
-import { FormTextArea, FormTextInput } from "@/components/ui/form-field";
+import {
+  ControlledTextArea,
+  ControlledTextInput,
+} from "@/components/ui/form-field";
 import { OptionalDetailsPanel } from "@/components/ui/optional-details-panel";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
@@ -20,6 +22,7 @@ import {
   type PlaceMissingDetails,
 } from "@/features/submissions";
 import { cn } from "@/lib/cn";
+import { optionalEmailField } from "@/lib/validation";
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Something went wrong";
@@ -43,6 +46,48 @@ const AMENITIES = [
 
 const SUBMISSION_NOTE_LIMIT = 500;
 
+const submissionSchema = z.object({
+  placeName: z.string().trim().min(1, "Place name is required"),
+  neighborhood: z.string().trim().optional(),
+  description: z.string().trim().optional(),
+  contactPhone: z.string().trim().optional(),
+  contactEmail: optionalEmailField,
+  priceLevel: z.string(),
+  hours: z.string().trim().optional(),
+  menu: z.string().trim().optional(),
+  amenities: z.array(z.string()),
+});
+
+type SubmissionValues = z.infer<typeof submissionSchema>;
+
+const DEFAULT_VALUES: SubmissionValues = {
+  placeName: "",
+  neighborhood: "",
+  description: "",
+  contactPhone: "",
+  contactEmail: "",
+  priceLevel: "",
+  hours: "",
+  menu: "",
+  amenities: [],
+};
+
+function extraDetailsNote(values: SubmissionValues) {
+  const lines: string[] = [];
+  if (values.priceLevel) {
+    lines.push(`Price range: ${"$".repeat(Number(values.priceLevel))}`);
+  }
+  if (values.hours?.trim()) lines.push(`Hours: ${values.hours.trim()}`);
+  if (values.menu?.trim()) lines.push(`Menu/prices: ${values.menu.trim()}`);
+  if (values.amenities.length > 0) {
+    lines.push(`Amenities: ${values.amenities.join(", ")}`);
+  }
+
+  return lines.length > 0
+    ? `Help complete this missing place:\n${lines.join("\n")}`
+    : "";
+}
+
 function Pill({
   label,
   selected,
@@ -59,7 +104,7 @@ function Pill({
       className={cn(
         "rounded-full px-4 py-2",
         surface === "muted" && "border",
-        selected && "bg-black",
+        selected && "bg-primary",
         !selected && surface === "default" && "bg-surface",
         !selected && surface === "muted" && "border-border bg-background",
       )}
@@ -77,87 +122,61 @@ function Pill({
 }
 
 export default function SubmissionsScreen() {
+  const { isSignedIn } = useAuth();
   const report = useReportMissingPlace();
 
-  const [placeName, setPlaceName] = useState("");
-  const [neighborhood, setNeighborhood] = useState("");
-  const [description, setDescription] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
   const [helpMore, setHelpMore] = useState(false);
-  const [priceLevel, setPriceLevel] = useState("");
-  const [hours, setHours] = useState("");
-  const [menu, setMenu] = useState("");
-  const [amenities, setAmenities] = useState<string[]>([]);
-  const [error, setError] = useState("");
 
-  const canSubmit = placeName.trim().length > 0 && !report.isPending;
+  const { control, handleSubmit, reset, setError, formState } =
+    useForm<SubmissionValues>({
+      resolver: zodFormResolver(submissionSchema),
+      mode: "onChange",
+      defaultValues: DEFAULT_VALUES,
+    });
 
-  function reset() {
-    setPlaceName("");
-    setNeighborhood("");
-    setDescription("");
-    setContactPhone("");
-    setContactEmail("");
-    setHelpMore(false);
-    setPriceLevel("");
-    setHours("");
-    setMenu("");
-    setAmenities([]);
-  }
+  const onSubmit = handleSubmit((values) => {
+    const details: PlaceMissingDetails = { placeName: values.placeName };
+    if (values.neighborhood) details.neighborhood = values.neighborhood;
+    if (values.description) details.description = values.description;
+    if (values.contactPhone) details.contactPhone = values.contactPhone;
+    if (values.contactEmail) details.contactEmail = values.contactEmail;
 
-  function toggleAmenity(value: string) {
-    setAmenities((current) =>
-      current.includes(value)
-        ? current.filter((item) => item !== value)
-        : [...current, value],
-    );
-  }
-
-  function extraDetailsNote() {
-    const lines: string[] = [];
-    if (priceLevel)
-      lines.push(`Price range: ${"$".repeat(Number(priceLevel))}`);
-    if (hours.trim()) lines.push(`Hours: ${hours.trim()}`);
-    if (menu.trim()) lines.push(`Menu/prices: ${menu.trim()}`);
-    if (amenities.length > 0) lines.push(`Amenities: ${amenities.join(", ")}`);
-
-    return lines.length > 0
-      ? `Help complete this missing place:\n${lines.join("\n")}`
-      : "";
-  }
-
-  function onSubmit() {
-    if (!canSubmit) {
-      return;
-    }
-
-    setError("");
-
-    const details: PlaceMissingDetails = { placeName: placeName.trim() };
-    if (neighborhood.trim()) details.neighborhood = neighborhood.trim();
-    if (description.trim()) details.description = description.trim();
-    if (contactPhone.trim()) details.contactPhone = contactPhone.trim();
-    if (contactEmail.trim()) details.contactEmail = contactEmail.trim();
-
-    const note = extraDetailsNote();
+    const note = extraDetailsNote(values);
     if (note.length > SUBMISSION_NOTE_LIMIT) {
-      setError("Keep optional details under 500 characters total.");
+      setError("root", {
+        message: "Keep optional details under 500 characters total.",
+      });
       return;
     }
 
-    report.mutate(
-      { details, ...(note ? { note } : {}) },
-      {
-        onSuccess: () => {
-          reset();
-          Alert.alert(
-            "Thanks for the tip!",
-            "We'll take a look and get it added soon.",
-          );
+    return new Promise<void>((resolve) => {
+      report.mutate(
+        { details, ...(note ? { note } : {}) },
+        {
+          onSuccess: () => {
+            reset(DEFAULT_VALUES);
+            setHelpMore(false);
+            Alert.alert(
+              "Thanks for the tip!",
+              "We'll take a look and get it added soon.",
+            );
+            resolve();
+          },
+          onError: (err) => {
+            setError("root", { message: getErrorMessage(err) });
+            resolve();
+          },
         },
-        onError: (err) => setError(getErrorMessage(err)),
-      },
+      );
+    });
+  });
+
+  if (!isSignedIn) {
+    return (
+      <AuthRequiredScreen
+        body="Sign in before sending us a place that Bota should know about."
+        title="Help grow Bota"
+      />
     );
   }
 
@@ -172,25 +191,28 @@ export default function SubmissionsScreen() {
         </ThemedText>
       </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
-      >
+      <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
           className="flex-1"
           contentContainerClassName="gap-4 px-6 pt-4"
           keyboardShouldPersistTaps="handled"
         >
-          <AuthField
+          <ControlledTextInput
             autoCapitalize="words"
+            control={control}
             label="Place name *"
-            onChangeText={setPlaceName}
+            name="placeName"
             placeholder="e.g. Tomoca Coffee"
-            value={placeName}
           />
-          <NeighborhoodField
-            onChangeText={setNeighborhood}
-            value={neighborhood}
+          <Controller
+            control={control}
+            name="neighborhood"
+            render={({ field }) => (
+              <NeighborhoodField
+                onChangeText={field.onChange}
+                value={field.value ?? ""}
+              />
+            )}
           />
 
           <OptionalDetailsPanel
@@ -199,71 +221,80 @@ export default function SubmissionsScreen() {
             subtitle="Add details only if they're handy."
             title="Know a little more?"
           >
-            <FormTextArea
+            <ControlledTextArea
+              control={control}
               inputClassName="min-h-28"
               label="What is it like?"
-              onChangeText={(value) => setDescription(value.slice(0, 500))}
+              maxLength={500}
+              name="description"
               placeholder="What kind of place is it? What's good there?"
               surface="muted"
-              value={description}
             />
 
             <View className="gap-2">
               <ThemedText size="sm" weight="medium">
                 Price range
               </ThemedText>
-              <View className="flex-row flex-wrap gap-2">
-                {PRICE_LEVELS.map((level) => (
-                  <Pill
-                    key={level.value}
-                    label={level.label}
-                    onPress={() =>
-                      setPriceLevel((current) =>
-                        current === level.value ? "" : level.value,
-                      )
-                    }
-                    selected={priceLevel === level.value}
-                    surface="muted"
-                  />
-                ))}
-              </View>
+              <Controller
+                control={control}
+                name="priceLevel"
+                render={({ field }) => (
+                  <View className="flex-row flex-wrap gap-2">
+                    {PRICE_LEVELS.map((level) => (
+                      <Pill
+                        key={level.value}
+                        label={level.label}
+                        onPress={() =>
+                          field.onChange(
+                            field.value === level.value ? "" : level.value,
+                          )
+                        }
+                        selected={field.value === level.value}
+                        surface="muted"
+                      />
+                    ))}
+                  </View>
+                )}
+              />
             </View>
 
-            <FormTextArea
+            <ControlledTextArea
+              control={control}
               inputClassName="min-h-20"
               label="Hours"
-              onChangeText={setHours}
+              name="hours"
               placeholder="e.g. Open late on weekends."
               surface="muted"
-              value={hours}
             />
 
-            <FormTextArea
+            <ControlledTextArea
+              control={control}
               inputClassName="min-h-20"
               label="Menu or prices"
-              onChangeText={setMenu}
+              name="menu"
               placeholder="e.g. Great breakfast, juice is around 120 birr."
               surface="muted"
-              value={menu}
             />
 
             <View className="gap-3">
-              <FormTextInput
+              <ControlledTextInput
+                control={control}
                 keyboardType="number-pad"
                 label="Contact phone"
-                onChangeText={(value) => setContactPhone(value.slice(0, 60))}
+                maxLength={60}
+                name="contactPhone"
                 placeholder="Their phone, if you know it"
                 surface="muted"
-                value={contactPhone}
               />
-              <FormTextInput
+              <ControlledTextInput
+                autoCapitalize="none"
                 autoComplete="email"
+                control={control}
                 keyboardType="email-address"
                 label="Contact email"
-                onChangeText={setContactEmail}
+                name="contactEmail"
                 placeholder="Their email, if you know it"
                 surface="muted"
-                value={contactEmail}
               />
             </View>
 
@@ -271,30 +302,42 @@ export default function SubmissionsScreen() {
               <ThemedText size="sm" weight="medium">
                 Amenities
               </ThemedText>
-              <View className="flex-row flex-wrap gap-2">
-                {AMENITIES.map((amenity) => (
-                  <Pill
-                    key={amenity}
-                    label={amenity}
-                    onPress={() => toggleAmenity(amenity)}
-                    selected={amenities.includes(amenity)}
-                    surface="muted"
-                  />
-                ))}
-              </View>
+              <Controller
+                control={control}
+                name="amenities"
+                render={({ field }) => (
+                  <View className="flex-row flex-wrap gap-2">
+                    {AMENITIES.map((amenity) => (
+                      <Pill
+                        key={amenity}
+                        label={amenity}
+                        onPress={() =>
+                          field.onChange(
+                            field.value.includes(amenity)
+                              ? field.value.filter((item) => item !== amenity)
+                              : [...field.value, amenity],
+                          )
+                        }
+                        selected={field.value.includes(amenity)}
+                        surface="muted"
+                      />
+                    ))}
+                  </View>
+                )}
+              />
             </View>
           </OptionalDetailsPanel>
 
-          {error ? (
-            <ThemedText size="sm" tone="brand">
-              {error}
+          {formState.errors.root ? (
+            <ThemedText size="sm" tone="danger">
+              {formState.errors.root.message}
             </ThemedText>
           ) : null}
         </ScrollView>
 
         <View className="px-6 pb-2 pt-2">
           <Button
-            disabled={!canSubmit}
+            disabled={!formState.isValid || report.isPending}
             label="Send it in"
             loading={report.isPending}
             onPress={onSubmit}

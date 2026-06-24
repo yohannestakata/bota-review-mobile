@@ -44,7 +44,7 @@ export function BranchStickyHeader({ title, scrollY }: BranchStickyHeaderProps) 
           // tall, so this row shares the same band and the title lines up with them.
           paddingTop: insets.top + 8,
           paddingBottom: 12,
-          backgroundColor: colors.surface,
+          backgroundColor: colors.background,
           borderBottomWidth: 1,
           borderBottomColor: colors.border,
         },

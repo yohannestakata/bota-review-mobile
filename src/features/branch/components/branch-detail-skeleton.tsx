@@ -4,11 +4,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function BranchDetailSkeleton() {
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-background">
       {/* Hero (HERO_HEIGHT = 360) */}
       <Skeleton className="h-[360px] w-full" />
 
-      <View className="-mt-6 flex-1 rounded-t-3xl bg-white px-6 pt-8">
+      <View className="-mt-6 flex-1 rounded-t-3xl bg-background px-6 pt-8">
         {/* Heading: eyebrow, title, rating row, address */}
         <View className="gap-2">
           <Skeleton className="h-3.5 w-28 rounded-full" />

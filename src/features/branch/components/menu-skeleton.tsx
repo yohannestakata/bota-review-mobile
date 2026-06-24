@@ -18,7 +18,7 @@ function MenuItemSkeleton() {
 
 export function MenuSkeleton() {
   return (
-    <View className="gap-1 px-6 pt-2">
+    <View className="gap-1">
       <Skeleton className="mb-1 h-3.5 w-24 rounded-full" />
       <MenuItemSkeleton />
       <MenuItemSkeleton />

@@ -30,7 +30,7 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
 
   return (
     <Pressable className="w-56" onPress={() => onPress(branch)}>
-      <View className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-neutral-200">
+      <View className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-placeholder">
         {branch.coverPhotoUrl ? (
           <Image
             contentFit="cover"
@@ -42,12 +42,12 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
 
         {branch.isOpenNow !== undefined ? (
           <View
-            className={`absolute left-2 top-2 rounded-full border bg-white px-2 py-0.5 ${
-              branch.isOpenNow ? "border-green-600" : "border-red-500"
+            className={`absolute left-2 top-2 rounded-full border bg-surface px-2 py-0.5 ${
+              branch.isOpenNow ? "border-success" : "border-danger"
             }`}
           >
             <ThemedText
-              className={branch.isOpenNow ? "text-green-700" : "text-red-600"}
+              className={branch.isOpenNow ? "text-success" : "text-danger"}
               size="xs"
               weight="medium"
             >

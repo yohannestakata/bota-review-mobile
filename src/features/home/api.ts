@@ -1,4 +1,9 @@
-import { apiFetch, type BranchCard, type TokenGetter } from "@/lib/api";
+import {
+  apiFetch,
+  type BranchCard,
+  type Cuisine,
+  type TokenGetter,
+} from "@/lib/api";
 
 export type CuratedCollectionSection = {
   type: "curated_collection";
@@ -36,6 +41,22 @@ export type CollectionDetail = {
 
 export function getCollection(slug: string, getToken: TokenGetter) {
   return apiFetch<CollectionDetail>(`/discovery/collections/${slug}`, getToken);
+}
+
+export type PlaceDetail = {
+  id: string;
+  slug: string;
+  type: string;
+  status: string;
+  name: string;
+  description: string | null;
+  branchCount: number;
+  branches: BranchCard[];
+  cuisines: Cuisine[];
+};
+
+export function getPlace(id: string, getToken: TokenGetter) {
+  return apiFetch<PlaceDetail>(`/places/${id}`, getToken);
 }
 
 export function getSavedBranchIds(getToken: TokenGetter) {

@@ -9,9 +9,15 @@ import * as SplashScreen from "expo-splash-screen";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect } from "react";
 import { Linking, StatusBar } from "react-native";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 
+import { AnalyticsProvider } from "@/components/analytics-provider";
+import { AlertProvider } from "@/components/ui/alert";
 import { debugLog } from "@/lib/debug";
 import { queryClient } from "@/lib/query-client";
+import { colors } from "@/lib/theme";
 
 void SplashScreen.preventAutoHideAsync();
 void WebBrowser.maybeCompleteAuthSession();
@@ -64,12 +70,30 @@ function RootLayout() {
   }
 
   return (
-    <ClerkProvider publishableKey={clerkPublishableKey} tokenCache={tokenCache}>
-      <QueryClientProvider client={queryClient}>
-        <StatusBar barStyle="dark-content" />
-        <Stack screenOptions={{ headerShown: false }} />
-      </QueryClientProvider>
-    </ClerkProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <KeyboardProvider>
+        <ClerkProvider
+          publishableKey={clerkPublishableKey}
+          tokenCache={tokenCache}
+        >
+          <AnalyticsProvider>
+            <QueryClientProvider client={queryClient}>
+              <BottomSheetModalProvider>
+                <AlertProvider>
+                  <StatusBar barStyle="dark-content" />
+                  <Stack
+                    screenOptions={{
+                      contentStyle: { backgroundColor: colors.background },
+                      headerShown: false,
+                    }}
+                  />
+                </AlertProvider>
+              </BottomSheetModalProvider>
+            </QueryClientProvider>
+          </AnalyticsProvider>
+        </ClerkProvider>
+      </KeyboardProvider>
+    </GestureHandlerRootView>
   );
 }
 

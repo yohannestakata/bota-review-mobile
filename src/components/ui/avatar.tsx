@@ -25,7 +25,7 @@ function initialsOf(name?: string | null): string {
 export function Avatar({ uri, name, size = 64 }: AvatarProps) {
   return (
     <View
-      className="items-center justify-center overflow-hidden rounded-full bg-neutral-200"
+      className="items-center justify-center overflow-hidden rounded-full bg-placeholder"
       style={{ width: size, height: size }}
     >
       {uri ? (

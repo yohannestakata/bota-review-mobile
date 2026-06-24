@@ -1,8 +1,11 @@
+import { useAuth } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { useCallback } from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AuthRequiredScreen } from "@/components/auth/auth-required-screen";
+import { FlashList, ListGapLg } from "@/components/ui/flash-list";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   BranchCard,
@@ -11,26 +14,38 @@ import {
   useSavedBranchIds,
   useToggleSave,
 } from "@/features/home";
+import { analytics } from "@/lib/analytics";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 
 const EMPTY_SAVED = new Set<string>();
 
 export default function SavedScreen() {
+  const { isSignedIn } = useAuth();
   const saves = useSaves();
   const { data: savedIds } = useSavedBranchIds();
   const toggleSave = useToggleSave();
 
   const onToggleSave = useCallback(
     (branch: BranchCardData) => {
-      toggleSave.mutate({
-        branchId: branch.id,
-        isSaved: (savedIds ?? EMPTY_SAVED).has(branch.id),
+      const wasSaved = (savedIds ?? EMPTY_SAVED).has(branch.id);
+      analytics.track(wasSaved ? "branch_unsaved" : "branch_saved", {
+        branch_id: branch.id,
       });
+      toggleSave.mutate({ branchId: branch.id, isSaved: wasSaved });
     },
     [savedIds, toggleSave],
   );
 
   const items = saves.data ?? [];
+
+  if (!isSignedIn) {
+    return (
+      <AuthRequiredScreen
+        body="Sign in to keep a personal list of places you want to try again."
+        title="Your saved places live here"
+      />
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
@@ -40,9 +55,10 @@ export default function SavedScreen() {
         </ThemedText>
       </View>
 
-      <FlatList
-        contentContainerClassName="gap-5 px-6 pb-10 pt-2"
+      <FlashList
+        contentContainerClassName="px-6 pb-10 pt-2"
         data={items}
+        ItemSeparatorComponent={ListGapLg}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
           saves.isPending ? (
@@ -75,7 +91,7 @@ export default function SavedScreen() {
           <BranchCard
             branch={item}
             isSaved={(savedIds ?? EMPTY_SAVED).has(item.id)}
-            onPress={(branch) => router.push(`/branch/${branch.id}`)}
+            onPress={(branch) => router.push(`/branch/${branch.id}?source=saved`)}
             onToggleSave={onToggleSave}
           />
         )}

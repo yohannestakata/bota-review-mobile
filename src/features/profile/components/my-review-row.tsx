@@ -9,10 +9,10 @@ const STATUS_STYLES: Record<
   MyReview["moderationStatus"],
   { label: string; bg: string; text: string }
 > = {
-  pending: { label: "Pending", bg: "bg-amber-100", text: "text-amber-700" },
-  approved: { label: "Published", bg: "bg-green-100", text: "text-green-700" },
-  rejected: { label: "Rejected", bg: "bg-red-100", text: "text-red-700" },
-  archived: { label: "Archived", bg: "bg-neutral-100", text: "text-neutral-600" },
+  pending: { label: "Pending", bg: "bg-warning-soft", text: "text-warning" },
+  approved: { label: "Published", bg: "bg-success-soft", text: "text-success" },
+  rejected: { label: "Rejected", bg: "bg-danger-soft", text: "text-danger" },
+  archived: { label: "Archived", bg: "bg-surface-muted", text: "text-muted" },
 };
 
 function StatusBadge({ status }: { status: MyReview["moderationStatus"] }) {
@@ -43,7 +43,7 @@ export function MyReviewRow({
 
   return (
     <Pressable
-      className="gap-2 rounded-2xl border border-neutral-100 bg-white p-4"
+      className="gap-2 rounded-2xl border border-border bg-surface p-4"
       onPress={() => onPress(review)}
     >
       <View className="flex-row items-center gap-2">
@@ -65,7 +65,7 @@ export function MyReviewRow({
             </ThemedText>
           </Pressable>
           <Pressable hitSlop={6} onPress={() => onDelete(review)}>
-            <ThemedText className="text-red-600" size="sm" weight="medium">
+            <ThemedText className="text-danger" size="sm" weight="medium">
               Delete
             </ThemedText>
           </Pressable>

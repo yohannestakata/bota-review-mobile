@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 // Mirrors MyReviewRow: place + status badge, stars, two lines, Edit/Delete row.
 function ReviewSkeleton() {
   return (
-    <View className="gap-2 rounded-2xl border border-neutral-100 bg-white p-4">
+    <View className="gap-2 rounded-2xl border border-border bg-surface p-4">
       <View className="flex-row items-center gap-2">
         <Skeleton className="h-5 flex-1 rounded-full" />
         <Skeleton className="h-6 w-20 rounded-full" />

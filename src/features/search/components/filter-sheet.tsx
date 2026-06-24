@@ -1,17 +1,42 @@
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
-import type { ReactNode } from "react";
-import { Modal, Pressable, ScrollView, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  BottomSheetBackdrop,
+  type BottomSheetBackdropProps,
+  BottomSheetFooter,
+  type BottomSheetFooterProps,
+  BottomSheetModal,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
+import {
+  type ComponentRef,
+  forwardRef,
+  type ReactNode,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+} from "react";
+import { Pressable, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
-import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
-import { priceLabel, type Cuisine, type Tag } from "@/lib/api";
+import {
+  priceLabel,
+  type Cuisine,
+  type Neighborhood,
+  type Tag,
+} from "@/lib/api";
 import { colors } from "@/lib/theme";
 
 import { FilterChip } from "./filter-chip";
+import type { SearchSort } from "../api";
 
 const PRICE_LEVELS = [1, 2, 3, 4];
+const SNAP_POINTS = ["90%"];
+const SORT_OPTIONS: { value: Exclude<SearchSort, "distance">; label: string }[] = [
+  { value: "rating", label: "Top rated" },
+  { value: "review_count", label: "Most reviewed" },
+  { value: "recently_verified", label: "Recently verified" },
+  { value: "newest", label: "Newly added" },
+];
 const TAG_GROUPS: { category: Tag["category"]; label: string }[] = [
   { category: "vibe", label: "Vibe" },
   { category: "diet", label: "Dietary" },
@@ -19,14 +44,19 @@ const TAG_GROUPS: { category: Tag["category"]; label: string }[] = [
   { category: "practical", label: "Features" },
 ];
 
+export type FilterSheetRef = { present: () => void };
+
 type FilterSheetProps = {
-  visible: boolean;
-  onClose: () => void;
+  neighborhoods: Neighborhood[];
   cuisines: Cuisine[];
   tags: Tag[];
   cuisineIds: string[];
   tagIds: string[];
   priceLevels: number[];
+  neighborhoodId?: string;
+  sort: Exclude<SearchSort, "distance">;
+  onSelectNeighborhood: (id: string) => void;
+  onSelectSort: (sort: Exclude<SearchSort, "distance">) => void;
   onToggleCuisine: (id: string) => void;
   onToggleTag: (id: string) => void;
   onTogglePrice: (level: number) => void;
@@ -50,45 +80,117 @@ function Section({
   );
 }
 
-export function FilterSheet({
-  visible,
-  onClose,
-  cuisines,
-  tags,
-  cuisineIds,
-  tagIds,
-  priceLevels,
-  onToggleCuisine,
-  onToggleTag,
-  onTogglePrice,
-  onClear,
-}: FilterSheetProps) {
-  return (
-    <Modal
-      animationType="slide"
-      onRequestClose={onClose}
-      presentationStyle="pageSheet"
-      visible={visible}
-    >
-      <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-        <View className="flex-row items-center justify-between px-4 py-3">
-          <Pressable hitSlop={8} onPress={onClose}>
-            <AppIcon color={colors.foreground} icon={Cancel01Icon} size={24} />
-          </Pressable>
-          <ThemedText size="lg" weight="semibold">
-            Filters
-          </ThemedText>
-          <Pressable hitSlop={8} onPress={onClear}>
-            <ThemedText tone="muted" weight="medium">
-              Clear
-            </ThemedText>
-          </Pressable>
-        </View>
+export const FilterSheet = forwardRef<FilterSheetRef, FilterSheetProps>(
+  function FilterSheet(
+    {
+      neighborhoods,
+      cuisines,
+      tags,
+      cuisineIds,
+      tagIds,
+      priceLevels,
+      neighborhoodId,
+      sort,
+      onSelectNeighborhood,
+      onSelectSort,
+      onToggleCuisine,
+      onToggleTag,
+      onTogglePrice,
+      onClear,
+    },
+    ref,
+  ) {
+  const sheetRef = useRef<ComponentRef<typeof BottomSheetModal>>(null);
 
-        <ScrollView
-          className="flex-1"
-          contentContainerClassName="gap-6 px-6 pb-6 pt-2"
-        >
+  // Present imperatively from the parent's button press (gorhom's recommended
+  // pattern — far more reliable than presenting from a derived effect).
+  useImperativeHandle(ref, () => ({
+    present: () => sheetRef.current?.present(),
+  }));
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+      />
+    ),
+    [],
+  );
+
+  const renderFooter = useCallback(
+    (props: BottomSheetFooterProps) => (
+      <BottomSheetFooter {...props}>
+        <View className="border-t border-border bg-background px-6 pb-6 pt-3">
+          <Button
+            label="Show results"
+            onPress={() => sheetRef.current?.dismiss()}
+          />
+        </View>
+      </BottomSheetFooter>
+    ),
+    [],
+  );
+
+  return (
+    <BottomSheetModal
+      backdropComponent={renderBackdrop}
+      backgroundStyle={{
+        backgroundColor: colors.background,
+        borderTopLeftRadius: 28,
+        borderTopRightRadius: 28,
+      }}
+      enableDynamicSizing={false}
+      enablePanDownToClose
+      footerComponent={renderFooter}
+      handleIndicatorStyle={{ backgroundColor: colors.border }}
+      ref={sheetRef}
+      snapPoints={SNAP_POINTS}
+    >
+      <View className="flex-row items-center justify-between px-6 pb-2 pt-1">
+        <ThemedText size="lg" weight="semibold">
+          Filters
+        </ThemedText>
+        <Pressable hitSlop={8} onPress={onClear}>
+          <ThemedText tone="muted" weight="medium">
+            Clear
+          </ThemedText>
+        </Pressable>
+      </View>
+
+      <BottomSheetScrollView
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: 8,
+          paddingBottom: 96,
+        }}
+      >
+        <View className="gap-6">
+          <Section title="Sort by">
+            {SORT_OPTIONS.map((option) => (
+              <FilterChip
+                key={option.value}
+                label={option.label}
+                onPress={() => onSelectSort(option.value)}
+                selected={sort === option.value}
+              />
+            ))}
+          </Section>
+
+          {neighborhoods.length > 0 ? (
+            <Section title="Neighborhood">
+              {neighborhoods.map((neighborhood) => (
+                <FilterChip
+                  key={neighborhood.id}
+                  label={neighborhood.name}
+                  onPress={() => onSelectNeighborhood(neighborhood.id)}
+                  selected={neighborhoodId === neighborhood.id}
+                />
+              ))}
+            </Section>
+          ) : null}
+
           <Section title="Price">
             {PRICE_LEVELS.map((level) => (
               <FilterChip
@@ -131,12 +233,9 @@ export function FilterSheet({
               </Section>
             );
           })}
-        </ScrollView>
-
-        <View className="px-6 pb-2 pt-2">
-          <Button label="Show results" onPress={onClose} />
         </View>
-      </SafeAreaView>
-    </Modal>
+      </BottomSheetScrollView>
+    </BottomSheetModal>
   );
-}
+  },
+);

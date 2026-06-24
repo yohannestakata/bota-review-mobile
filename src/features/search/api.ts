@@ -6,15 +6,23 @@ import {
   type TokenGetter,
 } from "@/lib/api";
 
+export type SearchSort =
+  | "rating"
+  | "review_count"
+  | "recently_verified"
+  | "newest"
+  | "distance";
+
 export type SearchParams = {
   q: string;
+  neighborhoodId?: string;
   cuisineId?: string[];
   tagId?: string[];
   priceLevel?: number[];
   openNow?: boolean;
   lat?: number;
   lng?: number;
-  sort?: "rating" | "distance";
+  sort?: SearchSort;
   limit?: number;
   offset?: number;
 };
@@ -22,6 +30,9 @@ export type SearchParams = {
 export function searchBranches(params: SearchParams, getToken: TokenGetter) {
   const query = new URLSearchParams();
   query.set("q", params.q);
+  if (params.neighborhoodId) {
+    query.set("neighborhoodId", params.neighborhoodId);
+  }
   params.cuisineId?.forEach((id) => query.append("cuisineId", id));
   params.tagId?.forEach((id) => query.append("tagId", id));
   params.priceLevel?.forEach((level) =>
@@ -45,6 +56,17 @@ export function searchBranches(params: SearchParams, getToken: TokenGetter) {
   }
 
   return apiFetch<BranchCard[]>(`/search?${query.toString()}`, getToken);
+}
+
+export function browseBranches(
+  page: number,
+  limit: number,
+  getToken: TokenGetter,
+) {
+  return apiFetch<BranchCard[]>(
+    `/branches?page=${page}&limit=${limit}`,
+    getToken,
+  );
 }
 
 export function getCuisines(getToken: TokenGetter) {

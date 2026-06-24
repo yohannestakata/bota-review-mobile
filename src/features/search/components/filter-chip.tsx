@@ -12,7 +12,7 @@ export function FilterChip({ label, selected, onPress }: FilterChipProps) {
   return (
     <Pressable
       className={`rounded-full px-4 py-2 ${
-        selected ? "bg-black" : "bg-white"
+        selected ? "bg-primary" : "bg-surface"
       }`}
       onPress={onPress}
     >

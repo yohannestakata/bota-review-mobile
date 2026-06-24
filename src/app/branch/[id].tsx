@@ -4,10 +4,11 @@ import {
   Location01Icon,
   PencilEdit02Icon,
 } from "@hugeicons/core-free-icons";
+import { useAuth } from "@clerk/clerk-expo";
 import { colors } from "@/lib/theme";
 import { Image } from "expo-image";
-import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { router, type Href, useLocalSearchParams } from "expo-router";
+import { useEffect, useRef } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import Animated, {
   useAnimatedScrollHandler,
@@ -29,7 +30,6 @@ import {
   formatBirr,
   lowestPrice,
   OpeningHours,
-  PhotoViewer,
   QuickActions,
   ReviewRow,
   SiblingCard,
@@ -37,21 +37,24 @@ import {
   useBranch,
   useBranchMenus,
   useBranchSiblings,
+  useReportReview,
 } from "@/features/branch";
 import { useSavedBranchIds, useToggleSave } from "@/features/home";
-import { priceLabel } from "@/lib/api";
+import { Alert } from "@/components/ui/alert";
+import { analytics } from "@/lib/analytics";
+import { getErrorMessage, priceLabel } from "@/lib/api";
 import { useLocation } from "@/lib/use-location";
 
 function Chip({ label }: { label: string }) {
   return (
-    <View className="rounded-full bg-neutral-100 px-3 py-1.5">
+    <View className="rounded-full bg-surface-muted px-3 py-1.5">
       <ThemedText size="sm">{label}</ThemedText>
     </View>
   );
 }
 
 function Divider() {
-  return <View className="mx-6 h-px bg-neutral-100" />;
+  return <View className="mx-6 h-px bg-border" />;
 }
 
 function SectionTitle({ title }: { title: string }) {
@@ -67,7 +70,8 @@ function capitalize(value: string) {
 }
 
 export default function BranchDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { isSignedIn } = useAuth();
+  const { id, source } = useLocalSearchParams<{ id: string; source?: string }>();
   const branch = useBranch(id);
   const { coords } = useLocation();
   const siblings = useBranchSiblings(id, coords ?? undefined);
@@ -76,7 +80,6 @@ export default function BranchDetailScreen() {
   const toggleSave = useToggleSave();
 
   const insets = useSafeAreaInsets();
-  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const scrollY = useSharedValue(0);
   const onScroll = useAnimatedScrollHandler((event) => {
     scrollY.value = event.contentOffset.y;
@@ -84,13 +87,67 @@ export default function BranchDetailScreen() {
 
   const isSaved = savedIds?.has(id) ?? false;
 
+  // branch_viewed — once per branch entry; `source` carries the originating
+  // screen (home, search, saved, collection, …), defaulting to "unknown".
+  useEffect(() => {
+    if (id) {
+      analytics.track("branch_viewed", { branch_id: id, source: source ?? "unknown" });
+    }
+  }, [id, source]);
+
+  // menu_viewed — once the menu section is present (the menu being seen).
+  const menuTracked = useRef(false);
+  const hasMenuItems = totalItemCount(menus.data ?? []) > 0;
+  useEffect(() => {
+    if (id && hasMenuItems && !menuTracked.current) {
+      menuTracked.current = true;
+      analytics.track("menu_viewed", { branch_id: id });
+    }
+  }, [id, hasMenuItems]);
+
+  function requireSignIn(action: () => void) {
+    if (!isSignedIn) {
+      router.push("/login");
+      return;
+    }
+
+    action();
+  }
+
+  const reportReview = useReportReview();
+  function onReportReview(reviewId: string) {
+    requireSignIn(() => {
+      Alert.alert(
+        "Report review",
+        "Report this review for our team to look into?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Report",
+            style: "destructive",
+            onPress: () =>
+              reportReview.mutate(
+                { reviewId },
+                {
+                  onSuccess: () =>
+                    Alert.alert("Thanks", "We'll take a look at this."),
+                  onError: (e) =>
+                    Alert.alert("Couldn't report", getErrorMessage(e)),
+                },
+              ),
+          },
+        ],
+      );
+    });
+  }
+
   if (branch.isPending) {
     return <BranchDetailSkeleton />;
   }
 
   if (branch.isError || !branch.data) {
     return (
-      <View className="flex-1 items-center justify-center gap-3 bg-white px-6">
+      <View className="flex-1 items-center justify-center gap-3 bg-background px-6">
         <ThemedText size="lg" weight="medium">
           Hmm, couldn&apos;t load this spot
         </ThemedText>
@@ -123,7 +180,7 @@ export default function BranchDetailScreen() {
   const menuPreview = menuData[0]?.items.slice(0, 3) ?? [];
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-background">
       <Animated.ScrollView
         contentContainerStyle={{ paddingBottom: 112 }}
         onScroll={onScroll}
@@ -133,11 +190,15 @@ export default function BranchDetailScreen() {
       >
         <BranchHero
           imageUrl={cover}
-          onPress={data.photos.length > 0 ? () => setViewerIndex(0) : undefined}
+          onPress={
+            data.photos.length > 0
+              ? () => router.push(`/branch/${data.id}/photos`)
+              : undefined
+          }
           scrollY={scrollY}
         />
 
-        <View className="-mt-6 rounded-t-3xl bg-white pt-6">
+        <View className="-mt-6 rounded-t-3xl bg-background pt-6">
           {/* Heading */}
           <View className="gap-2 px-6">
             {eyebrow ? (
@@ -175,7 +236,7 @@ export default function BranchDetailScreen() {
               ) : null}
               {data.hours ? (
                 <ThemedText
-                  className={openNow ? "text-green-700" : "text-red-600"}
+                  className={openNow ? "text-success" : "text-danger"}
                   weight="medium"
                 >
                   {`·  ${openNow ? "Open" : "Closed"}`}
@@ -194,6 +255,7 @@ export default function BranchDetailScreen() {
           {/* Quick actions */}
           <View className="mt-5 px-6">
             <QuickActions
+              branchId={data.id}
               latitude={data.latitude}
               longitude={data.longitude}
               name={data.place.name}
@@ -312,7 +374,9 @@ export default function BranchDetailScreen() {
                   {data.photos.map((photo, index) => (
                     <Pressable
                       key={photo.id}
-                      onPress={() => setViewerIndex(index)}
+                      onPress={() =>
+                        router.push(`/branch/${data.id}/photos?index=${index}`)
+                      }
                     >
                       <Image
                         contentFit="cover"
@@ -334,7 +398,19 @@ export default function BranchDetailScreen() {
                 <Divider />
               </View>
               <View className="mt-6 gap-3">
-                <SectionTitle title="Other locations" />
+                <View className="flex-row items-center justify-between px-6">
+                  <ThemedText size="xl" weight="semibold">
+                    Other locations
+                  </ThemedText>
+                  <Pressable
+                    hitSlop={8}
+                    onPress={() => router.push(`/place/${data.place.id}`)}
+                  >
+                    <ThemedText tone="brand" weight="semibold">
+                      See all
+                    </ThemedText>
+                  </Pressable>
+                </View>
                 <ScrollView
                   contentContainerClassName="gap-3 px-6"
                   horizontal
@@ -362,7 +438,7 @@ export default function BranchDetailScreen() {
             </ThemedText>
 
             {hasRating ? (
-              <View className="flex-row items-center gap-4 rounded-2xl bg-neutral-50 p-4">
+              <View className="flex-row items-center gap-4 rounded-2xl bg-surface-muted p-4">
                 <ThemedText size="4xl" weight="bold">
                   {ratingValue.toFixed(1)}
                 </ThemedText>
@@ -377,23 +453,48 @@ export default function BranchDetailScreen() {
 
             {data.recentReviews.length > 0 ? (
               data.recentReviews.map((review) => (
-                <ReviewRow key={review.id} review={review} />
+                <ReviewRow
+                  key={review.id}
+                  onReport={onReportReview}
+                  onUserPress={(userId) =>
+                    router.push(`/profile/${userId}` as Href)
+                  }
+                  review={review}
+                />
               ))
             ) : (
               <ThemedText tone="muted">
                 No reviews yet — be the first to weigh in!
               </ThemedText>
             )}
+
+            {data.reviewCount > data.recentReviews.length ? (
+              <Pressable
+                className="h-12 flex-row items-center justify-center rounded-full border border-border"
+                onPress={() =>
+                  router.push({
+                    pathname: "/reviews/[branchId]",
+                    params: { branchId: data.id, name: data.place.name },
+                  })
+                }
+              >
+                <ThemedText weight="medium">
+                  See all {data.reviewCount} reviews
+                </ThemedText>
+              </Pressable>
+            ) : null}
           </View>
 
           <View className="mt-8 px-6">
             <Pressable
               className="h-14 flex-row items-center justify-center rounded-full border border-border"
               onPress={() =>
-                router.push({
-                  pathname: "/suggest-edit/[branchId]",
-                  params: { branchId: data.id, name: data.place.name },
-                })
+                requireSignIn(() =>
+                  router.push({
+                    pathname: "/suggest-edit/[branchId]",
+                    params: { branchId: data.id, name: data.place.name },
+                  }),
+                )
               }
             >
               <ThemedText tone="muted" weight="medium">
@@ -410,10 +511,12 @@ export default function BranchDetailScreen() {
               <Pressable
                 className="flex-row items-start gap-3 rounded-2xl border border-border p-4"
                 onPress={() =>
-                  router.push({
-                    pathname: "/claim/[branchId]",
-                    params: { branchId: data.id, name: data.place.name },
-                  })
+                  requireSignIn(() =>
+                    router.push({
+                      pathname: "/claim/[branchId]",
+                      params: { branchId: data.id, name: data.place.name },
+                    }),
+                  )
                 }
               >
                 <View className="mt-0.5">
@@ -428,7 +531,7 @@ export default function BranchDetailScreen() {
                     Is this your business?
                   </ThemedText>
                   <ThemedText size="sm" tone="muted">
-                    Claim it to manage your listing and get a verified badge.
+                    Claim it to verify ownership and get a verified badge.
                   </ThemedText>
                 </View>
                 <View className="mt-0.5">
@@ -449,27 +552,29 @@ export default function BranchDetailScreen() {
       <BranchHeaderButtons
         isSaved={isSaved}
         onBack={() => router.back()}
-        onToggleSave={() => toggleSave.mutate({ branchId: data.id, isSaved })}
+        onToggleSave={() =>
+          requireSignIn(() => {
+            analytics.track(isSaved ? "branch_unsaved" : "branch_saved", {
+              branch_id: data.id,
+            });
+            toggleSave.mutate({ branchId: data.id, isSaved });
+          })
+        }
       />
 
       <View
-        className="absolute bottom-0 left-0 right-0 border-t border-border bg-surface px-6 pt-3"
+        className="absolute bottom-0 left-0 right-0 border-t border-border bg-background px-6 pt-3"
         style={{ paddingBottom: insets.bottom + 12 }}
       >
         <Button
           icon={PencilEdit02Icon}
           label="Write a review"
-          onPress={() => router.push(`/review/${data.id}`)}
+          onPress={() =>
+            requireSignIn(() => router.push(`/review/${data.id}`))
+          }
           size="sm"
         />
       </View>
-
-      <PhotoViewer
-        initialIndex={viewerIndex ?? 0}
-        onClose={() => setViewerIndex(null)}
-        photos={data.photos}
-        visible={viewerIndex !== null}
-      />
     </View>
   );
 }

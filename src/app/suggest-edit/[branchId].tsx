@@ -1,28 +1,28 @@
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { zodFormResolver } from "@/lib/zod-resolver";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { useForm, useWatch } from "react-hook-form";
+import { Pressable, ScrollView, View } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { z } from "zod";
 
-import { AuthField } from "@/components/auth/auth-screen";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { FormTextArea, FormTextInput } from "@/components/ui/form-field";
-import { AppIcon } from "@/components/ui/huge-icon";
+import { CloseButton } from "@/components/ui/close-button";
+import {
+  ControlledTextArea,
+  ControlledTextInput,
+} from "@/components/ui/form-field";
 import { OptionalDetailsPanel } from "@/components/ui/optional-details-panel";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   useCreateBranchSubmission,
   type BranchSubmissionBody,
 } from "@/features/submissions";
+import { analytics } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
-import { colors } from "@/lib/theme";
+import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 
 type Kind = "field_correction" | "temporarily_closed" | "permanently_closed";
 
@@ -45,8 +45,6 @@ const FIELDS = [
   { value: "Duplicate", label: "Duplicate", mode: "note" },
 ] as const;
 
-type FieldOption = (typeof FIELDS)[number];
-
 const PRICE_LEVELS = [
   { value: "1", label: "$" },
   { value: "2", label: "$$" },
@@ -65,6 +63,71 @@ const AMENITIES = [
 
 const LISTING_DETAILS_FIELD = "Listing details";
 const SUBMISSION_NOTE_LIMIT = 500;
+
+const suggestEditObject = z.object({
+  kind: z.enum([
+    "field_correction",
+    "temporarily_closed",
+    "permanently_closed",
+  ]),
+  fieldName: z.string(),
+  suggestedValue: z.string(),
+  note: z.string(),
+  extraPriceLevel: z.string(),
+  extraHours: z.string(),
+  extraMenu: z.string(),
+  extraAddress: z.string(),
+  extraPhone: z.string(),
+  extraAmenities: z.array(z.string()),
+});
+
+type SuggestEditValues = z.infer<typeof suggestEditObject>;
+
+const DEFAULT_VALUES: SuggestEditValues = {
+  kind: "field_correction",
+  fieldName: "",
+  suggestedValue: "",
+  note: "",
+  extraPriceLevel: "",
+  extraHours: "",
+  extraMenu: "",
+  extraAddress: "",
+  extraPhone: "",
+  extraAmenities: [],
+};
+
+function extraDetailsNote(values: SuggestEditValues) {
+  const lines: string[] = [];
+  if (values.extraPriceLevel) {
+    lines.push(`Price range: ${"$".repeat(Number(values.extraPriceLevel))}`);
+  }
+  if (values.extraHours.trim()) lines.push(`Hours: ${values.extraHours.trim()}`);
+  if (values.extraMenu.trim()) lines.push(`Menu/prices: ${values.extraMenu.trim()}`);
+  if (values.extraAddress.trim()) {
+    lines.push(`Address: ${values.extraAddress.trim()}`);
+  }
+  if (values.extraPhone.trim()) lines.push(`Phone: ${values.extraPhone.trim()}`);
+  if (values.extraAmenities.length > 0) {
+    lines.push(`Amenities: ${values.extraAmenities.join(", ")}`);
+  }
+  return lines.length > 0
+    ? `Help complete this listing:\n${lines.join("\n")}`
+    : "";
+}
+
+function submissionNote(values: SuggestEditValues) {
+  return [values.note.trim(), extraDetailsNote(values)].filter(Boolean).join("\n\n");
+}
+
+const suggestEditSchema = suggestEditObject.superRefine((values, ctx) => {
+  if (submissionNote(values).length > SUBMISSION_NOTE_LIMIT) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["note"],
+      message: "Keep your note and extra details under 500 characters total.",
+    });
+  }
+});
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Something went wrong";
@@ -86,7 +149,7 @@ function Pill({
       className={cn(
         "rounded-full px-4 py-2",
         surface === "muted" && "border",
-        selected && "bg-black",
+        selected && "bg-primary",
         !selected && surface === "default" && "bg-surface",
         !selected && surface === "muted" && "border-border bg-background",
       )}
@@ -110,135 +173,112 @@ export default function SuggestEditScreen() {
   }>();
   const submit = useCreateBranchSubmission(branchId);
 
-  const [kind, setKind] = useState<Kind>("field_correction");
-  const [fieldName, setFieldName] = useState("");
-  const [suggestedValue, setSuggestedValue] = useState("");
-  const [note, setNote] = useState("");
   const [helpMore, setHelpMore] = useState(false);
-  const [extraPriceLevel, setExtraPriceLevel] = useState("");
-  const [extraHours, setExtraHours] = useState("");
-  const [extraMenu, setExtraMenu] = useState("");
-  const [extraAddress, setExtraAddress] = useState("");
-  const [extraPhone, setExtraPhone] = useState("");
-  const [extraAmenities, setExtraAmenities] = useState<string[]>([]);
-  const [error, setError] = useState("");
 
-  const isCorrection = kind === "field_correction";
-  const selectedField = FIELDS.find(
-    (field): field is FieldOption => field.value === fieldName,
-  );
+  const { control, handleSubmit, setError, setValue, formState } =
+    useForm<SuggestEditValues>({
+      resolver: zodFormResolver(suggestEditSchema),
+      mode: "onChange",
+      defaultValues: DEFAULT_VALUES,
+    });
+
+  const attemptClose = useDiscardConfirm(formState.isDirty);
+
+  const values = useWatch({ control }) as SuggestEditValues;
+  const isCorrection = values.kind === "field_correction";
+  const selectedField = FIELDS.find((field) => field.value === values.fieldName);
   const isValueCorrection = isCorrection && selectedField?.mode === "value";
   const isPriceCorrection = isCorrection && selectedField?.mode === "price";
   const isNoteCorrection = isCorrection && selectedField?.mode === "note";
+
   const hasPrimaryCorrection =
     isValueCorrection || isPriceCorrection
-      ? suggestedValue.trim().length > 0
-      : note.trim().length > 0;
+      ? values.suggestedValue.trim().length > 0
+      : values.note.trim().length > 0;
   const hasExtraDetails =
-    Boolean(extraPriceLevel) ||
-    extraHours.trim().length > 0 ||
-    extraMenu.trim().length > 0 ||
-    extraAddress.trim().length > 0 ||
-    extraPhone.trim().length > 0 ||
-    extraAmenities.length > 0;
+    Boolean(values.extraPriceLevel) ||
+    values.extraHours.trim().length > 0 ||
+    values.extraMenu.trim().length > 0 ||
+    values.extraAddress.trim().length > 0 ||
+    values.extraPhone.trim().length > 0 ||
+    values.extraAmenities.length > 0;
   const canSubmit =
     !submit.isPending &&
     (!isCorrection ||
-      (fieldName ? hasPrimaryCorrection || hasExtraDetails : hasExtraDetails));
+      (values.fieldName ? hasPrimaryCorrection || hasExtraDetails : hasExtraDetails));
 
   function resetPrimaryFields() {
-    setSuggestedValue("");
-    setNote("");
+    setValue("suggestedValue", "");
+    setValue("note", "");
   }
 
   function resetContributionFields() {
     resetPrimaryFields();
-    setExtraPriceLevel("");
-    setExtraHours("");
-    setExtraMenu("");
-    setExtraAddress("");
-    setExtraPhone("");
-    setExtraAmenities([]);
+    setValue("extraPriceLevel", "");
+    setValue("extraHours", "");
+    setValue("extraMenu", "");
+    setValue("extraAddress", "");
+    setValue("extraPhone", "");
+    setValue("extraAmenities", []);
   }
 
   function toggleAmenity(value: string) {
-    setExtraAmenities((current) =>
-      current.includes(value)
-        ? current.filter((item) => item !== value)
-        : [...current, value],
+    setValue(
+      "extraAmenities",
+      values.extraAmenities.includes(value)
+        ? values.extraAmenities.filter((item) => item !== value)
+        : [...values.extraAmenities, value],
+      { shouldValidate: true },
     );
   }
 
-  function extraDetailsNote() {
-    const lines: string[] = [];
-    if (extraPriceLevel) {
-      lines.push(`Price range: ${"$".repeat(Number(extraPriceLevel))}`);
-    }
-    if (extraHours.trim()) lines.push(`Hours: ${extraHours.trim()}`);
-    if (extraMenu.trim()) lines.push(`Menu/prices: ${extraMenu.trim()}`);
-    if (extraAddress.trim()) lines.push(`Address: ${extraAddress.trim()}`);
-    if (extraPhone.trim()) lines.push(`Phone: ${extraPhone.trim()}`);
-    if (extraAmenities.length > 0) {
-      lines.push(`Amenities: ${extraAmenities.join(", ")}`);
-    }
-    return lines.length > 0
-      ? `Help complete this listing:\n${lines.join("\n")}`
-      : "";
-  }
-
-  function submissionNote() {
-    return [note.trim(), extraDetailsNote()].filter(Boolean).join("\n\n");
-  }
-
-  function onSubmit() {
-    if (!canSubmit) {
-      return;
-    }
-
-    setError("");
-
+  const onSubmit = handleSubmit((formValues) => {
     const correctionValue =
-      isValueCorrection || isPriceCorrection ? suggestedValue.trim() : "";
-    const noteValue = submissionNote();
-    if (noteValue.length > SUBMISSION_NOTE_LIMIT) {
-      setError("Keep your note and extra details under 500 characters total.");
-      return;
-    }
+      isValueCorrection || isPriceCorrection
+        ? formValues.suggestedValue.trim()
+        : "";
+    const noteValue = submissionNote(formValues);
 
-    const body: BranchSubmissionBody = isCorrection
-      ? {
-          type: "field_correction",
-          fieldName: fieldName || LISTING_DETAILS_FIELD,
-          ...(correctionValue ? { suggestedValue: correctionValue } : {}),
-          ...(noteValue ? { note: noteValue } : {}),
-        }
-      : { type: kind, ...(noteValue ? { note: noteValue } : {}) };
+    const body: BranchSubmissionBody =
+      formValues.kind === "field_correction"
+        ? {
+            type: "field_correction",
+            fieldName: formValues.fieldName || LISTING_DETAILS_FIELD,
+            ...(correctionValue ? { suggestedValue: correctionValue } : {}),
+            ...(noteValue ? { note: noteValue } : {}),
+          }
+        : { type: formValues.kind, ...(noteValue ? { note: noteValue } : {}) };
 
-    submit.mutate(body, {
-      onSuccess: () => {
-        Alert.alert("Good catch!", "Thanks — we'll review your suggestion.");
-        router.back();
-      },
-      onError: (err) => setError(getErrorMessage(err)),
+    return new Promise<void>((resolve) => {
+      submit.mutate(body, {
+        onSuccess: () => {
+          analytics.track("edit_suggested", {
+            branch_id: branchId,
+            submission_type: body.type,
+          });
+          Alert.alert("Good catch!", "Thanks — we'll review your suggestion.");
+          router.back();
+          resolve();
+        },
+        onError: (err) => {
+          setError("root", { message: getErrorMessage(err) });
+          resolve();
+        },
+      });
     });
-  }
+  });
 
   return (
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-row items-center justify-between px-4 py-3">
-        <Pressable hitSlop={8} onPress={() => router.back()}>
-          <AppIcon color={colors.foreground} icon={Cancel01Icon} size={24} />
-        </Pressable>
+        <CloseButton onPress={attemptClose} />
         <ThemedText size="lg" weight="semibold">
           Suggest an edit
         </ThemedText>
         <View className="w-6" />
       </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
-      >
+      <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
           className="flex-1"
           contentContainerClassName="gap-5 px-6 pt-4"
@@ -256,11 +296,11 @@ export default function SuggestEditScreen() {
                 key={option.value}
                 label={option.label}
                 onPress={() => {
-                  setKind(option.value);
-                  setFieldName("");
+                  setValue("kind", option.value, { shouldValidate: true });
+                  setValue("fieldName", "");
                   resetContributionFields();
                 }}
-                selected={kind === option.value}
+                selected={values.kind === option.value}
               />
             ))}
           </View>
@@ -277,21 +317,23 @@ export default function SuggestEditScreen() {
                       key={field.value}
                       label={field.label}
                       onPress={() => {
-                        setFieldName(field.value);
+                        setValue("fieldName", field.value, {
+                          shouldValidate: true,
+                        });
                         resetPrimaryFields();
                       }}
-                      selected={fieldName === field.value}
+                      selected={values.fieldName === field.value}
                     />
                   ))}
                 </View>
               </View>
 
               {isValueCorrection ? (
-                <AuthField
+                <ControlledTextInput
+                  control={control}
                   label="Correct value"
-                  onChangeText={setSuggestedValue}
+                  name="suggestedValue"
                   placeholder="What should it say?"
-                  value={suggestedValue}
                 />
               ) : null}
 
@@ -305,8 +347,12 @@ export default function SuggestEditScreen() {
                       <Pill
                         key={level.value}
                         label={level.label}
-                        onPress={() => setSuggestedValue(level.value)}
-                        selected={suggestedValue === level.value}
+                        onPress={() =>
+                          setValue("suggestedValue", level.value, {
+                            shouldValidate: true,
+                          })
+                        }
+                        selected={values.suggestedValue === level.value}
                       />
                     ))}
                   </View>
@@ -314,12 +360,12 @@ export default function SuggestEditScreen() {
               ) : null}
 
               {isNoteCorrection ? (
-                <FormTextArea
+                <ControlledTextArea
+                  control={control}
                   inputClassName="min-h-28"
                   label="What should we know?"
-                  onChangeText={setNote}
+                  name="note"
                   placeholder="Tell us what needs attention."
-                  value={note}
                 />
               ) : null}
             </>
@@ -342,11 +388,15 @@ export default function SuggestEditScreen() {
                       key={level.value}
                       label={level.label}
                       onPress={() =>
-                        setExtraPriceLevel((current) =>
-                          current === level.value ? "" : level.value,
+                        setValue(
+                          "extraPriceLevel",
+                          values.extraPriceLevel === level.value
+                            ? ""
+                            : level.value,
+                          { shouldValidate: true },
                         )
                       }
-                      selected={extraPriceLevel === level.value}
+                      selected={values.extraPriceLevel === level.value}
                       surface="muted"
                     />
                   ))}
@@ -354,38 +404,40 @@ export default function SuggestEditScreen() {
               </View>
             ) : null}
 
-            <FormTextArea
+            <ControlledTextArea
+              control={control}
               inputClassName="min-h-20"
               label="Hours"
-              onChangeText={setExtraHours}
+              name="extraHours"
               placeholder="e.g. Open until 10 most nights."
               surface="muted"
-              value={extraHours}
             />
 
-            <FormTextArea
+            <ControlledTextArea
+              control={control}
               inputClassName="min-h-20"
               label="Menu or prices"
-              onChangeText={setExtraMenu}
+              name="extraMenu"
               placeholder="e.g. Macchiato is 90 birr now."
               surface="muted"
-              value={extraMenu}
             />
 
             <View className="gap-3">
-              <FormTextInput
+              <ControlledTextInput
+                control={control}
                 label="Address"
-                onChangeText={(value) => setExtraAddress(value.slice(0, 80))}
+                maxLength={80}
+                name="extraAddress"
                 placeholder="Only if you know it"
                 surface="muted"
-                value={extraAddress}
               />
-              <FormTextInput
+              <ControlledTextInput
+                control={control}
                 label="Phone"
-                onChangeText={(value) => setExtraPhone(value.slice(0, 40))}
+                maxLength={40}
+                name="extraPhone"
                 placeholder="Only if you know it"
                 surface="muted"
-                value={extraPhone}
               />
             </View>
 
@@ -399,7 +451,7 @@ export default function SuggestEditScreen() {
                     key={amenity}
                     label={amenity}
                     onPress={() => toggleAmenity(amenity)}
-                    selected={extraAmenities.includes(amenity)}
+                    selected={values.extraAmenities.includes(amenity)}
                     surface="muted"
                   />
                 ))}
@@ -408,17 +460,17 @@ export default function SuggestEditScreen() {
           </OptionalDetailsPanel>
 
           {!isNoteCorrection ? (
-            <FormTextArea
+            <ControlledTextArea
+              control={control}
               label={`Note ${isCorrection ? "(optional)" : ""}`}
-              onChangeText={setNote}
+              name="note"
               placeholder="Anything else we should know?"
-              value={note}
             />
           ) : null}
 
-          {error ? (
-            <ThemedText size="sm" tone="brand">
-              {error}
+          {formState.errors.root ? (
+            <ThemedText size="sm" tone="danger">
+              {formState.errors.root.message}
             </ThemedText>
           ) : null}
         </ScrollView>

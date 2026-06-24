@@ -12,14 +12,35 @@ export type CurrentUser = {
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
-class ApiError extends Error {
-  status: number;
+export type FieldErrors = Record<string, { code: string; message: string }>;
 
-  constructor(status: number, message: string) {
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+  fields?: FieldErrors;
+
+  constructor(
+    status: number,
+    message: string,
+    code?: string,
+    fields?: FieldErrors,
+  ) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.code = code;
+    this.fields = fields;
   }
+}
+
+// Reads the backend error `code` (e.g. REVIEW_ALREADY_EXISTS) off a thrown
+// error, or undefined for non-API errors.
+export function getErrorCode(error: unknown): string | undefined {
+  return error instanceof ApiError ? error.code : undefined;
+}
+
+export function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Something went wrong";
 }
 
 export async function apiFetch<T>(
@@ -50,21 +71,30 @@ export async function apiFetch<T>(
 
   if (!response.ok) {
     let message = `Request failed with status ${response.status}`;
+    let code: string | undefined;
+    let fields: FieldErrors | undefined;
 
     try {
-      const body = (await response.json()) as { message?: string };
+      const body = (await response.json()) as {
+        message?: string;
+        code?: string;
+        fields?: FieldErrors;
+      };
       message = body.message || message;
+      code = body.code;
+      fields = body.fields;
     } catch {
       // Keep the status-derived message when the backend returns no JSON body.
     }
 
     debugLog("api", "request failed", {
+      code,
       message,
       path,
       status: response.status,
     });
 
-    throw new ApiError(response.status, message);
+    throw new ApiError(response.status, message, code, fields);
   }
 
   debugLog("api", "request succeeded", {

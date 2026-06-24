@@ -1,33 +1,18 @@
+import { router } from "expo-router";
 import type { ReactNode } from "react";
-import { KeyboardAvoidingView, Platform, View } from "react-native";
+import { ScrollView, View } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { FormTextInput } from "@/components/ui/form-field";
+import { BackButton } from "@/components/ui/back-button";
 import { ThemedText } from "@/components/ui/themed-text";
 
 type AuthScreenProps = {
   title: string;
-  eyebrow: string;
+  eyebrow?: string;
   body: string;
   footer: ReactNode;
   children: ReactNode;
-};
-
-type AuthFieldProps = {
-  label: string;
-  value: string;
-  onChangeText: (value: string) => void;
-  placeholder: string;
-  autoCapitalize?: "none" | "sentences" | "words" | "characters";
-  autoComplete?:
-    | "email"
-    | "password"
-    | "new-password"
-    | "one-time-code"
-    | "username"
-    | "username-new";
-  keyboardType?: "default" | "email-address" | "number-pad";
-  secureTextEntry?: boolean;
 };
 
 export function AuthScreen({
@@ -37,19 +22,37 @@ export function AuthScreen({
   footer,
   children,
 }: AuthScreenProps) {
+  function goBack() {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/");
+    }
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
-      >
-        <View className="flex-1 justify-between px-6 pb-8 pt-6">
-          <View>
+      <KeyboardAvoidingView behavior="padding" className="flex-1">
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="flex-grow px-6 pb-8 pt-4"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <BackButton onPress={goBack} />
+
+          <View className="mt-6">
             <View>
-              <ThemedText size="sm" tone="brand" weight="semibold">
-                {eyebrow}
-              </ThemedText>
-              <ThemedText className="mt-3" size="4xl" weight="medium">
+              {eyebrow ? (
+                <ThemedText size="sm" tone="brand" weight="semibold">
+                  {eyebrow}
+                </ThemedText>
+              ) : null}
+              <ThemedText
+                className={eyebrow ? "mt-3" : undefined}
+                size="4xl"
+                weight="medium"
+              >
                 {title}
               </ThemedText>
               <ThemedText className="mt-3" tone="muted">
@@ -60,33 +63,9 @@ export function AuthScreen({
             <View className="mt-8 gap-4">{children}</View>
           </View>
 
-          <View className="mt-8">{footer}</View>
-        </View>
+          <View className="mt-auto pt-8">{footer}</View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
-  );
-}
-
-export function AuthField({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  autoCapitalize = "none",
-  autoComplete,
-  keyboardType = "default",
-  secureTextEntry,
-}: AuthFieldProps) {
-  return (
-    <FormTextInput
-      autoCapitalize={autoCapitalize}
-      autoComplete={autoComplete}
-      keyboardType={keyboardType}
-      label={label}
-      onChangeText={onChangeText}
-      placeholder={placeholder}
-      secureTextEntry={secureTextEntry}
-      value={value}
-    />
   );
 }

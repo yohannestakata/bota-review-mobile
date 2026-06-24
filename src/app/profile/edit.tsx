@@ -1,35 +1,44 @@
 import { useUser } from "@clerk/clerk-expo";
-import { colors } from "@/lib/theme";
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { zodFormResolver } from "@/lib/zod-resolver";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { useForm } from "react-hook-form";
+import { Pressable, ScrollView, View } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { z } from "zod";
 
-import { AuthField } from "@/components/auth/auth-screen";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { AppIcon } from "@/components/ui/huge-icon";
+import { CloseButton } from "@/components/ui/close-button";
+import { ControlledTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { getAuthMessage } from "@/lib/auth";
+
+const editProfileSchema = z.object({
+  firstName: z.string().trim().optional(),
+  lastName: z.string().trim().optional(),
+  username: z.string().trim().min(3, "At least 3 characters"),
+});
+
+type EditProfileValues = z.infer<typeof editProfileSchema>;
 
 export default function EditProfileScreen() {
   const { user } = useUser();
 
-  const [firstName, setFirstName] = useState(user?.firstName ?? "");
-  const [lastName, setLastName] = useState(user?.lastName ?? "");
-  const [username, setUsername] = useState(user?.username ?? "");
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [avatarData, setAvatarData] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+
+  const { control, handleSubmit, setError, formState } =
+    useForm<EditProfileValues>({
+      resolver: zodFormResolver(editProfileSchema),
+      defaultValues: {
+        firstName: user?.firstName ?? "",
+        lastName: user?.lastName ?? "",
+        username: user?.username ?? "",
+      },
+    });
 
   async function pickAvatar() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -56,46 +65,37 @@ export default function EditProfileScreen() {
     }
   }
 
-  async function onSave() {
-    if (!user || saving) {
+  const onSave = handleSubmit(async (values) => {
+    if (!user) {
       return;
     }
-
-    setError("");
-    setSaving(true);
 
     try {
       if (avatarData) {
         await user.setProfileImage({ file: avatarData });
       }
       await user.update({
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        username: username.trim(),
+        firstName: values.firstName ?? "",
+        lastName: values.lastName ?? "",
+        username: values.username,
       });
       router.back();
     } catch (err) {
-      setError(getAuthMessage(err));
-      setSaving(false);
+      setError("root", { message: getAuthMessage(err) });
     }
-  }
+  });
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-background">
       <View className="flex-row items-center justify-between px-4 py-3">
-        <Pressable hitSlop={8} onPress={() => router.back()}>
-          <AppIcon color={colors.foreground} icon={Cancel01Icon} size={24} />
-        </Pressable>
+        <CloseButton onPress={() => router.back()} />
         <ThemedText size="lg" weight="semibold">
           Edit profile
         </ThemedText>
         <View className="w-6" />
       </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
-      >
+      <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
           className="flex-1"
           contentContainerClassName="gap-5 px-6 pt-4"
@@ -114,40 +114,41 @@ export default function EditProfileScreen() {
             </Pressable>
           </View>
 
-          <AuthField
+          <ControlledTextInput
             autoCapitalize="words"
+            control={control}
             label="First name"
-            onChangeText={setFirstName}
+            name="firstName"
             placeholder="First name"
-            value={firstName}
           />
-          <AuthField
+          <ControlledTextInput
             autoCapitalize="words"
+            control={control}
             label="Last name"
-            onChangeText={setLastName}
+            name="lastName"
             placeholder="Last name"
-            value={lastName}
           />
-          <AuthField
+          <ControlledTextInput
+            autoCapitalize="none"
             autoComplete="username"
+            control={control}
             label="Username"
-            onChangeText={setUsername}
+            name="username"
             placeholder="yourname"
-            value={username}
           />
 
-          {error ? (
-            <ThemedText size="sm" tone="brand">
-              {error}
+          {formState.errors.root ? (
+            <ThemedText size="sm" tone="danger">
+              {formState.errors.root.message}
             </ThemedText>
           ) : null}
         </ScrollView>
 
         <View className="px-6 pb-2 pt-2">
           <Button
-            disabled={saving}
+            disabled={formState.isSubmitting}
             label="Save"
-            loading={saving}
+            loading={formState.isSubmitting}
             onPress={onSave}
           />
         </View>

@@ -17,7 +17,7 @@ const typeScale = [
 export default function TestScreen() {
   return (
     <ScrollView
-      className="flex-1 bg-white"
+      className="flex-1 bg-background"
       contentContainerClassName="gap-6 px-6 py-10"
     >
       {typeScale.map(([textSize, size]) => (

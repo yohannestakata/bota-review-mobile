@@ -17,7 +17,7 @@ export function MenuItemRow({ item }: { item: MenuItem }) {
           transition={150}
         />
       ) : (
-        <View className="size-14 rounded-xl bg-neutral-100" />
+        <View className="size-14 rounded-xl bg-placeholder" />
       )}
 
       <View className="flex-1 gap-0.5">
@@ -33,7 +33,7 @@ export function MenuItemRow({ item }: { item: MenuItem }) {
           </ThemedText>
         ) : null}
         {!item.isAvailable ? (
-          <ThemedText className="text-red-600" size="xs" weight="medium">
+          <ThemedText className="text-danger" size="xs" weight="medium">
             Currently unavailable
           </ThemedText>
         ) : null}

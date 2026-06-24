@@ -1,10 +1,11 @@
-import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { useAuth } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
-import { useCallback } from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { useCallback, useEffect } from "react";
+import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AppIcon } from "@/components/ui/huge-icon";
+import { FlashList, ListGapLg } from "@/components/ui/flash-list";
+import { BackButton } from "@/components/ui/back-button";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   BranchCard,
@@ -13,33 +14,44 @@ import {
   useSavedBranchIds,
   useToggleSave,
 } from "@/features/home";
+import { analytics } from "@/lib/analytics";
 import type { BranchCard as BranchCardData } from "@/lib/api";
-import { colors } from "@/lib/theme";
 
 const EMPTY_SAVED = new Set<string>();
 
 export default function CollectionScreen() {
+  const { isSignedIn } = useAuth();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const collection = useCollection(slug);
   const { data: savedIds } = useSavedBranchIds();
   const toggleSave = useToggleSave();
 
+  useEffect(() => {
+    if (slug) {
+      analytics.track("collection_viewed", { collection_slug: slug });
+    }
+  }, [slug]);
+
   const onToggleSave = useCallback(
     (branch: BranchCardData) => {
-      toggleSave.mutate({
-        branchId: branch.id,
-        isSaved: (savedIds ?? EMPTY_SAVED).has(branch.id),
+      if (!isSignedIn) {
+        router.push("/login");
+        return;
+      }
+
+      const wasSaved = (savedIds ?? EMPTY_SAVED).has(branch.id);
+      analytics.track(wasSaved ? "branch_unsaved" : "branch_saved", {
+        branch_id: branch.id,
       });
+      toggleSave.mutate({ branchId: branch.id, isSaved: wasSaved });
     },
-    [savedIds, toggleSave],
+    [isSignedIn, savedIds, toggleSave],
   );
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View className="flex-row items-center gap-3 px-4 py-3">
-        <Pressable hitSlop={8} onPress={() => router.back()}>
-          <AppIcon color={colors.foreground} icon={ArrowLeft01Icon} size={24} />
-        </Pressable>
+        <BackButton onPress={() => router.back()} />
         <ThemedText numberOfLines={1} size="lg" weight="semibold">
           {collection.data?.name ?? "Collection"}
         </ThemedText>
@@ -61,22 +73,27 @@ export default function CollectionScreen() {
           </Pressable>
         </View>
       ) : (
-        <FlatList
-          contentContainerClassName="gap-5 px-6 pb-10 pt-2"
+        <FlashList
+          contentContainerClassName="px-6 pb-10 pt-2"
           data={collection.data.branches}
+          ItemSeparatorComponent={ListGapLg}
           keyExtractor={(item) => item.id}
           ListHeaderComponent={
             collection.data.description ? (
-              <ThemedText className="leading-6" tone="muted">
+              <ThemedText className="mb-5 leading-6" tone="muted">
                 {collection.data.description}
               </ThemedText>
             ) : null
           }
+          onRefresh={() => collection.refetch()}
+          refreshing={collection.isRefetching}
           renderItem={({ item }) => (
             <BranchCard
               branch={item}
               isSaved={(savedIds ?? EMPTY_SAVED).has(item.id)}
-              onPress={(branch) => router.push(`/branch/${branch.id}`)}
+              onPress={(branch) =>
+                router.push(`/branch/${branch.id}?source=collection`)
+              }
               onToggleSave={onToggleSave}
             />
           )}

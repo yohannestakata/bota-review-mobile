@@ -11,7 +11,7 @@ type TextSize =
   | "3xl"
   | "4xl"
   | "5xl";
-type TextTone = "default" | "muted" | "brand" | "inverse";
+type TextTone = "default" | "muted" | "brand" | "inverse" | "danger";
 type TextWeight = "normal" | "medium" | "semibold" | "bold";
 
 type ThemedTextProps = ComponentProps<typeof Text> & {
@@ -37,6 +37,7 @@ const toneClass: Record<TextTone, string> = {
   muted: "text-muted",
   brand: "text-foreground",
   inverse: "text-inverse",
+  danger: "text-danger",
 };
 
 const weightClass: Record<TextWeight, string> = {

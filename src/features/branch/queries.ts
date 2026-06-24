@@ -7,7 +7,11 @@ import {
   createReview,
   getBranch,
   getBranchMenus,
+  getBranchReviews,
   getBranchSiblings,
+  getMyClaims,
+  getReview,
+  reportReview,
   updateReview,
   type CreateClaimBody,
   type CreateReviewBody,
@@ -19,7 +23,52 @@ export const branchKeys = {
   detail: (id: string) => [...branchKeys.all, id] as const,
   siblings: (id: string) => [...branchKeys.detail(id), "siblings"] as const,
   menus: (id: string) => [...branchKeys.detail(id), "menus"] as const,
+  reviews: (id: string) => [...branchKeys.detail(id), "reviews"] as const,
+  review: (id: string) => [...branchKeys.all, "review", id] as const,
 };
+
+export const claimKeys = {
+  all: ["claims"] as const,
+  mine: () => [...claimKeys.all, "mine"] as const,
+};
+
+export function useReview(reviewId: string | undefined) {
+  const { getToken } = useAuth();
+
+  return useQuery({
+    queryKey: branchKeys.review(reviewId ?? ""),
+    queryFn: () => getReview(reviewId as string, getToken),
+    enabled: Boolean(reviewId),
+  });
+}
+
+export function useOwnClaims() {
+  const { getToken } = useAuth();
+
+  return useQuery({
+    queryKey: claimKeys.mine(),
+    queryFn: () => getMyClaims(getToken),
+  });
+}
+
+export function useReportReview() {
+  const { getToken } = useAuth();
+
+  return useMutation({
+    mutationFn: (vars: { reviewId: string; reason?: string }) =>
+      reportReview(vars.reviewId, vars.reason, getToken),
+  });
+}
+
+export function useBranchReviews(id: string) {
+  const { getToken } = useAuth();
+
+  return useQuery({
+    queryKey: branchKeys.reviews(id),
+    queryFn: () => getBranchReviews(id, getToken),
+    enabled: Boolean(id),
+  });
+}
 
 export function useBranch(id: string) {
   const { getToken } = useAuth();
@@ -63,6 +112,7 @@ export function useCreateClaim(branchId: string) {
       void queryClient.invalidateQueries({
         queryKey: branchKeys.detail(branchId),
       });
+      void queryClient.invalidateQueries({ queryKey: claimKeys.mine() });
     },
   });
 }

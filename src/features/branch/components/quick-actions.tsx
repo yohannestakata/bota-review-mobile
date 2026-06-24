@@ -8,11 +8,13 @@ import { Linking, Pressable, Share, View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
+import { analytics } from "@/lib/analytics";
 import { colors } from "@/lib/theme";
 
 type IconType = ComponentProps<typeof AppIcon>["icon"];
 
 type QuickActionsProps = {
+  branchId: string;
   name: string;
   phone: string | null;
   latitude: string | null;
@@ -32,7 +34,7 @@ function Action({
 }) {
   return (
     <Pressable
-      className={`flex-1 items-center gap-1.5 rounded-2xl bg-neutral-100 py-3 ${
+      className={`flex-1 items-center gap-1.5 rounded-2xl bg-surface-muted py-3 ${
         disabled ? "opacity-40" : ""
       }`}
       disabled={disabled}
@@ -47,6 +49,7 @@ function Action({
 }
 
 export function QuickActions({
+  branchId,
   name,
   phone,
   latitude,
@@ -56,12 +59,14 @@ export function QuickActions({
 
   const onCall = () => {
     if (phone) {
+      analytics.track("phone_clicked", { branch_id: branchId });
       void Linking.openURL(`tel:${phone.replace(/\s+/g, "")}`);
     }
   };
 
   const onDirections = () => {
     if (hasCoords) {
+      analytics.track("directions_clicked", { branch_id: branchId });
       void Linking.openURL(
         `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
       );
@@ -69,6 +74,7 @@ export function QuickActions({
   };
 
   const onShare = () => {
+    analytics.track("share_clicked", { branch_id: branchId });
     void Share.share({ message: `Check out ${name} on Bota` });
   };
 

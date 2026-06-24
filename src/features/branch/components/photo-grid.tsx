@@ -37,7 +37,7 @@ export function PhotoGrid({ photos, canAdd, onAdd, onRemove }: PhotoGridProps) {
       {cell > 0
         ? photos.map((photo) => (
             <View
-              className="overflow-hidden rounded-xl bg-neutral-100"
+              className="overflow-hidden rounded-xl bg-surface-muted"
               key={photo.uri}
               style={{ width: cell, height: cell }}
             >
@@ -59,7 +59,7 @@ export function PhotoGrid({ photos, canAdd, onAdd, onRemove }: PhotoGridProps) {
 
       {cell > 0 && canAdd ? (
         <Pressable
-          className="items-center justify-center rounded-xl border border-dashed border-neutral-300"
+          className="items-center justify-center rounded-xl border border-dashed border-subtle"
           onPress={onAdd}
           style={{ width: cell, height: cell }}
         >

@@ -34,10 +34,11 @@
     --letter-spacing-xs: 0.12px;
 
     /* Color tokens — keep in sync with src/lib/theme.ts (used for JS color props). */
-    --color-background: #f5f3ef;
-    --color-surface: #ffffff;
-    --color-border: #f5f5f5;
-    --color-placeholder: #e5e5e5;
+    --color-background: #fcfaf6; /* cream — the app's base surface */
+    --color-surface: #ffffff; /* white — raised cards/buttons on the cream base */
+    --color-surface-muted: #f0ede7; /* muted panel that reads as inset on cream */
+    --color-border: #e6e2da; /* warm hairline, visible on both cream and white */
+    --color-placeholder: #ece7d9; /* skeleton/image placeholder — a touch warmer than surface-muted */
     --color-foreground: #171717;
     --color-muted: #737373;
     --color-subtle: #d4d4d4;
@@ -46,5 +47,9 @@
     --color-rating: #f59e0b;
     --color-favorite: #e11d48;
     --color-success: #16a34a;
+    --color-success-soft: #dcfce7;
+    --color-warning: #b45309;
+    --color-warning-soft: #fef3c7;
     --color-danger: #dc2626;
+    --color-danger-soft: #fee2e2;
 }

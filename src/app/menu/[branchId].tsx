@@ -1,9 +1,8 @@
-import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AppIcon } from "@/components/ui/huge-icon";
+import { BackButton } from "@/components/ui/back-button";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   MenuList,
@@ -11,7 +10,6 @@ import {
   totalItemCount,
   useBranchMenus,
 } from "@/features/branch";
-import { colors } from "@/lib/theme";
 
 export default function MenuScreen() {
   const { branchId, name } = useLocalSearchParams<{
@@ -24,15 +22,9 @@ export default function MenuScreen() {
   const itemCount = totalItemCount(data);
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View className="flex-row items-center gap-3 px-4 py-3">
-        <Pressable
-          className="size-10 items-center justify-center rounded-full bg-surface"
-          hitSlop={8}
-          onPress={() => router.back()}
-        >
-          <AppIcon color={colors.foreground} icon={ArrowLeft01Icon} size={20} />
-        </Pressable>
+        <BackButton onPress={() => router.back()} />
         <View className="flex-1">
           <ThemedText size="lg" weight="semibold">
             Menu
@@ -45,8 +37,18 @@ export default function MenuScreen() {
         </View>
       </View>
 
+      {/* Menu rows live inside a white card floating on the warm background — the
+          rows rely on neutral-100 dividers/placeholders that only read on a light
+          surface, and this matches the card-on-background look of the home tabs. */}
       {menus.isPending ? (
-        <MenuSkeleton />
+        <ScrollView
+          contentContainerClassName="px-6 pb-12 pt-2"
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="rounded-3xl bg-surface p-5">
+            <MenuSkeleton />
+          </View>
+        </ScrollView>
       ) : itemCount === 0 ? (
         <View className="flex-1 items-center justify-center px-6">
           <ThemedText className="text-center" tone="muted">
@@ -58,7 +60,9 @@ export default function MenuScreen() {
           contentContainerClassName="px-6 pb-12 pt-2"
           showsVerticalScrollIndicator={false}
         >
-          <MenuList menus={data} />
+          <View className="rounded-3xl bg-surface p-5">
+            <MenuList menus={data} />
+          </View>
         </ScrollView>
       )}
     </SafeAreaView>

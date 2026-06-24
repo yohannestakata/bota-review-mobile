@@ -1,11 +1,17 @@
 import { useSSO, useSignIn } from "@clerk/clerk-expo";
+import { zodFormResolver } from "@/lib/zod-resolver";
 import { Link, router } from "expo-router";
 import type { Href } from "expo-router";
 import { useState } from "react";
+import { View } from "react-native";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { AuthField, AuthScreen } from "@/components/auth/auth-screen";
+import { AuthScreen } from "@/components/auth/auth-screen";
+import { AuthDivider, AuthError } from "@/components/auth/auth-feedback";
 import { GoogleMark } from "@/components/auth/google-mark";
 import { Button } from "@/components/ui/button";
+import { ControlledTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   getAuthMessage,
@@ -13,49 +19,55 @@ import {
   oauthRedirectUrl,
 } from "@/lib/auth";
 import { debugLog } from "@/lib/debug";
+import { emailField } from "@/lib/validation";
+
+const loginSchema = z.object({
+  email: emailField,
+  password: z.string().min(1, "Enter your password"),
+});
+
+type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
   const { isLoaded, setActive, signIn } = useSignIn();
   const { startSSOFlow } = useSSO();
-  const [emailAddress, setEmailAddress] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  async function onSubmit() {
-    if (!isLoaded || loading) {
+  const { control, handleSubmit, setError, formState } = useForm<LoginValues>({
+    resolver: zodFormResolver(loginSchema),
+    mode: "onChange",
+    defaultValues: { email: "", password: "" },
+  });
+
+  const onSubmit = handleSubmit(async (values) => {
+    if (!isLoaded) {
       return;
     }
 
-    setError("");
-    setLoading(true);
-
     try {
       const result = await signIn.create({
-        identifier: emailAddress.trim(),
-        password,
+        identifier: values.email,
+        password: values.password,
       });
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         router.replace("/");
       } else {
-        setError("We need one more verification step before you can continue.");
+        setError("root", {
+          message: "We need one more verification step before you can continue.",
+        });
       }
     } catch (err) {
-      setError(getAuthMessage(err));
-    } finally {
-      setLoading(false);
+      setError("root", { message: getAuthMessage(err) });
     }
-  }
+  });
 
   async function onGooglePress() {
     if (googleLoading) {
       return;
     }
 
-    setError("");
     setGoogleLoading(true);
 
     try {
@@ -87,13 +99,13 @@ export default function LoginScreen() {
         // requires. Finish the sign-up on the next screen.
         router.push("/complete-profile" as Href);
       } else {
-        setError("That didn't go through. Mind trying again?");
+        setError("root", { message: "That didn't go through. Mind trying again?" });
       }
     } catch (err) {
       debugLog("auth", "Google OAuth failed", {
         message: err instanceof Error ? err.message : "Unknown error",
       });
-      setError(getAuthMessage(err));
+      setError("root", { message: getAuthMessage(err) });
     } finally {
       setGoogleLoading(false);
     }
@@ -102,7 +114,6 @@ export default function LoginScreen() {
   return (
     <AuthScreen
       body="Pick up right where you left off — your saved spots and reviews are waiting."
-      eyebrow="Welcome back"
       footer={
         <ThemedText className="text-center" tone="muted">
           New here?{" "}
@@ -115,35 +126,47 @@ export default function LoginScreen() {
       }
       title="Log in to Bota"
     >
-      <AuthField
+      <ControlledTextInput
+        autoCapitalize="none"
         autoComplete="email"
+        control={control}
+        editable={!googleLoading && !formState.isSubmitting}
         keyboardType="email-address"
         label="Email"
-        onChangeText={setEmailAddress}
+        name="email"
         placeholder="you@example.com"
-        value={emailAddress}
+        returnKeyType="next"
       />
-      <AuthField
+      <ControlledTextInput
+        autoCapitalize="none"
         autoComplete="password"
+        control={control}
+        editable={!googleLoading && !formState.isSubmitting}
         label="Password"
-        onChangeText={setPassword}
+        name="password"
+        onSubmitEditing={onSubmit}
         placeholder="Your password"
+        returnKeyType="done"
         secureTextEntry
-        value={password}
       />
-      {error ? (
-        <ThemedText size="sm" tone="brand">
-          {error}
-        </ThemedText>
-      ) : null}
+      <AuthError message={formState.errors.root?.message} />
       <Button
-        label="Continue with Google"
-        leftSlot={<GoogleMark />}
-        loading={googleLoading}
-        onPress={onGooglePress}
-        variant="secondary"
+        disabled={!isLoaded || !formState.isValid || googleLoading}
+        label="Log in"
+        loading={formState.isSubmitting}
+        onPress={onSubmit}
       />
-      <Button label="Log in" loading={loading} onPress={onSubmit} />
+      <View className="mt-2 gap-4">
+        <AuthDivider />
+        <Button
+          disabled={formState.isSubmitting}
+          label="Continue with Google"
+          leftSlot={<GoogleMark />}
+          loading={googleLoading}
+          onPress={onGooglePress}
+          variant="secondary"
+        />
+      </View>
     </AuthScreen>
   );
 }

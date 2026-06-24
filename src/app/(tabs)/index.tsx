@@ -1,4 +1,5 @@
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
+import { UserCircleIcon } from "@hugeicons/core-free-icons";
 import { colors } from "@/lib/theme";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo } from "react";
@@ -19,14 +20,18 @@ import {
   useToggleSave,
 } from "@/features/home";
 import { Avatar } from "@/components/ui/avatar";
+import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
+import { analytics } from "@/lib/analytics";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 import { debugLog } from "@/lib/debug";
 import { useLocation } from "@/lib/use-location";
 
 const EMPTY_SAVED = new Set<string>();
+const GREETING_SEED = Math.random();
 
 export default function Index() {
+  const { isSignedIn } = useAuth();
   const { user } = useUser();
   const location = useLocation();
   const home = useHomeFeed(location.coords);
@@ -47,23 +52,32 @@ export default function Index() {
   }, [home.data, location.coords]);
 
   const onRefresh = useCallback(() => {
-    void Promise.all([home.refetch(), saved.refetch()]);
-  }, [home, saved]);
+    void home.refetch();
+    if (isSignedIn) {
+      void saved.refetch();
+    }
+  }, [home, isSignedIn, saved]);
 
   const onToggleSave = useCallback(
     (branch: BranchCardData) => {
-      toggleSave.mutate({
-        branchId: branch.id,
-        isSaved: (savedIds ?? EMPTY_SAVED).has(branch.id),
+      if (!isSignedIn) {
+        router.push("/login");
+        return;
+      }
+
+      const wasSaved = (savedIds ?? EMPTY_SAVED).has(branch.id);
+      analytics.track(wasSaved ? "branch_unsaved" : "branch_saved", {
+        branch_id: branch.id,
       });
+      toggleSave.mutate({ branchId: branch.id, isSaved: wasSaved });
     },
-    [savedIds, toggleSave],
+    [isSignedIn, savedIds, toggleSave],
   );
 
   const firstName = user?.firstName ?? "there";
   // Picked once per app launch — varies across opens, stable within a session.
   const greeting = useMemo(
-    () => homeGreeting(new Date(), firstName, Math.random()),
+    () => homeGreeting(new Date(), firstName, GREETING_SEED),
     [firstName],
   );
   const allSections = home.data?.sections ?? [];
@@ -99,7 +113,9 @@ export default function Index() {
         refreshControl={
           <RefreshControl
             onRefresh={onRefresh}
-            refreshing={home.isRefetching || saved.isRefetching}
+            refreshing={
+              home.isRefetching || (isSignedIn === true && saved.isRefetching)
+            }
             tintColor={colors.foreground}
           />
         }
@@ -107,8 +123,31 @@ export default function Index() {
       >
         <View className="mt-6 px-6">
           <View className="flex-row items-center justify-between">
-            <Pressable hitSlop={8} onPress={() => router.push("/profile")}>
-              <Avatar name={user?.fullName} size={40} uri={user?.imageUrl} />
+            <Pressable
+              accessibilityLabel={isSignedIn ? "Open profile" : "Sign in"}
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={() => router.push(isSignedIn ? "/profile" : "/login")}
+            >
+              {isSignedIn ? (
+                <Avatar
+                  name={
+                    user?.fullName ??
+                    user?.username ??
+                    user?.primaryEmailAddress?.emailAddress
+                  }
+                  size={40}
+                  uri={user?.imageUrl}
+                />
+              ) : (
+                <View className="size-10 items-center justify-center rounded-full bg-surface-muted">
+                  <AppIcon
+                    color={colors.foreground}
+                    icon={UserCircleIcon}
+                    size={24}
+                  />
+                </View>
+              )}
             </Pressable>
             <LocationPill
               label={location.label}
@@ -163,7 +202,9 @@ export default function Index() {
         {railSections.map((section) => (
           <HomeSection
             key={section.type}
-            onPressBranch={(branch) => router.push(`/branch/${branch.id}`)}
+            onPressBranch={(branch) =>
+              router.push(`/branch/${branch.id}?source=home`)
+            }
             onToggleSave={onToggleSave}
             savedIds={savedIds ?? EMPTY_SAVED}
             section={section}
@@ -180,7 +221,7 @@ export default function Index() {
                 branch={branch}
                 isSaved={(savedIds ?? EMPTY_SAVED).has(branch.id)}
                 key={branch.id}
-                onPress={(b) => router.push(`/branch/${b.id}`)}
+                onPress={(b) => router.push(`/branch/${b.id}?source=home`)}
                 onToggleSave={onToggleSave}
               />
             ))}

@@ -1,11 +1,17 @@
 import { useSSO, useSignUp } from "@clerk/clerk-expo";
+import { zodFormResolver } from "@/lib/zod-resolver";
 import { Link, router } from "expo-router";
 import type { Href } from "expo-router";
 import { useState } from "react";
+import { Pressable, View } from "react-native";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { AuthField, AuthScreen } from "@/components/auth/auth-screen";
+import { AuthScreen } from "@/components/auth/auth-screen";
+import { AuthDivider, AuthError } from "@/components/auth/auth-feedback";
 import { GoogleMark } from "@/components/auth/google-mark";
 import { Button } from "@/components/ui/button";
+import { ControlledTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   getAuthMessage,
@@ -13,40 +19,97 @@ import {
   oauthRedirectUrl,
 } from "@/lib/auth";
 import { debugLog } from "@/lib/debug";
+import { emailField } from "@/lib/validation";
+
+const accountSchema = z.object({
+  email: emailField,
+  username: z.string().trim().min(3, "At least 3 characters"),
+  password: z.string().min(8, "At least 8 characters"),
+});
+
+const verifySchema = z.object({
+  code: z.string().trim().min(6, "Enter the 6-digit code"),
+});
+
+type AccountValues = z.infer<typeof accountSchema>;
+type VerifyValues = z.infer<typeof verifySchema>;
 
 export default function SignupScreen() {
   const { isLoaded, setActive, signUp } = useSignUp();
   const { startSSOFlow } = useSSO();
-  const [emailAddress, setEmailAddress] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [code, setCode] = useState("");
   const [pendingVerification, setPendingVerification] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
-  async function onCreateAccount() {
-    if (!isLoaded || loading) {
+  const accountForm = useForm<AccountValues>({
+    resolver: zodFormResolver(accountSchema),
+    mode: "onChange",
+    defaultValues: { email: "", username: "", password: "" },
+  });
+  const verifyForm = useForm<VerifyValues>({
+    resolver: zodFormResolver(verifySchema),
+    mode: "onChange",
+    defaultValues: { code: "" },
+  });
+
+  const onCreateAccount = accountForm.handleSubmit(async (values) => {
+    if (!isLoaded) {
       return;
     }
 
-    setError("");
-    setLoading(true);
-
     try {
       await signUp.create({
-        emailAddress: emailAddress.trim(),
-        username: username.trim(),
-        password,
+        emailAddress: values.email,
+        username: values.username,
+        password: values.password,
       });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setPendingVerification(true);
     } catch (err) {
-      setError(getAuthMessage(err));
-    } finally {
-      setLoading(false);
+      accountForm.setError("root", { message: getAuthMessage(err) });
     }
+  });
+
+  const onVerify = verifyForm.handleSubmit(async ({ code }) => {
+    if (!isLoaded) {
+      return;
+    }
+
+    try {
+      const result = await signUp.attemptEmailAddressVerification({ code });
+
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        router.replace("/");
+      } else {
+        verifyForm.setError("root", {
+          message: "That code didn't match — give it another go.",
+        });
+      }
+    } catch (err) {
+      verifyForm.setError("root", { message: getAuthMessage(err) });
+    }
+  });
+
+  async function resendCode() {
+    if (!isLoaded || resendLoading) {
+      return;
+    }
+
+    setResendLoading(true);
+    verifyForm.clearErrors();
+    try {
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+    } catch (err) {
+      verifyForm.setError("root", { message: getAuthMessage(err) });
+    } finally {
+      setResendLoading(false);
+    }
+  }
+
+  function changeEmail() {
+    verifyForm.reset();
+    setPendingVerification(false);
   }
 
   async function onGooglePress() {
@@ -54,7 +117,6 @@ export default function SignupScreen() {
       return;
     }
 
-    setError("");
     setGoogleLoading(true);
 
     try {
@@ -86,50 +148,35 @@ export default function SignupScreen() {
         // requires. Finish the sign-up on the next screen.
         router.push("/complete-profile" as Href);
       } else {
-        setError("That didn't go through. Mind trying again?");
+        accountForm.setError("root", {
+          message: "That didn't go through. Mind trying again?",
+        });
       }
     } catch (err) {
       debugLog("auth", "Google OAuth failed", {
         message: err instanceof Error ? err.message : "Unknown error",
       });
-      setError(getAuthMessage(err));
+      accountForm.setError("root", { message: getAuthMessage(err) });
     } finally {
       setGoogleLoading(false);
     }
   }
 
-  async function onVerify() {
-    if (!isLoaded || loading) {
-      return;
-    }
-
-    setError("");
-    setLoading(true);
-
-    try {
-      const result = await signUp.attemptEmailAddressVerification({ code });
-
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        router.replace("/");
-      } else {
-        setError("That code didn't match — give it another go.");
-      }
-    } catch (err) {
-      setError(getAuthMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }
+  const rootError = pendingVerification
+    ? verifyForm.formState.errors.root?.message
+    : accountForm.formState.errors.root?.message;
+  const accountBusy = accountForm.formState.isSubmitting || googleLoading;
+  const verificationBusy =
+    verifyForm.formState.isSubmitting || resendLoading;
+  const pendingEmail = accountForm.getValues("email");
 
   return (
     <AuthScreen
       body={
         pendingVerification
-          ? "We sent a code to your email — pop it in to finish up."
+          ? `We sent a 6-digit code to ${pendingEmail}. Enter it below to finish up.`
           : "Save the spots you love, share your takes, and help the city find its next favorite place."
       }
-      eyebrow={pendingVerification ? "Check your email" : "Join Bota"}
       footer={
         <ThemedText className="text-center" tone="muted">
           Already have an account?{" "}
@@ -143,60 +190,104 @@ export default function SignupScreen() {
       title={pendingVerification ? "Verify your email" : "Create your account"}
     >
       {pendingVerification ? (
-        <AuthField
-          autoComplete="one-time-code"
-          keyboardType="number-pad"
-          label="Verification code"
-          onChangeText={setCode}
-          placeholder="123456"
-          value={code}
-        />
+        <>
+          <ControlledTextInput
+            autoComplete="one-time-code"
+            autoFocus
+            control={verifyForm.control}
+            editable={!verificationBusy}
+            keyboardType="number-pad"
+            label="Verification code"
+            maxLength={6}
+            name="code"
+            onSubmitEditing={onVerify}
+            placeholder="123456"
+            returnKeyType="done"
+            selectTextOnFocus
+          />
+          <View className="flex-row justify-between">
+            <Pressable hitSlop={8} onPress={changeEmail}>
+              <ThemedText size="sm" tone="muted" weight="medium">
+                Change email
+              </ThemedText>
+            </Pressable>
+            <Pressable
+              disabled={resendLoading}
+              hitSlop={8}
+              onPress={resendCode}
+            >
+              <ThemedText size="sm" tone="brand" weight="semibold">
+                {resendLoading ? "Sending…" : "Resend code"}
+              </ThemedText>
+            </Pressable>
+          </View>
+        </>
       ) : (
         <>
-          <AuthField
+          <ControlledTextInput
+            autoCapitalize="none"
             autoComplete="email"
+            control={accountForm.control}
+            editable={!accountBusy}
             keyboardType="email-address"
             label="Email"
-            onChangeText={setEmailAddress}
+            name="email"
             placeholder="you@example.com"
-            value={emailAddress}
+            returnKeyType="next"
           />
-          <AuthField
+          <ControlledTextInput
+            autoCapitalize="none"
             autoComplete="username-new"
+            control={accountForm.control}
+            editable={!accountBusy}
             label="Username"
-            onChangeText={setUsername}
+            name="username"
             placeholder="yourname"
-            value={username}
+            returnKeyType="next"
           />
-          <AuthField
+          <ControlledTextInput
+            autoCapitalize="none"
             autoComplete="new-password"
+            control={accountForm.control}
+            editable={!accountBusy}
             label="Password"
-            onChangeText={setPassword}
+            name="password"
+            onSubmitEditing={onCreateAccount}
             placeholder="Choose a password"
+            returnKeyType="done"
             secureTextEntry
-            value={password}
           />
         </>
       )}
-      {error ? (
-        <ThemedText size="sm" tone="brand">
-          {error}
-        </ThemedText>
-      ) : null}
-      {!pendingVerification ? (
-        <Button
-          label="Continue with Google"
-          leftSlot={<GoogleMark />}
-          loading={googleLoading}
-          onPress={onGooglePress}
-          variant="secondary"
-        />
-      ) : null}
+      <AuthError message={rootError} />
       <Button
+        disabled={
+          !isLoaded ||
+          (pendingVerification
+            ? !verifyForm.formState.isValid || resendLoading
+            : !accountForm.formState.isValid || googleLoading)
+        }
         label={pendingVerification ? "Verify email" : "Create account"}
-        loading={loading}
+        loading={
+          pendingVerification
+            ? verifyForm.formState.isSubmitting
+            : accountForm.formState.isSubmitting
+        }
         onPress={pendingVerification ? onVerify : onCreateAccount}
       />
+      {!pendingVerification ? (
+        <View className="mt-2 gap-4">
+          <AuthDivider />
+          <Button
+            disabled={accountForm.formState.isSubmitting}
+            label="Continue with Google"
+            leftSlot={<GoogleMark />}
+            loading={googleLoading}
+            onPress={onGooglePress}
+            variant="secondary"
+          />
+        </View>
+      ) : null}
     </AuthScreen>
   );
 }

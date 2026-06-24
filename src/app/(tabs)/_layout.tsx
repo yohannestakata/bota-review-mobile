@@ -7,9 +7,8 @@ import {
   Search01Icon,
   UserCircleIcon,
 } from "@hugeicons/core-free-icons";
-import { Redirect, Tabs } from "expo-router";
-import type { Href } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { Tabs } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -35,9 +34,14 @@ function TabsLoadingScreen() {
 }
 
 export default function TabLayout() {
-  const { getToken, isLoaded, isSignedIn } = useAuth();
+  const { getToken, isLoaded, isSignedIn, userId } = useAuth();
+  const getTokenRef = useRef(getToken);
   const [syncState, setSyncState] = useState<SyncState>("pending");
   const [retryKey, setRetryKey] = useState(0);
+
+  useEffect(() => {
+    getTokenRef.current = getToken;
+  }, [getToken]);
 
   const retry = useCallback(() => {
     setSyncState("pending");
@@ -48,8 +52,8 @@ export default function TabLayout() {
     let isMounted = true;
 
     async function syncUser() {
-      if (!isLoaded || !isSignedIn) {
-        debugLog("tabs", "waiting for signed-in Clerk session", {
+      if (!isLoaded) {
+        debugLog("tabs", "waiting for Clerk session", {
           isLoaded,
           isSignedIn,
         });
@@ -57,8 +61,14 @@ export default function TabLayout() {
         return;
       }
 
+      if (!isSignedIn) {
+        debugLog("tabs", "continuing with anonymous session");
+        setSyncState("ready");
+        return;
+      }
+
       try {
-        const user = await getCurrentUser(getToken);
+        const user = await getCurrentUser(getTokenRef.current);
         debugLog("tabs", "backend user synced", {
           role: user.role,
           status: user.status,
@@ -85,17 +95,13 @@ export default function TabLayout() {
     return () => {
       isMounted = false;
     };
-  }, [getToken, isLoaded, isSignedIn, retryKey]);
+  }, [isLoaded, isSignedIn, retryKey, userId]);
 
   if (!isLoaded) {
     return <TabsLoadingScreen />;
   }
 
-  if (!isSignedIn) {
-    return <Redirect href={"/login" as Href} />;
-  }
-
-  if (syncState === "error") {
+  if (isSignedIn && syncState === "error") {
     return (
       <SafeAreaView className="flex-1 bg-background">
         <View className="flex-1 items-center justify-center gap-3 px-6">

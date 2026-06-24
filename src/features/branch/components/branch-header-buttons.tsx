@@ -1,18 +1,10 @@
 import { ArrowLeft01Icon, FavouriteIcon } from "@hugeicons/core-free-icons";
-import { colors } from "@/lib/theme";
+import { colors, shadows } from "@/lib/theme";
 import type { ReactNode } from "react";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppIcon } from "@/components/ui/huge-icon";
-
-const BUTTON_SHADOW = {
-  shadowColor: "#000",
-  shadowOpacity: 0.18,
-  shadowRadius: 8,
-  shadowOffset: { width: 0, height: 2 },
-  elevation: 4,
-};
 
 function CircleButton({
   children,
@@ -23,10 +15,10 @@ function CircleButton({
 }) {
   return (
     <Pressable
-      className="size-11 items-center justify-center rounded-full bg-white"
+      className="size-11 items-center justify-center rounded-full bg-surface"
       hitSlop={8}
       onPress={onPress}
-      style={BUTTON_SHADOW}
+      style={shadows.navigation}
     >
       {children}
     </Pressable>

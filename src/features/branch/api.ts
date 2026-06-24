@@ -29,6 +29,7 @@ export type BranchReview = {
     avatarUrl: string | null;
     trustLevel: string;
   };
+  photos: { id: string; url: string; width: number; height: number }[];
 };
 
 export type BranchHours = Record<string, [string, string][]>;
@@ -64,6 +65,12 @@ export type BranchDetail = {
 
 export function getBranch(id: string, getToken: TokenGetter) {
   return apiFetch<BranchDetail>(`/branches/${id}`, getToken);
+}
+
+// All approved reviews for a branch (the detail screen only carries the 5 most
+// recent). Each review includes its own approved photos.
+export function getBranchReviews(branchId: string, getToken: TokenGetter) {
+  return apiFetch<BranchReview[]>(`/branches/${branchId}/reviews`, getToken);
 }
 
 export type MenuItem = {
@@ -108,9 +115,16 @@ export function getBranchSiblings(
   );
 }
 
+// A single review by id — used to pre-populate the edit form from the source
+// of truth rather than relying on values passed through route params.
+export function getReview(reviewId: string, getToken: TokenGetter) {
+  return apiFetch<BranchReview>(`/reviews/${reviewId}`, getToken);
+}
+
 export type CreateReviewBody = {
   rating: number;
   text: string;
+  visitDate?: string; // ISO date (YYYY-MM-DD), optional, must be in the past
 };
 
 export function createReview(
@@ -121,6 +135,17 @@ export function createReview(
   return apiFetch<BranchReview>(`/branches/${branchId}/reviews`, getToken, {
     method: "POST",
     body: JSON.stringify(body),
+  });
+}
+
+export function reportReview(
+  reviewId: string,
+  reason: string | undefined,
+  getToken: TokenGetter,
+) {
+  return apiFetch<void>(`/reviews/${reviewId}/reports`, getToken, {
+    method: "POST",
+    body: JSON.stringify(reason ? { reason } : {}),
   });
 }
 
@@ -141,6 +166,25 @@ export type BusinessClaim = {
   createdAt: string;
 };
 
+export type OwnClaim = {
+  id: string;
+  branchId: string;
+  status: "pending" | "verified" | "rejected";
+  createdAt: string;
+  branch: {
+    id: string;
+    label: string | null;
+    slug: string;
+    verificationStatus: string;
+  };
+};
+
+// The current user's own claims, newest first — used to pre-check the claim
+// form and to power the My Claims screen.
+export function getMyClaims(getToken: TokenGetter) {
+  return apiFetch<OwnClaim[]>("/me/claims", getToken);
+}
+
 // Submit a business-ownership claim for a branch. An admin verifies it, which
 // grants the claimant the business_owner role and marks the branch verified.
 export function createClaim(
@@ -154,7 +198,11 @@ export function createClaim(
   });
 }
 
-export type UpdateReviewBody = { rating?: number; text?: string };
+export type UpdateReviewBody = {
+  rating?: number;
+  text?: string;
+  visitDate?: string;
+};
 
 export function updateReview(
   reviewId: string,
@@ -180,9 +228,19 @@ type PhotoSignature = {
   timestamp: number;
   cloudName: string;
   apiKey: string;
-  uploadPreset: string;
+  uploadPreset?: string | null;
   folder: string;
 };
+
+// Cleans up an orphaned Cloudinary asset when backend registration fails after
+// a successful upload. Best-effort — the backend also enqueues a delete job.
+export function deleteCloudinaryPhoto(publicId: string, getToken: TokenGetter) {
+  return apiFetch<void>(
+    `/photos/cloudinary/${encodeURIComponent(publicId)}`,
+    getToken,
+    { method: "DELETE" },
+  );
+}
 
 export type PickedPhoto = {
   uri: string;
@@ -190,6 +248,7 @@ export type PickedPhoto = {
   height: number;
   fileName?: string | null;
   mimeType?: string | null;
+  base64?: string | null;
 };
 
 // Uploads one picked image: gets a signed payload, pushes the file straight to
@@ -204,17 +263,26 @@ export async function uploadReviewPhoto(
     method: "POST",
   });
 
+  // Cloudinary accepts the file as a base64 data-URI string. We use this rather
+  // than a file part because RN's new architecture rejects both the
+  // `{ uri, name, type }` FormData shape ("Unsupported FormDataPart
+  // implementation") and `fetch(uri).blob()` ("Creating blobs from ArrayBuffer
+  // ... not supported"). A plain string part has no such issue.
+  if (!photo.base64) {
+    throw new Error("Image is missing base64 data");
+  }
+  const dataUri = `data:${photo.mimeType ?? "image/jpeg"};base64,${photo.base64}`;
+
   const form = new FormData();
-  form.append("file", {
-    uri: photo.uri,
-    name: photo.fileName ?? "photo.jpg",
-    type: photo.mimeType ?? "image/jpeg",
-  } as unknown as Blob);
+  form.append("file", dataUri);
   form.append("api_key", sig.apiKey);
   form.append("timestamp", String(sig.timestamp));
   form.append("signature", sig.signature);
   form.append("folder", sig.folder);
-  form.append("upload_preset", sig.uploadPreset);
+  // Only sent when the backend signs a preset — must match the signed params.
+  if (sig.uploadPreset) {
+    form.append("upload_preset", sig.uploadPreset);
+  }
 
   const uploadResponse = await fetch(
     `https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`,
@@ -222,7 +290,18 @@ export async function uploadReviewPhoto(
   );
 
   if (!uploadResponse.ok) {
-    throw new Error("Photo upload failed");
+    // Surface Cloudinary's actual error (e.g. "Invalid Signature", "Upload
+    // preset not found") instead of a generic message.
+    let detail = `status ${uploadResponse.status}`;
+    try {
+      const body = (await uploadResponse.json()) as {
+        error?: { message?: string };
+      };
+      detail = body.error?.message ?? detail;
+    } catch {
+      // No JSON body — keep the status-derived detail.
+    }
+    throw new Error(`Cloudinary upload failed: ${detail}`);
   }
 
   const uploaded = (await uploadResponse.json()) as {
@@ -232,15 +311,22 @@ export async function uploadReviewPhoto(
     height: number;
   };
 
-  await apiFetch(`/branches/${branchId}/photos`, getToken, {
-    method: "POST",
-    body: JSON.stringify({
-      publicId: uploaded.public_id,
-      url: uploaded.secure_url,
-      width: uploaded.width,
-      height: uploaded.height,
-      category: "food",
-      reviewId,
-    }),
-  });
+  try {
+    await apiFetch(`/branches/${branchId}/photos`, getToken, {
+      method: "POST",
+      body: JSON.stringify({
+        publicId: uploaded.public_id,
+        url: uploaded.secure_url,
+        width: uploaded.width,
+        height: uploaded.height,
+        category: "food",
+        reviewId,
+      }),
+    });
+  } catch (error) {
+    // Registration failed but the asset is already on Cloudinary — clean it up
+    // so we don't leave an orphaned upload behind, then surface the error.
+    void deleteCloudinaryPhoto(uploaded.public_id, getToken).catch(() => {});
+    throw error;
+  }
 }

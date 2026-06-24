@@ -33,7 +33,7 @@ export function MenuList({ menus }: { menus: Menu[] }) {
               </ThemedText>
               {group.items.map((item, index) => (
                 <Fragment key={item.id}>
-                  {index > 0 ? <View className="h-px bg-neutral-100" /> : null}
+                  {index > 0 ? <View className="h-px bg-border" /> : null}
                   <MenuItemRow item={item} />
                 </Fragment>
               ))}

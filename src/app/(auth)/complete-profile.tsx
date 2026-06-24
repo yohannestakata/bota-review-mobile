@@ -1,13 +1,22 @@
 import { useSignUp } from "@clerk/clerk-expo";
+import { zodFormResolver } from "@/lib/zod-resolver";
 import { Redirect, router } from "expo-router";
 import type { Href } from "expo-router";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { AuthField, AuthScreen } from "@/components/auth/auth-screen";
+import { AuthScreen } from "@/components/auth/auth-screen";
 import { Button } from "@/components/ui/button";
+import { ControlledTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { getAuthMessage } from "@/lib/auth";
 import { debugLog } from "@/lib/debug";
+
+const completeProfileSchema = z.object({
+  username: z.string().trim().min(3, "At least 3 characters"),
+});
+
+type CompleteProfileValues = z.infer<typeof completeProfileSchema>;
 
 // Reached after a Google/OAuth sign-up for a brand-new user: the provider gives us
 // an email but not a username (which this instance requires), so Clerk leaves the
@@ -15,26 +24,20 @@ import { debugLog } from "@/lib/debug";
 // and activate the session.
 export default function CompleteProfileScreen() {
   const { isLoaded, setActive, signUp } = useSignUp();
-  const [username, setUsername] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  // Guard against landing here without a pending OAuth sign-up (e.g. a stale deep
-  // link or manual navigation). A user mid-flow has status "missing_requirements".
-  if (isLoaded && signUp?.status !== "missing_requirements") {
-    return <Redirect href={"/login" as Href} />;
-  }
+  const { control, handleSubmit, setError, formState } =
+    useForm<CompleteProfileValues>({
+      resolver: zodFormResolver(completeProfileSchema),
+      defaultValues: { username: "" },
+    });
 
-  async function onSubmit() {
-    if (!isLoaded || loading) {
+  const onSubmit = handleSubmit(async ({ username }) => {
+    if (!isLoaded) {
       return;
     }
 
-    setError("");
-    setLoading(true);
-
     try {
-      const result = await signUp.update({ username: username.trim() });
+      const result = await signUp.update({ username });
 
       debugLog("complete-profile", "signUp updated", {
         missingFields: result.missingFields,
@@ -45,15 +48,19 @@ export default function CompleteProfileScreen() {
         await setActive({ session: result.createdSessionId });
         router.replace("/");
       } else {
-        setError(
-          `We still need a bit more to finish: ${result.missingFields.join(", ")}.`,
-        );
+        setError("root", {
+          message: `We still need a bit more to finish: ${result.missingFields.join(", ")}.`,
+        });
       }
     } catch (err) {
-      setError(getAuthMessage(err));
-    } finally {
-      setLoading(false);
+      setError("root", { message: getAuthMessage(err) });
     }
+  });
+
+  // Guard against landing here without a pending OAuth sign-up (e.g. a stale deep
+  // link or manual navigation). A user mid-flow has status "missing_requirements".
+  if (isLoaded && signUp?.status !== "missing_requirements") {
+    return <Redirect href={"/login" as Href} />;
   }
 
   return (
@@ -67,19 +74,20 @@ export default function CompleteProfileScreen() {
       }
       title="Choose a username"
     >
-      <AuthField
+      <ControlledTextInput
+        autoCapitalize="none"
         autoComplete="username-new"
+        control={control}
         label="Username"
-        onChangeText={setUsername}
+        name="username"
         placeholder="yourname"
-        value={username}
       />
-      {error ? (
-        <ThemedText size="sm" tone="brand">
-          {error}
+      {formState.errors.root ? (
+        <ThemedText size="sm" tone="danger">
+          {formState.errors.root.message}
         </ThemedText>
       ) : null}
-      <Button label="Finish" loading={loading} onPress={onSubmit} />
+      <Button label="Finish" loading={formState.isSubmitting} onPress={onSubmit} />
     </AuthScreen>
   );
 }
