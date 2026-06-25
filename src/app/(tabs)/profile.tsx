@@ -97,7 +97,7 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
       </View>
 
       <View className="mt-5 flex-row gap-3">
-        <View className="flex-1 items-center justify-center gap-0.5 rounded-2xl border border-border bg-surface py-3">
+        <View className="flex-1 items-center justify-center gap-0.5 rounded-2xl border border-placeholder bg-surface py-3">
           <ThemedText size="xl" weight="semibold">
             {reviewCount}
           </ThemedText>
@@ -105,7 +105,7 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
             Reviews
           </ThemedText>
         </View>
-        <View className="flex-1 items-center justify-center gap-0.5 rounded-2xl border border-border bg-surface py-3">
+        <View className="flex-1 items-center justify-center gap-0.5 rounded-2xl border border-placeholder bg-surface py-3">
           <ThemedText size="xl" weight="semibold">
             {savedCount}
           </ThemedText>
@@ -114,7 +114,7 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
           </ThemedText>
         </View>
         <Pressable
-          className="flex-1 items-center justify-center gap-1 rounded-2xl border border-border bg-surface py-3"
+          className="flex-1 items-center justify-center gap-1 rounded-2xl border border-placeholder bg-surface py-3"
           onPress={() =>
             void Share.share({
               message: `See my food finds on Bota — ${name}`,
@@ -130,7 +130,7 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
 
       {claimCount > 0 ? (
         <Pressable
-          className="mt-3 flex-row items-center justify-between rounded-2xl border border-border bg-surface px-4 py-3.5"
+          className="mt-3 flex-row items-center justify-between rounded-2xl border border-placeholder bg-surface px-4 py-3.5"
           onPress={() => router.push("/profile/claims")}
         >
           <ThemedText weight="medium">My Claims</ThemedText>

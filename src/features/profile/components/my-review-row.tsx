@@ -43,7 +43,7 @@ export function MyReviewRow({
 
   return (
     <Pressable
-      className="gap-2 rounded-2xl border border-border bg-surface p-4"
+      className="gap-2 rounded-2xl border border-placeholder bg-surface p-4"
       onPress={() => onPress(review)}
     >
       <View className="flex-row items-center gap-2">

@@ -54,7 +54,7 @@ function DialogButton({
         "h-14 flex-row items-center justify-center rounded-full px-6",
         full ? "w-full" : "flex-1",
         style === "destructive" && "bg-danger",
-        style === "cancel" && "border border-border bg-background",
+        style === "cancel" && "border border-placeholder bg-background",
         style === "default" && "bg-primary",
       )}
       onPress={onPress}

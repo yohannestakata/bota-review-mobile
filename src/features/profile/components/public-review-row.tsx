@@ -31,7 +31,7 @@ export function PublicReviewRow({
 
   return (
     <Pressable
-      className="gap-3 rounded-2xl border border-border p-4"
+      className="gap-3 rounded-2xl border border-placeholder p-4"
       onPress={() => onPress(review)}
     >
       <View className="flex-row items-start justify-between gap-3">

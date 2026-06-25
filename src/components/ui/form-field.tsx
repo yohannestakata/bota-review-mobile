@@ -56,10 +56,10 @@ export function FormTextInput({
       <View className="relative mt-2">
         <TextInput
           className={cn(
-            "h-14 rounded-xl bg-surface px-4 py-0 font-outfit text-md text-foreground",
+            "h-14 rounded-xl border bg-surface px-4 py-0 font-outfit text-md text-foreground",
             secureTextEntry && "pr-14",
             surface === "muted" && "bg-background",
-            error && "border border-danger",
+            error ? "border-danger" : "border-placeholder",
             inputClassName,
           )}
           placeholderTextColor={placeholderTextColor}
@@ -105,9 +105,9 @@ export function FormTextArea({
       </ThemedText>
       <TextInput
         className={cn(
-          "mt-2 min-h-24 rounded-xl bg-surface px-4 py-3 font-outfit text-md text-foreground",
+          "mt-2 min-h-24 rounded-xl border bg-surface px-4 py-3 font-outfit text-md text-foreground",
           surface === "muted" && "bg-background",
-          error && "border border-danger",
+          error ? "border-danger" : "border-placeholder",
           inputClassName,
         )}
         multiline

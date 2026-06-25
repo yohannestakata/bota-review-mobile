@@ -27,7 +27,7 @@ const VARIANTS: Record<
 > = {
   primary: { container: "bg-primary", tone: "inverse", color: colors.inverse },
   secondary: {
-    container: "bg-surface border border-border",
+    container: "bg-surface border border-placeholder",
     tone: "default",
     color: colors.foreground,
   },

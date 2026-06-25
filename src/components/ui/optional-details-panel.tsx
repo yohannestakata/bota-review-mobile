@@ -27,7 +27,7 @@ export function OptionalDetailsPanel({
   children,
 }: OptionalDetailsPanelProps) {
   return (
-    <View className="overflow-hidden rounded-3xl border border-border bg-surface">
+    <View className="overflow-hidden rounded-3xl border border-placeholder bg-surface">
       <Pressable
         className={cn(
           "flex-row items-center gap-3 px-4 py-4",
@@ -57,7 +57,7 @@ export function OptionalDetailsPanel({
             {subtitle}
           </ThemedText>
         </View>
-        <View className="h-8 w-8 items-center justify-center rounded-2xl border border-border bg-background">
+        <View className="h-8 w-8 items-center justify-center rounded-2xl border border-placeholder bg-background">
           <AppIcon
             color={colors.muted}
             icon={expanded ? ArrowUp01Icon : ArrowDown01Icon}
@@ -67,7 +67,7 @@ export function OptionalDetailsPanel({
       </Pressable>
 
       {expanded ? (
-        <View className="gap-4 border-t border-border bg-surface px-4 pb-4 pt-4">
+        <View className="gap-4 border-t border-placeholder bg-surface px-4 pb-4 pt-4">
           {children}
         </View>
       ) : null}

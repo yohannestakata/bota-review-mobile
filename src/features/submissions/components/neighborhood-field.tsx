@@ -47,10 +47,10 @@ export function NeighborhoodField({
       />
 
       {showSuggestions ? (
-        <View className="mt-2 overflow-hidden rounded-2xl border border-border bg-surface">
+        <View className="mt-2 overflow-hidden rounded-2xl border border-placeholder bg-surface">
           {suggestions.map((neighborhood, index) => (
             <Pressable
-              className={`px-5 py-3 ${index > 0 ? "border-t border-border" : ""}`}
+              className={`px-5 py-3 ${index > 0 ? "border-t border-placeholder" : ""}`}
               key={neighborhood.id}
               onPress={() => {
                 onChangeText(neighborhood.name);

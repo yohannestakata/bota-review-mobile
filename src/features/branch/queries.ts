@@ -12,9 +12,11 @@ import {
   getMyClaims,
   getReview,
   reportReview,
+  updateOwnerInfo,
   updateReview,
   type CreateClaimBody,
   type CreateReviewBody,
+  type UpdateOwnerInfoBody,
   type UpdateReviewBody,
 } from "./api";
 
@@ -43,11 +45,27 @@ export function useReview(reviewId: string | undefined) {
 }
 
 export function useOwnClaims() {
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
 
   return useQuery({
     queryKey: claimKeys.mine(),
     queryFn: () => getMyClaims(getToken),
+    enabled: !!isSignedIn,
+  });
+}
+
+export function useUpdateOwnerInfo(branchId: string) {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: UpdateOwnerInfoBody) =>
+      updateOwnerInfo(branchId, body, getToken),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: branchKeys.detail(branchId),
+      });
+    },
   });
 }
 

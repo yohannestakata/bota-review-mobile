@@ -151,7 +151,7 @@ function Pill({
         surface === "muted" && "border",
         selected && "bg-primary",
         !selected && surface === "default" && "bg-surface",
-        !selected && surface === "muted" && "border-border bg-background",
+        !selected && surface === "muted" && "border-placeholder bg-background",
       )}
       onPress={onPress}
     >

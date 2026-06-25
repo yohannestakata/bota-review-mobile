@@ -122,7 +122,7 @@ export const FilterSheet = forwardRef<FilterSheetRef, FilterSheetProps>(
   const renderFooter = useCallback(
     (props: BottomSheetFooterProps) => (
       <BottomSheetFooter {...props}>
-        <View className="border-t border-border bg-background px-6 pb-6 pt-3">
+        <View className="border-t border-placeholder bg-background px-6 pb-6 pt-3">
           <Button
             label="Show results"
             onPress={() => sheetRef.current?.dismiss()}

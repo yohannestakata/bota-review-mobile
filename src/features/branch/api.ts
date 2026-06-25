@@ -149,7 +149,89 @@ export function reportReview(
   });
 }
 
+export type UpdateOwnerInfoBody = {
+  phone?: string | null;
+  hours?: BranchHours;
+};
+
+export function updateOwnerInfo(
+  branchId: string,
+  body: UpdateOwnerInfoBody,
+  getToken: TokenGetter,
+) {
+  return apiFetch<BranchDetail>(`/branches/${branchId}/owner-info`, getToken, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function uploadOwnerPhoto(
+  branchId: string,
+  photo: PickedPhoto,
+  getToken: TokenGetter,
+): Promise<void> {
+  const sig = await apiFetch<PhotoSignature>("/photos/sign", getToken, {
+    method: "POST",
+  });
+
+  if (!photo.base64) throw new Error("Image is missing base64 data");
+  const dataUri = `data:${photo.mimeType ?? "image/jpeg"};base64,${photo.base64}`;
+
+  const form = new FormData();
+  form.append("file", dataUri);
+  form.append("api_key", sig.apiKey);
+  form.append("timestamp", String(sig.timestamp));
+  form.append("signature", sig.signature);
+  form.append("folder", sig.folder);
+  if (sig.uploadPreset) form.append("upload_preset", sig.uploadPreset);
+
+  const uploadResponse = await fetch(
+    `https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`,
+    { method: "POST", body: form },
+  );
+
+  if (!uploadResponse.ok) {
+    let detail = `status ${uploadResponse.status}`;
+    try {
+      const body = (await uploadResponse.json()) as { error?: { message?: string } };
+      detail = body.error?.message ?? detail;
+    } catch { /* no json body */ }
+    throw new Error(`Cloudinary upload failed: ${detail}`);
+  }
+
+  const uploaded = (await uploadResponse.json()) as {
+    public_id: string;
+    secure_url: string;
+    width: number;
+    height: number;
+  };
+
+  try {
+    await apiFetch(`/branches/${branchId}/photos`, getToken, {
+      method: "POST",
+      body: JSON.stringify({
+        publicId: uploaded.public_id,
+        url: uploaded.secure_url,
+        width: uploaded.width,
+        height: uploaded.height,
+        category: "food",
+      }),
+    });
+  } catch (error) {
+    void deleteCloudinaryPhoto(uploaded.public_id, getToken).catch(() => {});
+    throw error;
+  }
+}
+
 export type ClaimContactRole = "owner" | "manager" | "marketing";
+
+export type ClaimVerificationMethod =
+  | "business_email"
+  | "social_media"
+  | "phone_call"
+  | "manual_review";
+
+export type ClaimVerificationPlatform = "instagram" | "facebook" | "tiktok";
 
 export type CreateClaimBody = {
   contactName: string;
@@ -157,6 +239,9 @@ export type CreateClaimBody = {
   contactPhone: string;
   contactEmail: string;
   note?: string;
+  verificationMethod: ClaimVerificationMethod;
+  verificationPlatform?: ClaimVerificationPlatform;
+  verificationEvidence?: string;
 };
 
 export type BusinessClaim = {

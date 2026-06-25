@@ -37,6 +37,7 @@ import {
   useBranch,
   useBranchMenus,
   useBranchSiblings,
+  useOwnClaims,
   useReportReview,
 } from "@/features/branch";
 import { useSavedBranchIds, useToggleSave } from "@/features/home";
@@ -78,6 +79,7 @@ export default function BranchDetailScreen() {
   const menus = useBranchMenus(id);
   const { data: savedIds } = useSavedBranchIds();
   const toggleSave = useToggleSave();
+  const { data: ownClaims } = useOwnClaims();
 
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
@@ -86,6 +88,9 @@ export default function BranchDetailScreen() {
   });
 
   const isSaved = savedIds?.has(id) ?? false;
+  const isOwnBranch =
+    ownClaims?.some((c) => c.branchId === id && c.status === "verified") ??
+    false;
 
   // branch_viewed — once per branch entry; `source` carries the originating
   // screen (home, search, saved, collection, …), defaulting to "unknown".
@@ -312,7 +317,7 @@ export default function BranchDetailScreen() {
                 ))}
 
                 <Pressable
-                  className="mt-2 h-12 flex-row items-center justify-center rounded-full border border-border"
+                  className="mt-2 h-12 flex-row items-center justify-center rounded-full border border-placeholder"
                   onPress={() =>
                     router.push({
                       pathname: "/menu/[branchId]",
@@ -470,7 +475,7 @@ export default function BranchDetailScreen() {
 
             {data.reviewCount > data.recentReviews.length ? (
               <Pressable
-                className="h-12 flex-row items-center justify-center rounded-full border border-border"
+                className="h-12 flex-row items-center justify-center rounded-full border border-placeholder"
                 onPress={() =>
                   router.push({
                     pathname: "/reviews/[branchId]",
@@ -487,7 +492,7 @@ export default function BranchDetailScreen() {
 
           <View className="mt-8 px-6">
             <Pressable
-              className="h-14 flex-row items-center justify-center rounded-full border border-border"
+              className="h-14 flex-row items-center justify-center rounded-full border border-placeholder"
               onPress={() =>
                 requireSignIn(() =>
                   router.push({
@@ -503,13 +508,39 @@ export default function BranchDetailScreen() {
             </Pressable>
           </View>
 
+          {isOwnBranch ? (
+            <View className="mt-4 px-6">
+              <Pressable
+                className="flex-row items-center justify-between rounded-2xl border border-placeholder bg-surface p-4"
+                onPress={() =>
+                  router.push({
+                    pathname: "/branch/[id]/manage",
+                    params: { id: data.id },
+                  })
+                }
+              >
+                <View className="flex-1">
+                  <ThemedText weight="medium">Manage your listing</ThemedText>
+                  <ThemedText size="sm" tone="muted">
+                    Update hours, contact info, and photos.
+                  </ThemedText>
+                </View>
+                <AppIcon
+                  color={colors.muted}
+                  icon={ArrowRight01Icon}
+                  size={18}
+                />
+              </Pressable>
+            </View>
+          ) : null}
+
           {/* Owner-targeted claim entry (Google/Yelp pattern): a quiet, distinct
               card low on the page — clear copy + value prop, hidden once the
               branch is owner-verified. */}
           {data.verificationStatus !== "business_verified" ? (
             <View className="mt-4 px-6">
               <Pressable
-                className="flex-row items-start gap-3 rounded-2xl border border-border p-4"
+                className="flex-row items-start gap-3 rounded-2xl border border-placeholder p-4"
                 onPress={() =>
                   requireSignIn(() =>
                     router.push({
@@ -563,7 +594,7 @@ export default function BranchDetailScreen() {
       />
 
       <View
-        className="absolute bottom-0 left-0 right-0 border-t border-border bg-background px-6 pt-3"
+        className="absolute bottom-0 left-0 right-0 border-t border-placeholder bg-background px-6 pt-3"
         style={{ paddingBottom: insets.bottom + 12 }}
       >
         <Button

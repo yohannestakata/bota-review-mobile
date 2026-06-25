@@ -4,7 +4,7 @@ import {
   Clock01Icon,
 } from "@hugeicons/core-free-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { Pressable, ScrollView, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,6 +20,8 @@ import {
   useCreateClaim,
   useOwnClaims,
   type CreateClaimBody,
+  type ClaimVerificationMethod,
+  type ClaimVerificationPlatform,
 } from "@/features/branch";
 import { analytics } from "@/lib/analytics";
 import { getErrorCode } from "@/lib/api";
@@ -34,13 +36,87 @@ const ROLES = [
   { value: "marketing", label: "Marketing" },
 ] as const;
 
-const claimSchema = z.object({
-  contactName: z.string().trim().min(1, "Your name is required"),
-  contactRole: z.enum(["owner", "manager", "marketing"]),
-  contactPhone: z.string().trim().min(1, "Phone is required"),
-  contactEmail: emailField,
-  note: z.string().trim().optional(),
-});
+const VERIFICATION_METHODS: {
+  value: ClaimVerificationMethod;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "business_email",
+    label: "Business email",
+    description: "We'll send a verification link to your business email address.",
+  },
+  {
+    value: "social_media",
+    label: "Social media",
+    description: "Send us a message from the business's official social account.",
+  },
+  {
+    value: "phone_call",
+    label: "Verification call",
+    description: "We'll call the publicly listed phone number for this business.",
+  },
+  {
+    value: "manual_review",
+    label: "Manual review",
+    description: "Our team will review the information you provide below.",
+  },
+];
+
+const SOCIAL_PLATFORMS: {
+  value: ClaimVerificationPlatform;
+  label: string;
+}[] = [
+  { value: "instagram", label: "Instagram" },
+  { value: "facebook", label: "Facebook" },
+  { value: "tiktok", label: "TikTok" },
+];
+
+const claimSchema = z
+  .object({
+    contactName: z.string().trim().min(1, "Your name is required"),
+    contactRole: z.enum(["owner", "manager", "marketing"]),
+    contactPhone: z.string().trim().min(1, "Phone is required"),
+    contactEmail: emailField,
+    note: z.string().trim().optional(),
+    verificationMethod: z.enum([
+      "business_email",
+      "social_media",
+      "phone_call",
+      "manual_review",
+    ]),
+    verificationPlatform: z
+      .enum(["instagram", "facebook", "tiktok"])
+      .optional(),
+    verificationEvidence: z.string().trim().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      (data.verificationMethod === "business_email" ||
+        data.verificationMethod === "social_media") &&
+      !data.verificationEvidence?.trim()
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["verificationEvidence"],
+        message:
+          data.verificationMethod === "business_email"
+            ? "Business email address is required"
+            : "Social media handle is required",
+      });
+    }
+
+    if (
+      data.verificationMethod === "social_media" &&
+      !data.verificationPlatform
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["verificationPlatform"],
+        message: "Select which platform the account is on",
+      });
+    }
+  });
 
 type ClaimValues = z.infer<typeof claimSchema>;
 
@@ -61,7 +137,7 @@ function Pill({
     <Pressable
       className={cn(
         "rounded-full px-4 py-2",
-        selected ? "bg-primary" : "bg-surface",
+        selected ? "bg-primary" : "border border-placeholder bg-surface",
       )}
       onPress={onPress}
     >
@@ -94,11 +170,7 @@ function ScreenHeader({
   );
 }
 
-function ClaimStatusScreen({
-  verified,
-}: {
-  verified: boolean;
-}) {
+function ClaimStatusScreen({ verified }: { verified: boolean }) {
   return (
     <SafeAreaView className="flex-1 bg-background">
       <ScreenHeader title={verified ? "You're verified" : "Your claim"} />
@@ -133,7 +205,6 @@ export default function ClaimBusinessScreen() {
   }>();
   const claim = useCreateClaim(branchId);
   const ownClaims = useOwnClaims();
-  // An existing pending/verified claim by this user blocks a new submission.
   const existingClaim = ownClaims.data?.find(
     (c) => c.branchId === branchId && c.status !== "rejected",
   );
@@ -147,8 +218,23 @@ export default function ClaimBusinessScreen() {
       contactPhone: "",
       contactEmail: "",
       note: "",
+      verificationMethod: "business_email",
+      verificationEvidence: "",
     },
   });
+
+  const verificationMethod = useWatch({ control, name: "verificationMethod" });
+  const verificationPlatform = useWatch({
+    control,
+    name: "verificationPlatform",
+  });
+  const isSocial = verificationMethod === "social_media";
+  const needsEvidence =
+    verificationMethod === "business_email" || isSocial;
+
+  const platformLabel = SOCIAL_PLATFORMS.find(
+    (p) => p.value === verificationPlatform,
+  )?.label;
 
   const onSubmit = handleSubmit((values) => {
     const body: CreateClaimBody = {
@@ -156,7 +242,15 @@ export default function ClaimBusinessScreen() {
       contactRole: values.contactRole,
       contactPhone: values.contactPhone,
       contactEmail: values.contactEmail,
+      verificationMethod: values.verificationMethod,
       ...(values.note ? { note: values.note } : {}),
+      ...(values.verificationMethod === "social_media" &&
+      values.verificationPlatform
+        ? { verificationPlatform: values.verificationPlatform }
+        : {}),
+      ...(values.verificationEvidence
+        ? { verificationEvidence: values.verificationEvidence }
+        : {}),
     };
 
     return new Promise<void>((resolve) => {
@@ -184,8 +278,6 @@ export default function ClaimBusinessScreen() {
 
   const attemptClose = useDiscardConfirm(formState.isDirty);
 
-  // Pre-check: don't show the form until we know the user's existing claims,
-  // and show a status screen instead of the form when one already exists.
   if (ownClaims.isPending) {
     return (
       <SafeAreaView className="flex-1 bg-background">
@@ -217,7 +309,7 @@ export default function ClaimBusinessScreen() {
             </ThemedText>
           ) : null}
 
-          <ThemedText tone="muted" size="sm">
+          <ThemedText size="sm" tone="muted">
             Tell us how to reach you. We&apos;ll verify your connection to this
             business before granting access.
           </ThemedText>
@@ -267,6 +359,96 @@ export default function ClaimBusinessScreen() {
             name="contactEmail"
             placeholder="you@business.com"
           />
+
+          <View className="gap-3">
+            <ThemedText size="sm" weight="medium">
+              How would you like to verify?
+            </ThemedText>
+            <Controller
+              control={control}
+              name="verificationMethod"
+              render={({ field }) => (
+                <View className="gap-2">
+                  {VERIFICATION_METHODS.map((method) => {
+                    const selected = field.value === method.value;
+                    return (
+                      <Pressable
+                        key={method.value}
+                        className={cn(
+                          "rounded-2xl border p-4",
+                          selected
+                            ? "border-primary bg-primary/5"
+                            : "border-placeholder bg-surface",
+                        )}
+                        onPress={() => field.onChange(method.value)}
+                      >
+                        <ThemedText weight="medium">{method.label}</ThemedText>
+                        <ThemedText size="sm" tone="muted">
+                          {method.description}
+                        </ThemedText>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
+            />
+          </View>
+
+          {isSocial ? (
+            <View className="gap-2">
+              <ThemedText size="sm" weight="medium">
+                Which platform?
+              </ThemedText>
+              <Controller
+                control={control}
+                name="verificationPlatform"
+                render={({ field, fieldState }) => (
+                  <View className="gap-2">
+                    <View className="flex-row flex-wrap gap-2">
+                      {SOCIAL_PLATFORMS.map((platform) => (
+                        <Pill
+                          key={platform.value}
+                          label={platform.label}
+                          onPress={() => field.onChange(platform.value)}
+                          selected={field.value === platform.value}
+                        />
+                      ))}
+                    </View>
+                    {fieldState.error ? (
+                      <ThemedText size="sm" tone="danger">
+                        {fieldState.error.message}
+                      </ThemedText>
+                    ) : null}
+                  </View>
+                )}
+              />
+            </View>
+          ) : null}
+
+          {needsEvidence ? (
+            <ControlledTextInput
+              autoCapitalize="none"
+              control={control}
+              keyboardType={
+                verificationMethod === "business_email"
+                  ? "email-address"
+                  : "default"
+              }
+              label={
+                verificationMethod === "business_email"
+                  ? "Business email address"
+                  : platformLabel
+                    ? `${platformLabel} handle`
+                    : "Social media handle"
+              }
+              name="verificationEvidence"
+              placeholder={
+                verificationMethod === "business_email"
+                  ? "info@yourbusiness.com"
+                  : "@yourbusiness"
+              }
+            />
+          ) : null}
 
           <ControlledTextArea
             control={control}

@@ -303,7 +303,7 @@ export default function WriteReviewScreen() {
           <View className="gap-2">
             <ControlledTextArea
               control={control}
-              inputClassName="min-h-40 bg-surface-muted"
+              inputClassName="min-h-40"
               label="Spill the details"
               maxLength={MAX_CHARS}
               name="text"
@@ -322,7 +322,7 @@ export default function WriteReviewScreen() {
             </ThemedText>
             <View className="flex-row items-center gap-3">
               <Pressable
-                className="flex-1 flex-row items-center gap-2 rounded-2xl bg-surface-muted px-4 py-3"
+                className="flex-1 flex-row items-center gap-2 rounded-2xl border border-placeholder bg-surface px-4 py-3"
                 onPress={() => setShowDatePicker(true)}
               >
                 <AppIcon

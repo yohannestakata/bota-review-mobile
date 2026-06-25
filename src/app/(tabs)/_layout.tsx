@@ -132,6 +132,10 @@ export default function TabLayout() {
         headerShown: false,
         tabBarActiveTintColor: TAB_ACTIVE_COLOR,
         tabBarInactiveTintColor: TAB_INACTIVE_COLOR,
+        tabBarStyle: {
+          backgroundColor: colors.background,
+          borderTopColor: colors.border,
+        },
       }}
     >
       <Tabs.Screen

@@ -34,7 +34,7 @@ function formatDate(iso: string): string {
 function ClaimCard({ claim }: { claim: OwnClaim }) {
   return (
     <Pressable
-      className="gap-1.5 rounded-2xl border border-border p-4"
+      className="gap-1.5 rounded-2xl border border-placeholder p-4"
       onPress={() => router.push(`/branch/${claim.branchId}`)}
     >
       <ThemedText weight="medium">
