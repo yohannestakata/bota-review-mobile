@@ -1,9 +1,20 @@
 import { useAuth } from "@clerk/clerk-expo";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
+import { deleteReviewReply, updateReviewReply } from "@/features/branch/api";
 import { getCurrentUser } from "@/lib/api";
 
-import { getMyReviews, getPublicProfile, getPublicReviews } from "./api";
+import {
+  getMyReplies,
+  getMyReviews,
+  getPublicProfile,
+  getPublicReviews,
+} from "./api";
 
 const PUBLIC_REVIEWS_PAGE_SIZE = 20;
 
@@ -13,6 +24,8 @@ export const profileKeys = {
     [...profileKeys.all, "me", userId ?? "anonymous"] as const,
   reviews: (userId: string | null | undefined) =>
     [...profileKeys.all, "reviews", userId ?? "anonymous"] as const,
+  replies: (userId: string | null | undefined) =>
+    [...profileKeys.all, "replies", userId ?? "anonymous"] as const,
   publicProfile: (id: string) =>
     [...profileKeys.all, "public", id] as const,
   publicReviews: (id: string) =>
@@ -36,6 +49,48 @@ export function useMyReviews() {
     queryKey: profileKeys.reviews(userId),
     queryFn: () => getMyReviews(getToken),
     enabled: isSignedIn === true,
+  });
+}
+
+export function useMyReplies() {
+  const { getToken, isSignedIn, userId } = useAuth();
+
+  return useQuery({
+    queryKey: profileKeys.replies(userId),
+    queryFn: () => getMyReplies(getToken),
+    enabled: isSignedIn === true,
+  });
+}
+
+export function useUpdateMyReply() {
+  const { getToken, userId } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (vars: { replyId: string; body: string }) =>
+      updateReviewReply(vars.replyId, vars.body, getToken),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: profileKeys.replies(userId),
+      });
+      // Reflect the edit on any branch detail / all-reviews list too.
+      void queryClient.invalidateQueries({ queryKey: ["branch"] });
+    },
+  });
+}
+
+export function useDeleteMyReply() {
+  const { getToken, userId } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (replyId: string) => deleteReviewReply(replyId, getToken),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: profileKeys.replies(userId),
+      });
+      void queryClient.invalidateQueries({ queryKey: ["branch"] });
+    },
   });
 }
 

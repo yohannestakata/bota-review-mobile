@@ -5,71 +5,37 @@ import { getErrorMessage } from "@/lib/api";
 
 import type { ReviewReply } from "./api";
 import type { ReplyTarget } from "./components/reply-composer-modal";
-import {
-  useCreateReply,
-  useDeleteReply,
-  useReportReply,
-  useUpdateReply,
-} from "./queries";
+import { useCreateReply, useReportReply } from "./queries";
 
-// Centralizes the reply create/edit/delete/report flows + composer state so the
-// branch-detail and all-reviews screens share one implementation.
+// Reply create + report flows + composer state for the branch-detail and
+// all-reviews screens. Editing/deleting your own reply is done from the profile
+// "Your replies" screen, not inline here.
 export function useReplyActions(branchId: string) {
   const [target, setTarget] = useState<ReplyTarget | null>(null);
   const create = useCreateReply(branchId);
-  const update = useUpdateReply(branchId);
-  const remove = useDeleteReply(branchId);
   const report = useReportReply();
 
   function startReply(reviewId: string) {
     setTarget({ reviewId });
   }
 
-  function startEditReply(reply: ReviewReply) {
-    setTarget({
-      reviewId: reply.reviewId,
-      replyId: reply.id,
-      initialBody: reply.body,
-    });
-  }
-
   async function submit(body: string) {
     if (!target || !body) return;
     try {
-      if (target.replyId) {
-        await update.mutateAsync({ replyId: target.replyId, body });
-        setTarget(null);
-      } else {
-        const result = await create.mutateAsync({
-          reviewId: target.reviewId,
-          body,
-        });
-        setTarget(null);
-        if (result.moderationStatus !== "approved") {
-          Alert.alert(
-            "Reply submitted",
-            "Your reply will appear once it's approved.",
-          );
-        }
+      const result = await create.mutateAsync({
+        reviewId: target.reviewId,
+        body,
+      });
+      setTarget(null);
+      if (result.moderationStatus !== "approved") {
+        Alert.alert(
+          "Reply submitted",
+          "Your reply will appear once it's approved.",
+        );
       }
     } catch (error) {
       Alert.alert("Couldn't post reply", getErrorMessage(error));
     }
-  }
-
-  function deleteReply(reply: ReviewReply) {
-    Alert.alert("Delete reply", "Remove this reply?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () =>
-          remove.mutate(reply.id, {
-            onError: (error) =>
-              Alert.alert("Couldn't delete", getErrorMessage(error)),
-          }),
-      },
-    ]);
   }
 
   function reportReply(reply: ReviewReply) {
@@ -93,12 +59,10 @@ export function useReplyActions(branchId: string) {
 
   return {
     target,
-    submitting: create.isPending || update.isPending,
+    submitting: create.isPending,
     closeComposer: () => setTarget(null),
     submit,
     startReply,
-    startEditReply,
-    deleteReply,
     reportReply,
   };
 }

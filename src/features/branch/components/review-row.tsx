@@ -89,15 +89,11 @@ function ReplyItem({
   reply,
   businessName,
   isOwn,
-  onEdit,
-  onDelete,
   onReport,
 }: {
   reply: ReviewReply;
   businessName?: string;
   isOwn: boolean;
-  onEdit?: () => void;
-  onDelete?: () => void;
   onReport?: () => void;
 }) {
   const isOwner = reply.authorRole === "owner";
@@ -106,13 +102,14 @@ function ReplyItem({
     ? `Response from ${businessName ?? "the owner"}`
     : reply.user.displayName;
 
-  const showActions = isOwn ? Boolean(onEdit || onDelete) : Boolean(onReport);
+  // Own replies are managed from the profile screen, so no inline actions there.
+  const showReport = !isOwn && Boolean(onReport);
 
   return (
     <View
       className={cn(
-        "gap-1 rounded-xl p-3",
-        isOwner ? "border border-primary/40 bg-primary/5" : "bg-surface",
+        "gap-1 rounded-xl border p-3",
+        isOwner ? "border-primary/50" : "border-placeholder",
       )}
     >
       <View className="flex-row items-center justify-between gap-2">
@@ -133,18 +130,9 @@ function ReplyItem({
         {reply.body}
       </ThemedText>
 
-      {showActions ? (
-        <View className="mt-1 flex-row gap-4">
-          {isOwn ? (
-            <>
-              {onEdit ? <ActionLink label="Edit" onPress={onEdit} /> : null}
-              {onDelete ? (
-                <ActionLink label="Delete" onPress={onDelete} tone="danger" />
-              ) : null}
-            </>
-          ) : onReport ? (
-            <ActionLink label="Report" onPress={onReport} tone="muted" />
-          ) : null}
+      {showReport ? (
+        <View className="mt-1 flex-row">
+          <ActionLink label="Report" onPress={onReport!} tone="muted" />
         </View>
       ) : null}
     </View>
@@ -158,8 +146,6 @@ export function ReviewRow({
   onReport,
   onUserPress,
   onReply,
-  onEditReply,
-  onDeleteReply,
   onReportReply,
 }: {
   review: BranchReview;
@@ -169,8 +155,6 @@ export function ReviewRow({
   onUserPress?: (userId: string) => void;
   // Provided for signed-in users; opens the screen-level composer.
   onReply?: (reviewId: string) => void;
-  onEditReply?: (reply: ReviewReply) => void;
-  onDeleteReply?: (reply: ReviewReply) => void;
   onReportReply?: (reply: ReviewReply) => void;
 }) {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
@@ -178,6 +162,11 @@ export function ReviewRow({
   // Older/cached branch-detail responses may predate review photos/replies.
   const photos = review.photos ?? [];
   const replies = review.replies ?? [];
+  // You can't reply to your own review (edit it instead).
+  const isOwnReview = Boolean(
+    currentUserId && review.user.id === currentUserId,
+  );
+  const canReply = Boolean(onReply) && !isOwnReview;
 
   const visibleReplies = showAllReplies
     ? replies
@@ -259,8 +248,8 @@ export function ReviewRow({
         </>
       ) : null}
 
-      {replies.length > 0 || onReply ? (
-        <View className="gap-2 border-l border-placeholder pl-3">
+      {replies.length > 0 || canReply ? (
+        <View className="gap-2 pl-3">
           {visibleReplies.map((reply) => {
             const isOwn = Boolean(
               currentUserId && reply.user.id === currentUserId,
@@ -270,14 +259,6 @@ export function ReviewRow({
                 key={reply.id}
                 businessName={businessName}
                 isOwn={isOwn}
-                onDelete={
-                  isOwn && onDeleteReply
-                    ? () => onDeleteReply(reply)
-                    : undefined
-                }
-                onEdit={
-                  isOwn && onEditReply ? () => onEditReply(reply) : undefined
-                }
                 onReport={
                   !isOwn && onReportReply
                     ? () => onReportReply(reply)
@@ -302,8 +283,8 @@ export function ReviewRow({
             />
           ) : null}
 
-          {onReply ? (
-            <ActionLink label="Reply" onPress={() => onReply(review.id)} />
+          {canReply ? (
+            <ActionLink label="Reply" onPress={() => onReply!(review.id)} />
           ) : null}
         </View>
       ) : null}

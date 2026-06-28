@@ -96,8 +96,6 @@ export default function BranchReviewsScreen() {
             <ReviewRow
               businessName={name}
               currentUserId={me.data?.id}
-              onDeleteReply={replyActions.deleteReply}
-              onEditReply={replyActions.startEditReply}
               onReply={isSignedIn ? replyActions.startReply : undefined}
               onReportReply={isSignedIn ? replyActions.reportReply : undefined}
               onReport={onReportReview}

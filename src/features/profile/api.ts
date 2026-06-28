@@ -19,6 +19,30 @@ export function getMyReviews(getToken: TokenGetter) {
   return apiFetch<MyReview[]>("/me/reviews", getToken);
 }
 
+export type MyReply = {
+  id: string;
+  reviewId: string;
+  branchId: string;
+  authorRole: "owner" | "user";
+  body: string;
+  moderationStatus: "pending" | "approved" | "rejected" | "archived";
+  createdAt: string;
+  updatedAt: string;
+  branch: {
+    id: string;
+    label: string | null;
+    slug: string;
+  };
+  review: {
+    id: string;
+    text: string;
+  };
+};
+
+export function getMyReplies(getToken: TokenGetter) {
+  return apiFetch<MyReply[]>("/me/replies", getToken);
+}
+
 export type PublicProfile = {
   id: string;
   displayName: string;

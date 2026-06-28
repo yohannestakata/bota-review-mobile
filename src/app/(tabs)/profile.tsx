@@ -23,6 +23,7 @@ import {
   MyReviewRow,
   ProfileReviewsSkeleton,
   useMe,
+  useMyReplies,
   useMyReviews,
   type MyReview,
 } from "@/features/profile";
@@ -33,6 +34,8 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
   const { data: savedIds } = useSavedBranchIds();
   const claims = useOwnClaims();
   const claimCount = claims.data?.length ?? 0;
+  const replies = useMyReplies();
+  const replyCount = replies.data?.length ?? 0;
 
   const name = user?.fullName ?? user?.firstName ?? "You";
   const handle =
@@ -141,6 +144,19 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
               icon={ArrowRight01Icon}
               size={18}
             />
+          </View>
+        </Pressable>
+      ) : null}
+
+      {replyCount > 0 ? (
+        <Pressable
+          className="mt-3 flex-row items-center justify-between rounded-2xl border border-placeholder bg-surface px-4 py-3.5"
+          onPress={() => router.push("/profile/replies")}
+        >
+          <ThemedText weight="medium">Your replies</ThemedText>
+          <View className="flex-row items-center gap-1">
+            <ThemedText tone="muted">{replyCount}</ThemedText>
+            <AppIcon color={colors.muted} icon={ArrowRight01Icon} size={18} />
           </View>
         </Pressable>
       ) : null}

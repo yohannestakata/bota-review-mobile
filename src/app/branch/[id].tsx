@@ -468,8 +468,6 @@ export default function BranchDetailScreen() {
                   key={review.id}
                   businessName={data.place.name}
                   currentUserId={me.data?.id}
-                  onDeleteReply={replyActions.deleteReply}
-                  onEditReply={replyActions.startEditReply}
                   onReply={isSignedIn ? replyActions.startReply : undefined}
                   onReportReply={
                     isSignedIn ? replyActions.reportReply : undefined

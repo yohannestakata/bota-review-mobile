@@ -6,7 +6,6 @@ import {
   createClaim,
   createReview,
   createReviewReply,
-  deleteReviewReply,
   getBranch,
   getBranchMenus,
   getBranchReviews,
@@ -17,7 +16,6 @@ import {
   reportReviewReply,
   updateOwnerInfo,
   updateReview,
-  updateReviewReply,
   type CreateClaimBody,
   type CreateReviewBody,
   type UpdateOwnerInfoBody,
@@ -82,41 +80,6 @@ export function useCreateReply(branchId: string) {
       createReviewReply(vars.reviewId, vars.body, getToken),
     onSuccess: () => {
       // Refresh both the branch detail (recentReviews) and the all-reviews list.
-      void queryClient.invalidateQueries({
-        queryKey: branchKeys.detail(branchId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: branchKeys.reviews(branchId),
-      });
-    },
-  });
-}
-
-export function useUpdateReply(branchId: string) {
-  const { getToken } = useAuth();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (vars: { replyId: string; body: string }) =>
-      updateReviewReply(vars.replyId, vars.body, getToken),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: branchKeys.detail(branchId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: branchKeys.reviews(branchId),
-      });
-    },
-  });
-}
-
-export function useDeleteReply(branchId: string) {
-  const { getToken } = useAuth();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (replyId: string) => deleteReviewReply(replyId, getToken),
-    onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: branchKeys.detail(branchId),
       });
