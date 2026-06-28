@@ -105,18 +105,17 @@ function ReplyItem({
   // Own replies are managed from the profile screen, so no inline actions there.
   const showReport = !isOwn && Boolean(onReport);
 
-  // Comment-thread style: avatar + content, under the group's left rule.
+  // Comment-thread style: avatar + name/date header, then full-width body.
   return (
-    <View className="flex-row gap-2.5">
-      <Avatar
-        name={isOwner ? businessName : reply.user.displayName}
-        size={28}
-        uri={isOwner ? undefined : reply.user.avatarUrl}
-      />
-      <View className="flex-1 gap-1">
-        <View className="flex-row items-center justify-between gap-2">
+    <View className="gap-2">
+      <View className="flex-row items-center gap-2.5">
+        <Avatar
+          name={isOwner ? businessName : reply.user.displayName}
+          size={28}
+          uri={isOwner ? undefined : reply.user.avatarUrl}
+        />
+        <View className="flex-1">
           <ThemedText
-            className="flex-1"
             numberOfLines={1}
             size="sm"
             tone={isOwner ? "brand" : "default"}
@@ -128,15 +127,15 @@ function ReplyItem({
             {formatReviewDate(reply.createdAt)}
           </ThemedText>
         </View>
-
-        <ThemedText size="sm" tone="muted">
-          {reply.body}
-        </ThemedText>
-
-        {showReport ? (
-          <ActionLink label="Report" onPress={onReport!} tone="muted" />
-        ) : null}
       </View>
+
+      <ThemedText size="sm" tone="muted">
+        {reply.body}
+      </ThemedText>
+
+      {showReport ? (
+        <ActionLink label="Report" onPress={onReport!} tone="muted" />
+      ) : null}
     </View>
   );
 }
