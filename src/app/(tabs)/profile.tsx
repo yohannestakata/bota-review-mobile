@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
 import { AuthRequiredScreen } from "@/components/auth/auth-required-screen";
+import { LegalLinks } from "@/components/legal-links";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -248,13 +249,15 @@ export default function ProfileScreen() {
           )
         }
         ListFooterComponent={
-          <Button
-            className="mt-8"
-            label="Log out"
-            loading={loggingOut}
-            onPress={onLogout}
-            variant="secondary"
-          />
+          <View className="mt-8 gap-5">
+            <Button
+              label="Log out"
+              loading={loggingOut}
+              onPress={onLogout}
+              variant="secondary"
+            />
+            <LegalLinks />
+          </View>
         }
         onRefresh={() => reviews.refetch()}
         refreshing={reviews.isFetching && !reviews.isPending}

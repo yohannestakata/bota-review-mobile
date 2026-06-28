@@ -5,6 +5,7 @@ import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackButton } from "@/components/ui/back-button";
+import { LegalAgreement } from "@/components/legal-links";
 import { ThemedText } from "@/components/ui/themed-text";
 
 type AuthScreenProps = {
@@ -63,7 +64,10 @@ export function AuthScreen({
             <View className="mt-8 gap-4">{children}</View>
           </View>
 
-          <View className="mt-auto pt-8">{footer}</View>
+          <View className="mt-auto gap-5 pt-8">
+            {footer}
+            <LegalAgreement />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
