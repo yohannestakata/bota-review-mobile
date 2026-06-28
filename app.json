@@ -95,9 +95,7 @@
       }
     },
     "owner": "botareview",
-    "runtimeVersion": {
-      "policy": "fingerprint"
-    },
+    "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/4e7c5a64-6310-4d30-8ba6-0572d1c4ddeb"
     }
