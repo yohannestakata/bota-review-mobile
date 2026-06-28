@@ -168,7 +168,11 @@ export function ReviewRow({
   const isOwnReview = Boolean(
     currentUserId && review.user.id === currentUserId,
   );
-  const canReply = Boolean(onReply) && !isOwnReview;
+  // Hide Reply once the user already has a reply on this review.
+  const alreadyReplied = Boolean(
+    currentUserId && replies.some((reply) => reply.user.id === currentUserId),
+  );
+  const canReply = Boolean(onReply) && !isOwnReview && !alreadyReplied;
 
   const visibleReplies = showAllReplies
     ? replies
@@ -250,7 +254,7 @@ export function ReviewRow({
         </>
       ) : null}
 
-      {replies.length > 0 || canReply ? (
+      {replies.length > 0 ? (
         <View className="mt-2 gap-3 border-l border-placeholder pl-4">
           {visibleReplies.map((reply) => {
             const isOwn = Boolean(
@@ -284,10 +288,12 @@ export function ReviewRow({
               tone="muted"
             />
           ) : null}
+        </View>
+      ) : null}
 
-          {canReply ? (
-            <ActionLink label="Reply" onPress={() => onReply!(review)} />
-          ) : null}
+      {canReply ? (
+        <View className="mt-2 border-l border-placeholder pl-4">
+          <ActionLink label="Reply" onPress={() => onReply!(review)} />
         </View>
       ) : null}
     </View>
