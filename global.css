@@ -34,7 +34,7 @@
     --letter-spacing-xs: 0.12px;
 
     /* Color tokens — keep in sync with src/lib/theme.ts (used for JS color props). */
-    --color-background: #fcfaf6; /* cream — the app's base surface */
+    --color-background: #fefdfb; /* cream — the app's base surface */
     --color-surface: #ffffff; /* white — raised cards/buttons on the cream base */
     --color-surface-muted: #f0ede7; /* muted panel that reads as inset on cream */
     --color-border: #e6e2da; /* warm hairline, visible on both cream and white */

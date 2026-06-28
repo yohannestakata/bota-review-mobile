@@ -5,7 +5,7 @@
 import type { ViewStyle } from "react-native";
 
 export const colors = {
-  background: "#fcfaf6",
+  background: "#fefdfb",
   surfaceMuted: "#f0ede7",
   border: "#e6e2da",
   placeholder: "#ece7d9",
