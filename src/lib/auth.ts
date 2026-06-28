@@ -43,7 +43,15 @@ export function getAuthMessage(error: unknown) {
       longMessage?: string;
       message?: string;
     };
-    return firstError.longMessage || firstError.message || "Something went wrong";
+    if (firstError?.longMessage || firstError?.message) {
+      return firstError.longMessage || firstError.message || "";
+    }
+  }
+
+  // Fall back to the raw error message so non-Clerk failures (network, OAuth
+  // redirect, AuthSession) surface their actual cause instead of a generic line.
+  if (error instanceof Error && error.message) {
+    return error.message;
   }
 
   return "Something went wrong";
