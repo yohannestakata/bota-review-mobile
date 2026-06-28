@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { getErrorMessage } from "@/lib/api";
 
-import type { ReviewReply } from "./api";
+import type { BranchReview, ReviewReply } from "./api";
 import type { ReplyTarget } from "./components/reply-composer-modal";
 import { useCreateReply, useReportReply } from "./queries";
 
@@ -15,8 +15,13 @@ export function useReplyActions(branchId: string) {
   const create = useCreateReply(branchId);
   const report = useReportReply();
 
-  function startReply(reviewId: string) {
-    setTarget({ reviewId });
+  function startReply(review: BranchReview) {
+    setTarget({
+      reviewId: review.id,
+      reviewAuthorName: review.user.displayName,
+      reviewAuthorAvatarUrl: review.user.avatarUrl,
+      reviewText: review.text,
+    });
   }
 
   async function submit(body: string) {

@@ -96,6 +96,7 @@ export default function MyRepliesScreen() {
       reviewId: reply.reviewId,
       replyId: reply.id,
       initialBody: reply.body,
+      reviewText: reply.review.text,
     });
   }
 

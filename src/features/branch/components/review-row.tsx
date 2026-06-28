@@ -156,7 +156,7 @@ export function ReviewRow({
   onReport?: (reviewId: string) => void;
   onUserPress?: (userId: string) => void;
   // Provided for signed-in users; opens the screen-level composer.
-  onReply?: (reviewId: string) => void;
+  onReply?: (review: BranchReview) => void;
   onReportReply?: (reply: ReviewReply) => void;
 }) {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
@@ -286,7 +286,7 @@ export function ReviewRow({
           ) : null}
 
           {canReply ? (
-            <ActionLink label="Reply" onPress={() => onReply!(review.id)} />
+            <ActionLink label="Reply" onPress={() => onReply!(review)} />
           ) : null}
         </View>
       ) : null}

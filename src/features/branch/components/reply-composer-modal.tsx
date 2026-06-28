@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useUser } from "@clerk/clerk-expo";
+import { useEffect, useRef, useState } from "react";
 import { Modal, Pressable, TextInput, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 import { colors } from "@/lib/theme";
@@ -10,6 +12,10 @@ export type ReplyTarget = {
   reviewId: string;
   replyId?: string;
   initialBody?: string;
+  // Context about the review being replied to (shown at the top of the sheet).
+  reviewAuthorName?: string | null;
+  reviewAuthorAvatarUrl?: string | null;
+  reviewText?: string;
 };
 
 // Screen-level reply composer. Lifted out of the review row so it never lives
@@ -27,8 +33,12 @@ export function ReplyComposerModal({
   onClose: () => void;
   onSubmit: (body: string) => void;
 }) {
+  const { user } = useUser();
+  const inputRef = useRef<TextInput>(null);
   const [body, setBody] = useState("");
   const isEdit = Boolean(target?.replyId);
+
+  const meName = user?.fullName ?? user?.firstName ?? "You";
 
   useEffect(() => {
     if (target) setBody(target.initialBody ?? "");
@@ -38,26 +48,64 @@ export function ReplyComposerModal({
     <Modal
       animationType="slide"
       onRequestClose={onClose}
+      // Focus the field once the sheet is on screen so the keyboard opens.
+      onShow={() => inputRef.current?.focus()}
       transparent
       visible={target !== null}
     >
       <Pressable className="flex-1 justify-end bg-black/40" onPress={onClose}>
         <KeyboardAvoidingView behavior="padding">
           <Pressable
-            className="gap-3 rounded-t-3xl bg-surface px-5 pb-8 pt-5"
+            className="gap-4 rounded-t-3xl bg-surface px-5 pb-8 pt-5"
             onPress={(event) => event.stopPropagation()}
           >
             <ThemedText size="lg" weight="semibold">
-              {isEdit ? "Edit reply" : "Write a reply"}
+              {isEdit ? "Edit reply" : "Reply"}
             </ThemedText>
+
+            {/* Original review being replied to. */}
+            {target?.reviewText ? (
+              <View className="gap-2">
+                {target.reviewAuthorName ? (
+                  <View className="flex-row items-center gap-2.5">
+                    <Avatar
+                      name={target.reviewAuthorName}
+                      size={28}
+                      uri={target.reviewAuthorAvatarUrl}
+                    />
+                    <ThemedText size="sm" weight="medium">
+                      {target.reviewAuthorName}
+                    </ThemedText>
+                  </View>
+                ) : (
+                  <ThemedText size="xs" tone="muted">
+                    Original review
+                  </ThemedText>
+                )}
+                <ThemedText numberOfLines={3} size="sm" tone="muted">
+                  {target.reviewText}
+                </ThemedText>
+              </View>
+            ) : null}
+
+            <View className="h-px bg-placeholder" />
+
+            {/* You, the replier. */}
+            <View className="flex-row items-center gap-2.5">
+              <Avatar name={meName} size={28} uri={user?.imageUrl} />
+              <ThemedText size="sm" weight="medium">
+                {meName}
+              </ThemedText>
+            </View>
+
             <TextInput
-              autoFocus
               className="min-h-24 rounded-xl border border-placeholder bg-background px-3 py-2 font-outfit text-md text-foreground"
               maxLength={2000}
               multiline
               onChangeText={setBody}
               placeholder="Share your response…"
               placeholderTextColor={colors.muted}
+              ref={inputRef}
               textAlignVertical="top"
               value={body}
             />
