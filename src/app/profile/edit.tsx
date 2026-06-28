@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/clerk-expo";
+import { useClerk, useUser } from "@clerk/clerk-expo";
 import { zodFormResolver } from "@/lib/zod-resolver";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -9,12 +9,14 @@ import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
+import { Alert } from "@/components/ui/alert";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { CloseButton } from "@/components/ui/close-button";
 import { ControlledTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { getAuthMessage } from "@/lib/auth";
+import { openLegal, PRIVACY_POLICY_URL, TERMS_URL } from "@/lib/legal";
 
 const editProfileSchema = z.object({
   firstName: z.string().trim().optional(),
@@ -26,9 +28,35 @@ type EditProfileValues = z.infer<typeof editProfileSchema>;
 
 export default function EditProfileScreen() {
   const { user } = useUser();
+  const { signOut } = useClerk();
 
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [avatarData, setAvatarData] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  function onDeleteAccount() {
+    Alert.alert(
+      "Delete account",
+      "This permanently deletes your account, reviews, and replies. This can't be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: confirmDeleteAccount },
+      ],
+    );
+  }
+
+  async function confirmDeleteAccount() {
+    if (!user || deleting) return;
+    setDeleting(true);
+    try {
+      await user.delete();
+      await signOut();
+      router.replace("/login");
+    } catch (err) {
+      setDeleting(false);
+      Alert.alert("Couldn't delete account", getAuthMessage(err));
+    }
+  }
 
   const { control, handleSubmit, setError, formState } =
     useForm<EditProfileValues>({
@@ -142,6 +170,24 @@ export default function EditProfileScreen() {
               {formState.errors.root.message}
             </ThemedText>
           ) : null}
+
+          <View className="mt-2 gap-3 border-t border-border pt-5">
+            <Pressable hitSlop={6} onPress={() => openLegal(PRIVACY_POLICY_URL)}>
+              <ThemedText weight="medium">Privacy Policy</ThemedText>
+            </Pressable>
+            <Pressable hitSlop={6} onPress={() => openLegal(TERMS_URL)}>
+              <ThemedText weight="medium">Terms of Service</ThemedText>
+            </Pressable>
+            <Pressable
+              disabled={deleting}
+              hitSlop={6}
+              onPress={onDeleteAccount}
+            >
+              <ThemedText tone="danger" weight="medium">
+                {deleting ? "Deleting account…" : "Delete account"}
+              </ThemedText>
+            </Pressable>
+          </View>
         </ScrollView>
 
         <View className="px-6 pb-2 pt-2">
