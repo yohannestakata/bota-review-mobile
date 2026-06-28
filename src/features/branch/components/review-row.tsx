@@ -1,131 +1,19 @@
 import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { Stars } from "@/components/ui/stars";
 import { ThemedText } from "@/components/ui/themed-text";
+import { cn } from "@/lib/cn";
 import { colors } from "@/lib/theme";
 
 import type { BranchReview, ReviewReply } from "../api";
 import { PhotoViewer } from "./photo-viewer";
 
-function ReplyItem({ reply }: { reply: ReviewReply }) {
-  const isOwner = reply.authorRole === "owner";
-  return (
-    <View className="gap-1 rounded-xl bg-surface p-3">
-      <View className="flex-row items-center gap-2">
-        <ThemedText size="sm" weight="medium">
-          {reply.user.displayName}
-        </ThemedText>
-        {isOwner ? (
-          <View className="rounded-full border border-primary px-2 py-0.5">
-            <ThemedText size="xs" tone="brand" weight="semibold">
-              Owner
-            </ThemedText>
-          </View>
-        ) : null}
-        <ThemedText size="xs" tone="muted">
-          {formatReviewDate(reply.createdAt)}
-        </ThemedText>
-      </View>
-      <ThemedText size="sm" tone="muted">
-        {reply.body}
-      </ThemedText>
-    </View>
-  );
-}
-
-function ReplyComposer({
-  onSubmit,
-}: {
-  onSubmit: (body: string) => Promise<{ moderationStatus: string }>;
-}) {
-  const [open, setOpen] = useState(false);
-  const [body, setBody] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [note, setNote] = useState<string | null>(null);
-
-  if (!open) {
-    return (
-      <Pressable className="self-start" hitSlop={6} onPress={() => setOpen(true)}>
-        <ThemedText size="sm" tone="brand" weight="medium">
-          Reply
-        </ThemedText>
-      </Pressable>
-    );
-  }
-
-  async function submit() {
-    const trimmed = body.trim();
-    if (!trimmed || submitting) return;
-    setSubmitting(true);
-    setNote(null);
-    try {
-      const result = await onSubmit(trimmed);
-      setBody("");
-      if (result.moderationStatus === "approved") {
-        setOpen(false);
-      } else {
-        setNote("Your reply was submitted and is awaiting review.");
-      }
-    } catch {
-      setNote("Couldn't send your reply. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <View className="gap-2">
-      <TextInput
-        autoFocus
-        className="min-h-16 rounded-xl border border-placeholder bg-surface px-3 py-2 font-outfit text-md text-foreground"
-        multiline
-        onChangeText={setBody}
-        placeholder="Write a reply…"
-        placeholderTextColor={colors.muted}
-        textAlignVertical="top"
-        value={body}
-      />
-      {note ? (
-        <ThemedText size="xs" tone="muted">
-          {note}
-        </ThemedText>
-      ) : null}
-      <View className="flex-row items-center justify-end gap-4">
-        <Pressable
-          hitSlop={6}
-          onPress={() => {
-            setOpen(false);
-            setBody("");
-            setNote(null);
-          }}
-        >
-          <ThemedText size="sm" tone="muted">
-            Cancel
-          </ThemedText>
-        </Pressable>
-        <Pressable disabled={submitting || !body.trim()} hitSlop={6} onPress={submit}>
-          {submitting ? (
-            <ActivityIndicator color={colors.foreground} size="small" />
-          ) : (
-            <ThemedText
-              size="sm"
-              tone={body.trim() ? "brand" : "muted"}
-              weight="semibold"
-            >
-              Send
-            </ThemedText>
-          )}
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
 const COLLAPSED_LINES = 4;
+const REPLY_PREVIEW_COUNT = 2;
 
 export function CollapsibleReviewText({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
@@ -179,26 +67,122 @@ export function formatReviewDate(iso: string): string {
   });
 }
 
+function ActionLink({
+  label,
+  tone = "brand",
+  onPress,
+}: {
+  label: string;
+  tone?: "brand" | "muted" | "danger";
+  onPress: () => void;
+}) {
+  return (
+    <Pressable hitSlop={6} onPress={onPress}>
+      <ThemedText size="xs" tone={tone} weight="medium">
+        {label}
+      </ThemedText>
+    </Pressable>
+  );
+}
+
+function ReplyItem({
+  reply,
+  businessName,
+  isOwn,
+  onEdit,
+  onDelete,
+  onReport,
+}: {
+  reply: ReviewReply;
+  businessName?: string;
+  isOwn: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onReport?: () => void;
+}) {
+  const isOwner = reply.authorRole === "owner";
+  // Owner replies speak for the business, not the person who typed them.
+  const title = isOwner
+    ? `Response from ${businessName ?? "the owner"}`
+    : reply.user.displayName;
+
+  const showActions = isOwn ? Boolean(onEdit || onDelete) : Boolean(onReport);
+
+  return (
+    <View
+      className={cn(
+        "gap-1 rounded-xl p-3",
+        isOwner ? "border border-primary/40 bg-primary/5" : "bg-surface",
+      )}
+    >
+      <View className="flex-row items-center justify-between gap-2">
+        <ThemedText
+          className="flex-1"
+          numberOfLines={1}
+          size="sm"
+          weight={isOwner ? "semibold" : "medium"}
+        >
+          {title}
+        </ThemedText>
+        <ThemedText size="xs" tone="muted">
+          {formatReviewDate(reply.createdAt)}
+        </ThemedText>
+      </View>
+
+      <ThemedText size="sm" tone="muted">
+        {reply.body}
+      </ThemedText>
+
+      {showActions ? (
+        <View className="mt-1 flex-row gap-4">
+          {isOwn ? (
+            <>
+              {onEdit ? <ActionLink label="Edit" onPress={onEdit} /> : null}
+              {onDelete ? (
+                <ActionLink label="Delete" onPress={onDelete} tone="danger" />
+              ) : null}
+            </>
+          ) : onReport ? (
+            <ActionLink label="Report" onPress={onReport} tone="muted" />
+          ) : null}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 export function ReviewRow({
   review,
+  businessName,
+  currentUserId,
   onReport,
   onUserPress,
   onReply,
+  onEditReply,
+  onDeleteReply,
+  onReportReply,
 }: {
   review: BranchReview;
+  businessName?: string;
+  currentUserId?: string;
   onReport?: (reviewId: string) => void;
   onUserPress?: (userId: string) => void;
-  // When provided (signed-in users), shows a reply composer. Resolves with the
-  // created reply's moderation status so the composer can message the user.
-  onReply?: (
-    reviewId: string,
-    body: string,
-  ) => Promise<{ moderationStatus: string }>;
+  // Provided for signed-in users; opens the screen-level composer.
+  onReply?: (reviewId: string) => void;
+  onEditReply?: (reply: ReviewReply) => void;
+  onDeleteReply?: (reply: ReviewReply) => void;
+  onReportReply?: (reply: ReviewReply) => void;
 }) {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
-  // Older/cached branch-detail responses may predate review photos.
+  const [showAllReplies, setShowAllReplies] = useState(false);
+  // Older/cached branch-detail responses may predate review photos/replies.
   const photos = review.photos ?? [];
   const replies = review.replies ?? [];
+
+  const visibleReplies = showAllReplies
+    ? replies
+    : replies.slice(0, REPLY_PREVIEW_COUNT);
+  const hiddenCount = replies.length - visibleReplies.length;
 
   return (
     <View className="gap-3 rounded-2xl border border-placeholder p-4">
@@ -277,13 +261,49 @@ export function ReviewRow({
 
       {replies.length > 0 || onReply ? (
         <View className="gap-2 border-l border-placeholder pl-3">
-          {replies.map((reply) => (
-            <ReplyItem key={reply.id} reply={reply} />
-          ))}
-          {onReply ? (
-            <ReplyComposer
-              onSubmit={(body) => onReply(review.id, body)}
+          {visibleReplies.map((reply) => {
+            const isOwn = Boolean(
+              currentUserId && reply.user.id === currentUserId,
+            );
+            return (
+              <ReplyItem
+                key={reply.id}
+                businessName={businessName}
+                isOwn={isOwn}
+                onDelete={
+                  isOwn && onDeleteReply
+                    ? () => onDeleteReply(reply)
+                    : undefined
+                }
+                onEdit={
+                  isOwn && onEditReply ? () => onEditReply(reply) : undefined
+                }
+                onReport={
+                  !isOwn && onReportReply
+                    ? () => onReportReply(reply)
+                    : undefined
+                }
+                reply={reply}
+              />
+            );
+          })}
+
+          {hiddenCount > 0 ? (
+            <ActionLink
+              label={`View ${hiddenCount} more ${hiddenCount === 1 ? "reply" : "replies"}`}
+              onPress={() => setShowAllReplies(true)}
+              tone="muted"
             />
+          ) : replies.length > REPLY_PREVIEW_COUNT ? (
+            <ActionLink
+              label="Show fewer replies"
+              onPress={() => setShowAllReplies(false)}
+              tone="muted"
+            />
+          ) : null}
+
+          {onReply ? (
+            <ActionLink label="Reply" onPress={() => onReply(review.id)} />
           ) : null}
         </View>
       ) : null}

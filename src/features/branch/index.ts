@@ -21,3 +21,8 @@ export {
   ReviewRow,
 } from "./components/review-row";
 export { SiblingCard } from "./components/sibling-card";
+export {
+  ReplyComposerModal,
+  type ReplyTarget,
+} from "./components/reply-composer-modal";
+export { useReplyActions } from "./use-reply-actions";

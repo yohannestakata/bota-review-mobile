@@ -31,16 +31,18 @@ import {
   lowestPrice,
   OpeningHours,
   QuickActions,
+  ReplyComposerModal,
   ReviewRow,
   SiblingCard,
   totalItemCount,
   useBranch,
   useBranchMenus,
   useBranchSiblings,
-  useCreateReply,
   useOwnClaims,
+  useReplyActions,
   useReportReview,
 } from "@/features/branch";
+import { useMe } from "@/features/profile";
 import { useSavedBranchIds, useToggleSave } from "@/features/home";
 import { Alert } from "@/components/ui/alert";
 import { analytics } from "@/lib/analytics";
@@ -120,10 +122,8 @@ export default function BranchDetailScreen() {
     action();
   }
 
-  const createReply = useCreateReply(id);
-  function onReply(reviewId: string, body: string) {
-    return createReply.mutateAsync({ reviewId, body });
-  }
+  const me = useMe();
+  const replyActions = useReplyActions(id);
 
   const reportReview = useReportReview();
   function onReportReview(reviewId: string) {
@@ -466,7 +466,14 @@ export default function BranchDetailScreen() {
               data.recentReviews.map((review) => (
                 <ReviewRow
                   key={review.id}
-                  onReply={isSignedIn ? onReply : undefined}
+                  businessName={data.place.name}
+                  currentUserId={me.data?.id}
+                  onDeleteReply={replyActions.deleteReply}
+                  onEditReply={replyActions.startEditReply}
+                  onReply={isSignedIn ? replyActions.startReply : undefined}
+                  onReportReply={
+                    isSignedIn ? replyActions.reportReply : undefined
+                  }
                   onReport={onReportReview}
                   onUserPress={(userId) =>
                     router.push(`/profile/${userId}` as Href)
@@ -613,6 +620,13 @@ export default function BranchDetailScreen() {
           size="sm"
         />
       </View>
+
+      <ReplyComposerModal
+        onClose={replyActions.closeComposer}
+        onSubmit={replyActions.submit}
+        submitting={replyActions.submitting}
+        target={replyActions.target}
+      />
     </View>
   );
 }

@@ -200,6 +200,17 @@ export function deleteReviewReply(replyId: string, getToken: TokenGetter) {
   });
 }
 
+export function reportReviewReply(
+  replyId: string,
+  reason: string | undefined,
+  getToken: TokenGetter,
+) {
+  return apiFetch<void>(`/replies/${replyId}/reports`, getToken, {
+    method: "POST",
+    body: JSON.stringify(reason ? { reason } : {}),
+  });
+}
+
 export type UpdateOwnerInfoBody = {
   phone?: string | null;
   hours?: BranchHours;

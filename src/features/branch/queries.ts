@@ -6,6 +6,7 @@ import {
   createClaim,
   createReview,
   createReviewReply,
+  deleteReviewReply,
   getBranch,
   getBranchMenus,
   getBranchReviews,
@@ -13,8 +14,10 @@ import {
   getMyClaims,
   getReview,
   reportReview,
+  reportReviewReply,
   updateOwnerInfo,
   updateReview,
+  updateReviewReply,
   type CreateClaimBody,
   type CreateReviewBody,
   type UpdateOwnerInfoBody,
@@ -86,6 +89,50 @@ export function useCreateReply(branchId: string) {
         queryKey: branchKeys.reviews(branchId),
       });
     },
+  });
+}
+
+export function useUpdateReply(branchId: string) {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (vars: { replyId: string; body: string }) =>
+      updateReviewReply(vars.replyId, vars.body, getToken),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: branchKeys.detail(branchId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: branchKeys.reviews(branchId),
+      });
+    },
+  });
+}
+
+export function useDeleteReply(branchId: string) {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (replyId: string) => deleteReviewReply(replyId, getToken),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: branchKeys.detail(branchId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: branchKeys.reviews(branchId),
+      });
+    },
+  });
+}
+
+export function useReportReply() {
+  const { getToken } = useAuth();
+
+  return useMutation({
+    mutationFn: (vars: { replyId: string; reason?: string }) =>
+      reportReviewReply(vars.replyId, vars.reason, getToken),
   });
 }
 

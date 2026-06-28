@@ -9,11 +9,13 @@ import { FlashList, ListGapMd } from "@/components/ui/flash-list";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
+  ReplyComposerModal,
   ReviewRow,
   useBranchReviews,
-  useCreateReply,
+  useReplyActions,
   useReportReview,
 } from "@/features/branch";
+import { useMe } from "@/features/profile";
 import { getErrorMessage } from "@/lib/api";
 
 export default function BranchReviewsScreen() {
@@ -25,11 +27,8 @@ export default function BranchReviewsScreen() {
   const reviews = useBranchReviews(branchId);
   const data = reviews.data ?? [];
   const reportReview = useReportReview();
-  const createReply = useCreateReply(branchId);
-
-  function onReply(reviewId: string, body: string) {
-    return createReply.mutateAsync({ reviewId, body });
-  }
+  const me = useMe();
+  const replyActions = useReplyActions(branchId);
 
   function onReportReview(reviewId: string) {
     if (!isSignedIn) {
@@ -95,7 +94,12 @@ export default function BranchReviewsScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <ReviewRow
-              onReply={isSignedIn ? onReply : undefined}
+              businessName={name}
+              currentUserId={me.data?.id}
+              onDeleteReply={replyActions.deleteReply}
+              onEditReply={replyActions.startEditReply}
+              onReply={isSignedIn ? replyActions.startReply : undefined}
+              onReportReply={isSignedIn ? replyActions.reportReply : undefined}
               onReport={onReportReview}
               onUserPress={(userId) =>
                 router.push(`/profile/${userId}` as Href)
@@ -106,6 +110,13 @@ export default function BranchReviewsScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
+
+      <ReplyComposerModal
+        onClose={replyActions.closeComposer}
+        onSubmit={replyActions.submit}
+        submitting={replyActions.submitting}
+        target={replyActions.target}
+      />
     </SafeAreaView>
   );
 }
