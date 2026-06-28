@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
+import { Avatar } from "@/components/ui/avatar";
 import { Stars } from "@/components/ui/stars";
 import { ThemedText } from "@/components/ui/themed-text";
 import { colors } from "@/lib/theme";
@@ -104,31 +105,38 @@ function ReplyItem({
   // Own replies are managed from the profile screen, so no inline actions there.
   const showReport = !isOwn && Boolean(onReport);
 
-  // Flat thread style — no box per reply; the group's left rule conveys nesting.
+  // Comment-thread style: avatar + content, under the group's left rule.
   return (
-    <View className="gap-1">
-      <View className="flex-row items-center justify-between gap-2">
-        <ThemedText
-          className="flex-1"
-          numberOfLines={1}
-          size="sm"
-          tone={isOwner ? "brand" : "default"}
-          weight={isOwner ? "semibold" : "medium"}
-        >
-          {title}
+    <View className="flex-row gap-2.5">
+      <Avatar
+        name={isOwner ? businessName : reply.user.displayName}
+        size={28}
+        uri={isOwner ? undefined : reply.user.avatarUrl}
+      />
+      <View className="flex-1 gap-1">
+        <View className="flex-row items-center justify-between gap-2">
+          <ThemedText
+            className="flex-1"
+            numberOfLines={1}
+            size="sm"
+            tone={isOwner ? "brand" : "default"}
+            weight={isOwner ? "semibold" : "medium"}
+          >
+            {title}
+          </ThemedText>
+          <ThemedText size="xs" tone="muted">
+            {formatReviewDate(reply.createdAt)}
+          </ThemedText>
+        </View>
+
+        <ThemedText size="sm" tone="muted">
+          {reply.body}
         </ThemedText>
-        <ThemedText size="xs" tone="muted">
-          {formatReviewDate(reply.createdAt)}
-        </ThemedText>
+
+        {showReport ? (
+          <ActionLink label="Report" onPress={onReport!} tone="muted" />
+        ) : null}
       </View>
-
-      <ThemedText size="sm" tone="muted">
-        {reply.body}
-      </ThemedText>
-
-      {showReport ? (
-        <ActionLink label="Report" onPress={onReport!} tone="muted" />
-      ) : null}
     </View>
   );
 }
