@@ -7,6 +7,7 @@ import { AppIcon } from "@/components/ui/huge-icon";
 import { Avatar } from "@/components/ui/avatar";
 import { Stars } from "@/components/ui/stars";
 import { ThemedText } from "@/components/ui/themed-text";
+import { formatRelativeDate } from "@/lib/format-date";
 import { colors } from "@/lib/theme";
 
 import type { BranchReview, ReviewReply } from "../api";
@@ -57,31 +58,6 @@ export function CollapsibleReviewText({ text }: { text: string }) {
         </Pressable>
       ) : null}
     </View>
-  );
-}
-
-// Natural-language recency ("3d ago", "2w ago"), falling back to an absolute
-// date for anything older than ~a month. Dependency-free — Hermes' Intl is
-// unreliable in RN, so we don't use Intl.RelativeTimeFormat or date-fns.
-export function formatReviewDate(iso: string): string {
-  const date = new Date(iso);
-  const seconds = Math.max(0, (Date.now() - date.getTime()) / 1000);
-
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  if (days < 30) return `${Math.floor(days / 7)}w ago`;
-
-  const sameYear = date.getFullYear() === new Date().getFullYear();
-  return date.toLocaleDateString(
-    undefined,
-    sameYear
-      ? { month: "short", day: "numeric" }
-      : { month: "short", year: "numeric" },
   );
 }
 
@@ -142,7 +118,7 @@ function ReplyItem({
             {title}
           </ThemedText>
           <ThemedText size="xs" tone="muted">
-            {formatReviewDate(reply.createdAt)}
+            {formatRelativeDate(reply.createdAt)}
           </ThemedText>
         </View>
       </View>
@@ -224,7 +200,7 @@ export function ReviewRow({
             <View className="flex-row items-center gap-2">
               <Stars size={12} value={review.rating} />
               <ThemedText size="xs" tone="muted">
-                {formatReviewDate(review.createdAt)}
+                {formatRelativeDate(review.createdAt)}
               </ThemedText>
             </View>
           </View>

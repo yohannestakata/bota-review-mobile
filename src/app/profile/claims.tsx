@@ -7,6 +7,7 @@ import { BackButton } from "@/components/ui/back-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useOwnClaims, type OwnClaim } from "@/features/branch";
+import { formatRelativeDate } from "@/lib/format-date";
 
 const STATUS_LABEL: Record<OwnClaim["status"], string> = {
   pending: "Pending",
@@ -23,13 +24,6 @@ const STATUS_TONE: Record<
   rejected: "danger",
 };
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
 
 function ClaimCard({ claim }: { claim: OwnClaim }) {
   return (
@@ -45,7 +39,7 @@ function ClaimCard({ claim }: { claim: OwnClaim }) {
           {STATUS_LABEL[claim.status]}
         </ThemedText>
         <ThemedText size="sm" tone="muted">
-          · Submitted {formatDate(claim.createdAt)}
+          · Submitted {formatRelativeDate(claim.createdAt)}
         </ThemedText>
       </View>
     </Pressable>

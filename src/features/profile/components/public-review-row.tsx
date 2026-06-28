@@ -6,11 +6,8 @@ import { Pressable, ScrollView, View } from "react-native";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { Stars } from "@/components/ui/stars";
 import { ThemedText } from "@/components/ui/themed-text";
-import {
-  CollapsibleReviewText,
-  formatReviewDate,
-  PhotoViewer,
-} from "@/features/branch";
+import { CollapsibleReviewText, PhotoViewer } from "@/features/branch";
+import { formatRelativeDate } from "@/lib/format-date";
 import { colors } from "@/lib/theme";
 
 import type { PublicReview } from "../api";
@@ -42,7 +39,7 @@ export function PublicReviewRow({
           <View className="flex-row items-center gap-2">
             <Stars size={12} value={review.rating} />
             <ThemedText size="xs" tone="muted">
-              {formatReviewDate(review.createdAt)}
+              {formatRelativeDate(review.createdAt)}
             </ThemedText>
           </View>
         </View>
