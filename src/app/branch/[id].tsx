@@ -37,6 +37,7 @@ import {
   useBranch,
   useBranchMenus,
   useBranchSiblings,
+  useCreateReply,
   useOwnClaims,
   useReportReview,
 } from "@/features/branch";
@@ -117,6 +118,11 @@ export default function BranchDetailScreen() {
     }
 
     action();
+  }
+
+  const createReply = useCreateReply(id);
+  function onReply(reviewId: string, body: string) {
+    return createReply.mutateAsync({ reviewId, body });
   }
 
   const reportReview = useReportReview();
@@ -460,6 +466,7 @@ export default function BranchDetailScreen() {
               data.recentReviews.map((review) => (
                 <ReviewRow
                   key={review.id}
+                  onReply={isSignedIn ? onReply : undefined}
                   onReport={onReportReview}
                   onUserPress={(userId) =>
                     router.push(`/profile/${userId}` as Href)

@@ -8,7 +8,12 @@ import { BackButton } from "@/components/ui/back-button";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemedText } from "@/components/ui/themed-text";
-import { ReviewRow, useBranchReviews, useReportReview } from "@/features/branch";
+import {
+  ReviewRow,
+  useBranchReviews,
+  useCreateReply,
+  useReportReview,
+} from "@/features/branch";
 import { getErrorMessage } from "@/lib/api";
 
 export default function BranchReviewsScreen() {
@@ -20,6 +25,11 @@ export default function BranchReviewsScreen() {
   const reviews = useBranchReviews(branchId);
   const data = reviews.data ?? [];
   const reportReview = useReportReview();
+  const createReply = useCreateReply(branchId);
+
+  function onReply(reviewId: string, body: string) {
+    return createReply.mutateAsync({ reviewId, body });
+  }
 
   function onReportReview(reviewId: string) {
     if (!isSignedIn) {
@@ -85,6 +95,7 @@ export default function BranchReviewsScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <ReviewRow
+              onReply={isSignedIn ? onReply : undefined}
               onReport={onReportReview}
               onUserPress={(userId) =>
                 router.push(`/profile/${userId}` as Href)

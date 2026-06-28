@@ -5,6 +5,7 @@ import {
   archiveReview,
   createClaim,
   createReview,
+  createReviewReply,
   getBranch,
   getBranchMenus,
   getBranchReviews,
@@ -64,6 +65,25 @@ export function useUpdateOwnerInfo(branchId: string) {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: branchKeys.detail(branchId),
+      });
+    },
+  });
+}
+
+export function useCreateReply(branchId: string) {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (vars: { reviewId: string; body: string }) =>
+      createReviewReply(vars.reviewId, vars.body, getToken),
+    onSuccess: () => {
+      // Refresh both the branch detail (recentReviews) and the all-reviews list.
+      void queryClient.invalidateQueries({
+        queryKey: branchKeys.detail(branchId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: branchKeys.reviews(branchId),
       });
     },
   });

@@ -17,6 +17,21 @@ export type BranchPhoto = {
   createdAt: string;
 };
 
+export type ReviewReply = {
+  id: string;
+  reviewId: string;
+  authorRole: "owner" | "user";
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    displayName: string;
+    avatarUrl: string | null;
+    trustLevel: string;
+  };
+};
+
 export type BranchReview = {
   id: string;
   rating: number;
@@ -30,6 +45,9 @@ export type BranchReview = {
     trustLevel: string;
   };
   photos: { id: string; url: string; width: number; height: number }[];
+  // Approved replies (owner + user), oldest-first. Optional: older cached
+  // responses predate replies.
+  replies?: ReviewReply[];
 };
 
 export type BranchHours = Record<string, [string, string][]>;
@@ -146,6 +164,39 @@ export function reportReview(
   return apiFetch<void>(`/reviews/${reviewId}/reports`, getToken, {
     method: "POST",
     body: JSON.stringify(reason ? { reason } : {}),
+  });
+}
+
+// Reply to a review. The backend decides authorRole: a verified owner of the
+// review's branch becomes an auto-approved "owner" reply; everyone else is a
+// "user" reply that follows the normal review trust/moderation rules.
+export function createReviewReply(
+  reviewId: string,
+  body: string,
+  getToken: TokenGetter,
+) {
+  return apiFetch<ReviewReply & { moderationStatus: string }>(
+    `/reviews/${reviewId}/replies`,
+    getToken,
+    { method: "POST", body: JSON.stringify({ body }) },
+  );
+}
+
+export function updateReviewReply(
+  replyId: string,
+  body: string,
+  getToken: TokenGetter,
+) {
+  return apiFetch<ReviewReply & { moderationStatus: string }>(
+    `/replies/${replyId}`,
+    getToken,
+    { method: "PATCH", body: JSON.stringify({ body }) },
+  );
+}
+
+export function deleteReviewReply(replyId: string, getToken: TokenGetter) {
+  return apiFetch<{ success: boolean }>(`/replies/${replyId}`, getToken, {
+    method: "DELETE",
   });
 }
 
