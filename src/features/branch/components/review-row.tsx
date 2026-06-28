@@ -272,7 +272,7 @@ export function ReviewRow({
       ) : null}
 
       {replies.length > 0 ? (
-        <View className="mt-2 gap-3 pl-4">
+        <View className="mt-2 gap-3 border-l border-placeholder pl-4">
           {visibleReplies.map((reply) => {
             const isOwn = Boolean(
               currentUserId && reply.user.id === currentUserId,
