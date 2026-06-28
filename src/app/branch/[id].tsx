@@ -463,22 +463,30 @@ export default function BranchDetailScreen() {
             ) : null}
 
             {data.recentReviews.length > 0 ? (
-              data.recentReviews.map((review) => (
-                <ReviewRow
-                  key={review.id}
-                  businessName={data.place.name}
-                  currentUserId={me.data?.id}
-                  onReply={isSignedIn ? replyActions.startReply : undefined}
-                  onReportReply={
-                    isSignedIn ? replyActions.reportReply : undefined
-                  }
-                  onReport={onReportReview}
-                  onUserPress={(userId) =>
-                    router.push(`/profile/${userId}` as Href)
-                  }
-                  review={review}
-                />
-              ))
+              <View>
+                {data.recentReviews.map((review, index) => (
+                  <View key={review.id}>
+                    {index > 0 ? (
+                      <View className="my-5 h-px bg-border" />
+                    ) : null}
+                    <ReviewRow
+                      businessName={data.place.name}
+                      currentUserId={me.data?.id}
+                      onReply={
+                        isSignedIn ? replyActions.startReply : undefined
+                      }
+                      onReportReply={
+                        isSignedIn ? replyActions.reportReply : undefined
+                      }
+                      onReport={onReportReview}
+                      onUserPress={(userId) =>
+                        router.push(`/profile/${userId}` as Href)
+                      }
+                      review={review}
+                    />
+                  </View>
+                ))}
+              </View>
             ) : (
               <ThemedText tone="muted">
                 No reviews yet — be the first to weigh in!

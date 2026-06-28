@@ -5,7 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
 import { BackButton } from "@/components/ui/back-button";
-import { FlashList, ListGapMd } from "@/components/ui/flash-list";
+import { FlashList } from "@/components/ui/flash-list";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
@@ -90,7 +90,9 @@ export default function BranchReviewsScreen() {
         <FlashList
           contentContainerClassName="px-6 pb-12 pt-2"
           data={data}
-          ItemSeparatorComponent={ListGapMd}
+          ItemSeparatorComponent={() => (
+            <View className="my-5 h-px bg-border" />
+          )}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <ReviewRow

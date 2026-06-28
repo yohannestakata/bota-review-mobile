@@ -176,7 +176,7 @@ export function ReviewRow({
   const hiddenCount = replies.length - visibleReplies.length;
 
   return (
-    <View className="gap-3 rounded-2xl border border-placeholder p-4">
+    <View className="gap-3">
       <View className="flex-row items-start gap-3">
         <Pressable
           className="flex-1 flex-row items-center gap-3"
