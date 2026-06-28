@@ -285,7 +285,7 @@ export function ReviewRow({
       ) : null}
 
       {canReply ? (
-        <View className="mt-2 pl-4">
+        <View className="mt-2">
           <ActionLink label="Reply" onPress={() => onReply!(review)} />
         </View>
       ) : null}
