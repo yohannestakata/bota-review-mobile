@@ -43,7 +43,7 @@ export function BranchCard({
     layout === "portrait"
       ? "aspect-[4/5] rounded-[28px]"
       : "aspect-[4/3] rounded-[24px]";
-  const textInset = layout === "portrait" ? 7 : 6;
+  const textInset = layout === "portrait" ? 5 : 4;
 
   return (
     <Pressable className="w-full" onPress={() => onPress?.(branch)}>
