@@ -116,7 +116,7 @@ export function BranchCard({
           ) : null}
         </View>
         {subtitle ? (
-          <ThemedText numberOfLines={1} tone="muted">
+          <ThemedText numberOfLines={2} tone="muted">
             {subtitle}
           </ThemedText>
         ) : null}
