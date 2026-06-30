@@ -100,7 +100,7 @@ export function BranchCard({
         <View className="flex-row items-center gap-1">
           <ThemedText
             className="shrink"
-            numberOfLines={1}
+            numberOfLines={2}
             size="lg"
             weight="semibold"
           >
