@@ -18,11 +18,14 @@ function RailSkeleton() {
   return (
     <View className="mt-10 gap-4">
       <Skeleton className="ml-6 h-7 w-48 rounded-full" />
-      <View className="flex-row gap-6 overflow-hidden pl-6">
-        <View className="w-60">
+      <View className="flex-row gap-4 overflow-hidden pl-6">
+        <View className="w-40">
           <BranchCardSkeleton />
         </View>
-        <View className="w-60">
+        <View className="w-40">
+          <BranchCardSkeleton />
+        </View>
+        <View className="w-40">
           <BranchCardSkeleton />
         </View>
       </View>

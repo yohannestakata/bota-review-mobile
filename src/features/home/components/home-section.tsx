@@ -25,12 +25,12 @@ export function HomeSection({
         {section.title}
       </ThemedText>
       <ScrollView
-        contentContainerClassName="gap-6 px-6 pt-4"
+        contentContainerClassName="gap-4 px-6 pt-4"
         horizontal
         showsHorizontalScrollIndicator={false}
       >
         {section.items.map((branch) => (
-          <View className="w-60" key={branch.id}>
+          <View className="w-40" key={branch.id}>
             <BranchCard
               branch={branch}
               isSaved={savedIds.has(branch.id)}
