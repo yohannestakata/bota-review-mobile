@@ -43,6 +43,7 @@ export function BranchCard({
     layout === "portrait"
       ? "aspect-[4/5] rounded-[28px]"
       : "aspect-[4/3] rounded-[24px]";
+  const textInset = layout === "portrait" ? 28 : 24;
 
   return (
     <Pressable className="w-full" onPress={() => onPress?.(branch)}>
@@ -87,7 +88,7 @@ export function BranchCard({
         </Pressable>
       </View>
 
-      <View className="mt-3">
+      <View className="mt-3" style={{ paddingLeft: textInset }}>
         <View className="flex-row items-center gap-1">
           <ThemedText
             className="shrink"
