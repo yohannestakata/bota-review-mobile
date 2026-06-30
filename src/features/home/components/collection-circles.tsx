@@ -17,7 +17,7 @@ type CollectionCirclesProps = {
 export function CollectionCircles({ items, onPress }: CollectionCirclesProps) {
   return (
     <ScrollView
-      contentContainerClassName="gap-5 px-6"
+      contentContainerClassName="gap-4 px-6"
       horizontal
       showsHorizontalScrollIndicator={false}
     >
