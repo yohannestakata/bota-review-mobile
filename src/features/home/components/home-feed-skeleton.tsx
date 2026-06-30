@@ -1,7 +1,10 @@
-import { View } from "react-native";
+import { useWindowDimensions, View } from "react-native";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { BranchCardSkeleton } from "./branch-list-skeleton";
+
+const RAIL_SIDE_PADDING = 24;
+const RAIL_GAP = 16;
 
 // Mirrors CollectionCircles: a row of size-20 circles with a label below.
 function CircleSkeleton() {
@@ -15,17 +18,22 @@ function CircleSkeleton() {
 
 // Mirrors HomeSection: a title, then a horizontal rail of portrait BranchCards.
 function RailSkeleton() {
+  const { width } = useWindowDimensions();
+  const cardWidth = Math.floor(
+    (width - RAIL_SIDE_PADDING * 2 - RAIL_GAP) / 2,
+  );
+
   return (
     <View className="mt-10 gap-4">
       <Skeleton className="ml-6 h-7 w-48 rounded-full" />
       <View className="flex-row gap-4 overflow-hidden pl-6">
-        <View className="w-40">
+        <View style={{ width: cardWidth }}>
           <BranchCardSkeleton />
         </View>
-        <View className="w-40">
+        <View style={{ width: cardWidth }}>
           <BranchCardSkeleton />
         </View>
-        <View className="w-40">
+        <View style={{ width: cardWidth }}>
           <BranchCardSkeleton />
         </View>
       </View>
