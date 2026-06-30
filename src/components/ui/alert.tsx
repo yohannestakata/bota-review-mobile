@@ -121,10 +121,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
           />
           {options ? (
             <View className="w-full max-w-sm rounded-3xl bg-surface p-6">
-              <ThemedText
-                size="lg"
-                weight="semibold"
-              >
+              <ThemedText size="lg" weight="semibold">
                 {options.title}
               </ThemedText>
               {options.message ? (

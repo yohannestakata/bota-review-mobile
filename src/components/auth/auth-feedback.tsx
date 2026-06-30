@@ -20,7 +20,10 @@ export function AuthError({ message }: { message?: string }) {
   }
 
   return (
-    <View accessibilityRole="alert" className="rounded-xl bg-danger-soft px-4 py-3">
+    <View
+      accessibilityRole="alert"
+      className="rounded-xl bg-danger-soft px-4 py-3"
+    >
       <ThemedText size="sm" tone="danger">
         {message}
       </ThemedText>

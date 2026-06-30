@@ -62,11 +62,11 @@ export function useSearch(params: SearchParams) {
   const { getToken } = useAuth();
   const hasFilters = Boolean(
     params.neighborhoodId ||
-      params.cuisineId?.length ||
-      params.tagId?.length ||
-      params.priceLevel?.length ||
-      params.openNow ||
-      (params.sort !== undefined && params.sort !== "rating"),
+    params.cuisineId?.length ||
+    params.tagId?.length ||
+    params.priceLevel?.length ||
+    params.openNow ||
+    (params.sort !== undefined && params.sort !== "rating"),
   );
   const isBrowse = params.q.trim().length < 2 && !hasFilters;
 

@@ -135,7 +135,11 @@ export function useBranchSiblings(
   const { getToken } = useAuth();
 
   return useQuery({
-    queryKey: [...branchKeys.siblings(id), coords?.lat ?? null, coords?.lng ?? null],
+    queryKey: [
+      ...branchKeys.siblings(id),
+      coords?.lat ?? null,
+      coords?.lng ?? null,
+    ],
     queryFn: () => getBranchSiblings(id, coords, getToken),
     enabled: Boolean(id),
   });
@@ -155,7 +159,8 @@ export function useCreateClaim(branchId: string) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: CreateClaimBody) => createClaim(branchId, body, getToken),
+    mutationFn: (body: CreateClaimBody) =>
+      createClaim(branchId, body, getToken),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: branchKeys.detail(branchId),

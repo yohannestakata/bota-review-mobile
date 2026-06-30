@@ -10,10 +10,7 @@ type AuthRequiredScreenProps = {
   body: string;
 };
 
-export function AuthRequiredScreen({
-  title,
-  body,
-}: AuthRequiredScreenProps) {
+export function AuthRequiredScreen({ title, body }: AuthRequiredScreenProps) {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View className="flex-1 items-center justify-center gap-3 px-8">

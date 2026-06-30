@@ -140,11 +140,7 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
           <ThemedText weight="medium">My Claims</ThemedText>
           <View className="flex-row items-center gap-1">
             <ThemedText tone="muted">{claimCount}</ThemedText>
-            <AppIcon
-              color={colors.muted}
-              icon={ArrowRight01Icon}
-              size={18}
-            />
+            <AppIcon color={colors.muted} icon={ArrowRight01Icon} size={18} />
           </View>
         </Pressable>
       ) : null}

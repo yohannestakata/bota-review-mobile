@@ -21,11 +21,11 @@ export function LocationPill({ label, status, onPress }: LocationPillProps) {
 
   return (
     <Pressable
-      className="flex-row items-center gap-1 self-start rounded-full border border-placeholder bg-surface px-3 py-1.5"
+      className="flex-row items-center gap-1.5 self-start rounded-full border border-border bg-surface px-4 py-2"
       hitSlop={6}
       onPress={onPress}
     >
-      <AppIcon color={colors.foreground} icon={Location01Icon} size={14} />
+      <AppIcon color={colors.primary} icon={Location01Icon} size={15} />
       <ThemedText size="sm" weight="medium">
         {text}
       </ThemedText>

@@ -70,7 +70,9 @@ export function FormTextInput({
         />
         {secureTextEntry ? (
           <Pressable
-            accessibilityLabel={passwordVisible ? "Hide password" : "Show password"}
+            accessibilityLabel={
+              passwordVisible ? "Hide password" : "Show password"
+            }
             accessibilityRole="button"
             className="absolute right-0 top-0 h-14 w-14 items-center justify-center"
             hitSlop={4}

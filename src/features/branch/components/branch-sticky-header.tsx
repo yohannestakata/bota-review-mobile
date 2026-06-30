@@ -19,7 +19,10 @@ type BranchStickyHeaderProps = {
 
 // A solid title bar that fades in as the hero scrolls out of view. Purely
 // decorative (pointerEvents none) — the floating back/save buttons sit on top.
-export function BranchStickyHeader({ title, scrollY }: BranchStickyHeaderProps) {
+export function BranchStickyHeader({
+  title,
+  scrollY,
+}: BranchStickyHeaderProps) {
   const insets = useSafeAreaInsets();
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -51,7 +54,10 @@ export function BranchStickyHeader({ title, scrollY }: BranchStickyHeaderProps) 
         animatedStyle,
       ]}
     >
-      <View className="items-center justify-center px-16" style={{ height: 44 }}>
+      <View
+        className="items-center justify-center px-16"
+        style={{ height: 44 }}
+      >
         <ThemedText numberOfLines={1} size="lg" weight="semibold">
           {title}
         </ThemedText>

@@ -101,12 +101,15 @@ function extraDetailsNote(values: SuggestEditValues) {
   if (values.extraPriceLevel) {
     lines.push(`Price range: ${"$".repeat(Number(values.extraPriceLevel))}`);
   }
-  if (values.extraHours.trim()) lines.push(`Hours: ${values.extraHours.trim()}`);
-  if (values.extraMenu.trim()) lines.push(`Menu/prices: ${values.extraMenu.trim()}`);
+  if (values.extraHours.trim())
+    lines.push(`Hours: ${values.extraHours.trim()}`);
+  if (values.extraMenu.trim())
+    lines.push(`Menu/prices: ${values.extraMenu.trim()}`);
   if (values.extraAddress.trim()) {
     lines.push(`Address: ${values.extraAddress.trim()}`);
   }
-  if (values.extraPhone.trim()) lines.push(`Phone: ${values.extraPhone.trim()}`);
+  if (values.extraPhone.trim())
+    lines.push(`Phone: ${values.extraPhone.trim()}`);
   if (values.extraAmenities.length > 0) {
     lines.push(`Amenities: ${values.extraAmenities.join(", ")}`);
   }
@@ -116,7 +119,9 @@ function extraDetailsNote(values: SuggestEditValues) {
 }
 
 function submissionNote(values: SuggestEditValues) {
-  return [values.note.trim(), extraDetailsNote(values)].filter(Boolean).join("\n\n");
+  return [values.note.trim(), extraDetailsNote(values)]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 const suggestEditSchema = suggestEditObject.superRefine((values, ctx) => {
@@ -186,7 +191,9 @@ export default function SuggestEditScreen() {
 
   const values = useWatch({ control }) as SuggestEditValues;
   const isCorrection = values.kind === "field_correction";
-  const selectedField = FIELDS.find((field) => field.value === values.fieldName);
+  const selectedField = FIELDS.find(
+    (field) => field.value === values.fieldName,
+  );
   const isValueCorrection = isCorrection && selectedField?.mode === "value";
   const isPriceCorrection = isCorrection && selectedField?.mode === "price";
   const isNoteCorrection = isCorrection && selectedField?.mode === "note";
@@ -205,7 +212,9 @@ export default function SuggestEditScreen() {
   const canSubmit =
     !submit.isPending &&
     (!isCorrection ||
-      (values.fieldName ? hasPrimaryCorrection || hasExtraDetails : hasExtraDetails));
+      (values.fieldName
+        ? hasPrimaryCorrection || hasExtraDetails
+        : hasExtraDetails));
 
   function resetPrimaryFields() {
     setValue("suggestedValue", "");

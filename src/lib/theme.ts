@@ -5,17 +5,19 @@
 import type { ViewStyle } from "react-native";
 
 export const colors = {
-  background: "#fefdfb",
-  surfaceMuted: "#f0ede7",
-  border: "#e6e2da",
-  placeholder: "#ece7d9",
-  foreground: "#171717",
-  muted: "#737373",
-  subtle: "#d4d4d4",
+  background: "#ffffff",
+  surface: "#ffffff",
+  surfaceMuted: "#f5f6f2",
+  border: "#e4e7df",
+  placeholder: "#edf0ea",
+  foreground: "#1f241f",
+  muted: "#6b7068",
+  subtle: "#c8cec3",
+  primary: "#004733",
   inverse: "#ffffff",
-  rating: "#f59e0b",
+  rating: "#004733",
   favorite: "#e11d48",
-  success: "#16a34a",
+  success: "#00885f",
 } as const;
 
 export type ColorToken = keyof typeof colors;
@@ -27,10 +29,10 @@ export const shadows = {
     boxShadow: [
       {
         offsetX: 0,
-        offsetY: 2,
-        blurRadius: 10,
+        offsetY: 4,
+        blurRadius: 18,
         spreadDistance: 0,
-        color: "rgba(23, 23, 23, 0.16)",
+        color: "rgba(31, 36, 31, 0.14)",
       },
     ],
   } satisfies ViewStyle,
@@ -38,10 +40,21 @@ export const shadows = {
     boxShadow: [
       {
         offsetX: 0,
-        offsetY: 5,
-        blurRadius: 18,
+        offsetY: 7,
+        blurRadius: 22,
         spreadDistance: 0,
-        color: "rgba(23, 23, 23, 0.10)",
+        color: "rgba(31, 36, 31, 0.12)",
+      },
+    ],
+  } satisfies ViewStyle,
+  cardControl: {
+    boxShadow: [
+      {
+        offsetX: 0,
+        offsetY: 3,
+        blurRadius: 12,
+        spreadDistance: 0,
+        color: "rgba(31, 36, 31, 0.14)",
       },
     ],
   } satisfies ViewStyle,

@@ -1,7 +1,4 @@
-import {
-  CheckmarkBadge01Icon,
-  StarIcon,
-} from "@hugeicons/core-free-icons";
+import { CheckmarkBadge01Icon, StarIcon } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
 import { Pressable, View } from "react-native";
 

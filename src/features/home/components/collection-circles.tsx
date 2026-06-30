@@ -17,17 +17,17 @@ type CollectionCirclesProps = {
 export function CollectionCircles({ items, onPress }: CollectionCirclesProps) {
   return (
     <ScrollView
-      contentContainerClassName="gap-4 px-6"
+      contentContainerClassName="gap-5 px-6"
       horizontal
       showsHorizontalScrollIndicator={false}
     >
       {items.map((item) => (
         <Pressable
-          className="w-20 items-center gap-2"
+          className="w-[88px] items-center gap-2"
           key={item.slug}
           onPress={() => onPress(item.slug)}
         >
-          <View className="size-20 overflow-hidden rounded-full bg-placeholder">
+          <View className="size-[88px] overflow-hidden rounded-[28px] bg-placeholder">
             {item.coverImageUrl ? (
               <Image
                 contentFit="cover"
@@ -37,7 +37,12 @@ export function CollectionCircles({ items, onPress }: CollectionCirclesProps) {
               />
             ) : null}
           </View>
-          <ThemedText className="text-center" numberOfLines={1} size="sm">
+          <ThemedText
+            className="text-center"
+            numberOfLines={1}
+            size="sm"
+            weight="medium"
+          >
             {item.title}
           </ThemedText>
         </Pressable>

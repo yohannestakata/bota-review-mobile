@@ -35,7 +35,7 @@ const sizeClass: Record<TextSize, string> = {
 const toneClass: Record<TextTone, string> = {
   default: "text-foreground",
   muted: "text-muted",
-  brand: "text-foreground",
+  brand: "text-primary",
   inverse: "text-inverse",
   danger: "text-danger",
 };

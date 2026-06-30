@@ -75,7 +75,10 @@ function capitalize(value: string) {
 
 export default function BranchDetailScreen() {
   const { isSignedIn } = useAuth();
-  const { id, source } = useLocalSearchParams<{ id: string; source?: string }>();
+  const { id, source } = useLocalSearchParams<{
+    id: string;
+    source?: string;
+  }>();
   const branch = useBranch(id);
   const { coords } = useLocation();
   const siblings = useBranchSiblings(id, coords ?? undefined);
@@ -99,7 +102,10 @@ export default function BranchDetailScreen() {
   // screen (home, search, saved, collection, …), defaulting to "unknown".
   useEffect(() => {
     if (id) {
-      analytics.track("branch_viewed", { branch_id: id, source: source ?? "unknown" });
+      analytics.track("branch_viewed", {
+        branch_id: id,
+        source: source ?? "unknown",
+      });
     }
   }, [id, source]);
 
@@ -472,9 +478,7 @@ export default function BranchDetailScreen() {
                     <ReviewRow
                       businessName={data.place.name}
                       currentUserId={me.data?.id}
-                      onReply={
-                        isSignedIn ? replyActions.startReply : undefined
-                      }
+                      onReply={isSignedIn ? replyActions.startReply : undefined}
                       onReportReply={
                         isSignedIn ? replyActions.reportReply : undefined
                       }
@@ -620,9 +624,7 @@ export default function BranchDetailScreen() {
         <Button
           icon={PencilEdit02Icon}
           label="Write a review"
-          onPress={() =>
-            requireSignIn(() => router.push(`/review/${data.id}`))
-          }
+          onPress={() => requireSignIn(() => router.push(`/review/${data.id}`))}
           size="sm"
         />
       </View>

@@ -53,7 +53,11 @@ export default function PhotoGalleryScreen() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#000" }}>
       <FlatList
         data={photos}
-        getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
+        getItemLayout={(_, i) => ({
+          length: width,
+          offset: width * i,
+          index: i,
+        })}
         horizontal
         initialScrollIndex={initialIndex}
         keyExtractor={(item) => item.id}

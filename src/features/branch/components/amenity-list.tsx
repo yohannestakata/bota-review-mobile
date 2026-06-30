@@ -15,7 +15,11 @@ export function AmenityList({ amenities }: { amenities: Amenity[] }) {
           className="w-1/2 flex-row items-center gap-2 py-1.5"
           key={amenity.id}
         >
-          <AppIcon color={colors.success} icon={CheckmarkCircle02Icon} size={18} />
+          <AppIcon
+            color={colors.success}
+            icon={CheckmarkCircle02Icon}
+            size={18}
+          />
           <ThemedText numberOfLines={1}>{amenity.name}</ThemedText>
         </View>
       ))}

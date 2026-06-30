@@ -13,16 +13,16 @@ function CircleSkeleton() {
   );
 }
 
-// Mirrors HomeSection: a title, then a horizontal rail of w-64 BranchCards.
+// Mirrors HomeSection: a title, then a horizontal rail of portrait BranchCards.
 function RailSkeleton() {
   return (
-    <View className="mt-8 gap-3">
-      <Skeleton className="ml-6 h-6 w-40 rounded-full" />
-      <View className="flex-row gap-4 overflow-hidden pl-6">
-        <View className="w-64">
+    <View className="mt-10 gap-4">
+      <Skeleton className="ml-6 h-7 w-48 rounded-full" />
+      <View className="flex-row gap-6 overflow-hidden pl-6">
+        <View className="w-60">
           <BranchCardSkeleton />
         </View>
-        <View className="w-64">
+        <View className="w-60">
           <BranchCardSkeleton />
         </View>
       </View>

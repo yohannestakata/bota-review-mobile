@@ -20,20 +20,21 @@ export function HomeSection({
   onPressBranch,
 }: HomeSectionProps) {
   return (
-    <View className="mt-8">
-      <ThemedText className="px-6" size="xl" weight="semibold">
+    <View className="mt-10">
+      <ThemedText className="px-6" size="2xl" weight="bold">
         {section.title}
       </ThemedText>
       <ScrollView
-        contentContainerClassName="gap-4 px-6 pt-3"
+        contentContainerClassName="gap-6 px-6 pt-4"
         horizontal
         showsHorizontalScrollIndicator={false}
       >
         {section.items.map((branch) => (
-          <View className="w-64" key={branch.id}>
+          <View className="w-60" key={branch.id}>
             <BranchCard
               branch={branch}
               isSaved={savedIds.has(branch.id)}
+              layout="portrait"
               onPress={onPressBranch}
               onToggleSave={onToggleSave}
             />

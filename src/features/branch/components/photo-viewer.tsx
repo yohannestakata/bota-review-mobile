@@ -1,6 +1,12 @@
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { useState } from "react";
-import { Dimensions, FlatList, Modal, Pressable, StyleSheet } from "react-native";
+import {
+  Dimensions,
+  FlatList,
+  Modal,
+  Pressable,
+  StyleSheet,
+} from "react-native";
 import {
   Gesture,
   GestureDetector,

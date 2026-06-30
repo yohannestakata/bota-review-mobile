@@ -87,7 +87,11 @@ export default function CompleteProfileScreen() {
           {formState.errors.root.message}
         </ThemedText>
       ) : null}
-      <Button label="Finish" loading={formState.isSubmitting} onPress={onSubmit} />
+      <Button
+        label="Finish"
+        loading={formState.isSubmitting}
+        onPress={onSubmit}
+      />
     </AuthScreen>
   );
 }

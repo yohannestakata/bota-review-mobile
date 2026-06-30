@@ -172,7 +172,10 @@ export default function EditProfileScreen() {
           ) : null}
 
           <View className="mt-2 gap-3 border-t border-border pt-5">
-            <Pressable hitSlop={6} onPress={() => openLegal(PRIVACY_POLICY_URL)}>
+            <Pressable
+              hitSlop={6}
+              onPress={() => openLegal(PRIVACY_POLICY_URL)}
+            >
               <ThemedText weight="medium">Privacy Policy</ThemedText>
             </Pressable>
             <Pressable hitSlop={6} onPress={() => openLegal(TERMS_URL)}>

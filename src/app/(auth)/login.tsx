@@ -55,7 +55,8 @@ export default function LoginScreen() {
         router.replace("/");
       } else {
         setError("root", {
-          message: "We need one more verification step before you can continue.",
+          message:
+            "We need one more verification step before you can continue.",
         });
       }
     } catch (err) {
@@ -99,7 +100,9 @@ export default function LoginScreen() {
         // requires. Finish the sign-up on the next screen.
         router.push("/complete-profile" as Href);
       } else {
-        setError("root", { message: "That didn't go through. Mind trying again?" });
+        setError("root", {
+          message: "That didn't go through. Mind trying again?",
+        });
       }
     } catch (err) {
       debugLog("auth", "Google OAuth failed", {

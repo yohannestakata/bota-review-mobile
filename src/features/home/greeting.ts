@@ -73,7 +73,8 @@ const QUESTIONS: Record<MealBucket, string[]> = {
 export function homeGreeting(date: Date, name: string, seed: number): string {
   const hour = date.getHours();
   const pool = QUESTIONS[mealFor(hour)];
-  const question = pool[Math.min(pool.length - 1, Math.floor(seed * pool.length))];
+  const question =
+    pool[Math.min(pool.length - 1, Math.floor(seed * pool.length))];
   const salutation = salutationFor(hour);
 
   // A few forms — sometimes a salutation, sometimes a name, sometimes just the

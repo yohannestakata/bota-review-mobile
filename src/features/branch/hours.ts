@@ -53,7 +53,9 @@ function to12Hour(time: string): string {
     : `${hour12}:${String(m).padStart(2, "0")} ${period}`;
 }
 
-export function formatDayHours(intervals: [string, string][] | undefined): string {
+export function formatDayHours(
+  intervals: [string, string][] | undefined,
+): string {
   if (!intervals || intervals.length === 0) {
     return "Closed";
   }

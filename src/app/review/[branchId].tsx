@@ -325,11 +325,7 @@ export default function WriteReviewScreen() {
                 className="flex-1 flex-row items-center gap-2 rounded-2xl border border-placeholder bg-surface px-4 py-3"
                 onPress={() => setShowDatePicker(true)}
               >
-                <AppIcon
-                  color={colors.muted}
-                  icon={Calendar03Icon}
-                  size={18}
-                />
+                <AppIcon color={colors.muted} icon={Calendar03Icon} size={18} />
                 <ThemedText tone={visitDate ? "default" : "muted"}>
                   {visitDate ? formatVisitDate(visitDate) : "Optional"}
                 </ThemedText>
@@ -377,7 +373,6 @@ export default function WriteReviewScreen() {
               />
             </View>
           ) : null}
-
         </ScrollView>
 
         <View className="px-6 pb-2 pt-2">

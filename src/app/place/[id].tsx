@@ -46,7 +46,12 @@ export default function PlaceOverviewScreen() {
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View className="flex-row items-center gap-3 px-4 py-3">
         <BackButton onPress={() => router.back()} />
-        <ThemedText className="shrink" numberOfLines={1} size="lg" weight="semibold">
+        <ThemedText
+          className="shrink"
+          numberOfLines={1}
+          size="lg"
+          weight="semibold"
+        >
           {place.data?.name ?? "Locations"}
         </ThemedText>
       </View>
@@ -57,7 +62,9 @@ export default function PlaceOverviewScreen() {
         </View>
       ) : place.isError || !place.data ? (
         <View className="mt-24 items-center gap-3 px-6">
-          <ThemedText tone="muted">Couldn&apos;t load these locations.</ThemedText>
+          <ThemedText tone="muted">
+            Couldn&apos;t load these locations.
+          </ThemedText>
           <Pressable onPress={() => place.refetch()}>
             <ThemedText tone="brand" weight="semibold">
               Try again

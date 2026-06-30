@@ -1,5 +1,5 @@
 import { useUser } from "@clerk/clerk-expo";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Modal, Pressable, TextInput, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 
@@ -33,91 +33,114 @@ export function ReplyComposerModal({
   onClose: () => void;
   onSubmit: (body: string) => void;
 }) {
-  const { user } = useUser();
-  const inputRef = useRef<TextInput>(null);
-  const [body, setBody] = useState("");
-  const isEdit = Boolean(target?.replyId);
-
-  const meName = user?.fullName ?? user?.firstName ?? "You";
-
-  useEffect(() => {
-    if (target) setBody(target.initialBody ?? "");
-  }, [target]);
+  const targetKey = target
+    ? `${target.reviewId}:${target.replyId ?? "new"}:${target.initialBody ?? ""}`
+    : "closed";
 
   return (
     <Modal
       animationType="slide"
       onRequestClose={onClose}
-      // Focus the field once the sheet is on screen so the keyboard opens.
-      onShow={() => inputRef.current?.focus()}
       transparent
       visible={target !== null}
     >
-      <Pressable className="flex-1 justify-end bg-black/40" onPress={onClose}>
-        <KeyboardAvoidingView behavior="padding">
-          <Pressable
-            className="gap-4 rounded-t-3xl bg-surface px-5 pb-8 pt-5"
-            onPress={(event) => event.stopPropagation()}
-          >
-            <ThemedText size="lg" weight="semibold">
-              {isEdit ? "Edit reply" : "Reply"}
-            </ThemedText>
+      {target ? (
+        <ReplyComposerContent
+          key={targetKey}
+          onClose={onClose}
+          onSubmit={onSubmit}
+          submitting={submitting}
+          target={target}
+        />
+      ) : null}
+    </Modal>
+  );
+}
 
-            {/* Original review being replied to. */}
-            {target?.reviewText ? (
-              <View className="gap-2">
-                {target.reviewAuthorName ? (
-                  <View className="flex-row items-center gap-2.5">
-                    <Avatar
-                      name={target.reviewAuthorName}
-                      size={28}
-                      uri={target.reviewAuthorAvatarUrl}
-                    />
-                    <ThemedText size="sm" weight="medium">
-                      {target.reviewAuthorName}
-                    </ThemedText>
-                  </View>
-                ) : (
-                  <ThemedText size="xs" tone="muted">
-                    Original review
+function ReplyComposerContent({
+  target,
+  submitting,
+  onClose,
+  onSubmit,
+}: {
+  target: ReplyTarget;
+  submitting: boolean;
+  onClose: () => void;
+  onSubmit: (body: string) => void;
+}) {
+  const { user } = useUser();
+  const inputRef = useRef<TextInput>(null);
+  const [body, setBody] = useState(target.initialBody ?? "");
+  const isEdit = Boolean(target?.replyId);
+
+  const meName = user?.fullName ?? user?.firstName ?? "You";
+
+  return (
+    <Pressable className="flex-1 justify-end bg-black/40" onPress={onClose}>
+      <KeyboardAvoidingView behavior="padding">
+        <Pressable
+          className="gap-4 rounded-t-3xl bg-surface px-5 pb-8 pt-5"
+          onLayout={() => inputRef.current?.focus()}
+          onPress={(event) => event.stopPropagation()}
+        >
+          <ThemedText size="lg" weight="semibold">
+            {isEdit ? "Edit reply" : "Reply"}
+          </ThemedText>
+
+          {/* Original review being replied to. */}
+          {target.reviewText ? (
+            <View className="gap-2">
+              {target.reviewAuthorName ? (
+                <View className="flex-row items-center gap-2.5">
+                  <Avatar
+                    name={target.reviewAuthorName}
+                    size={28}
+                    uri={target.reviewAuthorAvatarUrl}
+                  />
+                  <ThemedText size="sm" weight="medium">
+                    {target.reviewAuthorName}
                   </ThemedText>
-                )}
-                <ThemedText numberOfLines={3} size="sm" tone="muted">
-                  {target.reviewText}
+                </View>
+              ) : (
+                <ThemedText size="xs" tone="muted">
+                  Original review
                 </ThemedText>
-              </View>
-            ) : null}
-
-            <View className="h-px bg-placeholder" />
-
-            {/* You, the replier. */}
-            <View className="flex-row items-center gap-2.5">
-              <Avatar name={meName} size={28} uri={user?.imageUrl} />
-              <ThemedText size="sm" weight="medium">
-                {meName}
+              )}
+              <ThemedText numberOfLines={3} size="sm" tone="muted">
+                {target.reviewText}
               </ThemedText>
             </View>
+          ) : null}
 
-            <TextInput
-              className="min-h-24 rounded-xl border border-placeholder bg-background px-3 py-2 font-outfit text-md text-foreground"
-              maxLength={2000}
-              multiline
-              onChangeText={setBody}
-              placeholder="Share your response…"
-              placeholderTextColor={colors.muted}
-              ref={inputRef}
-              textAlignVertical="top"
-              value={body}
-            />
-            <Button
-              disabled={!body.trim() || submitting}
-              label={isEdit ? "Save" : "Send reply"}
-              loading={submitting}
-              onPress={() => onSubmit(body.trim())}
-            />
-          </Pressable>
-        </KeyboardAvoidingView>
-      </Pressable>
-    </Modal>
+          <View className="h-px bg-placeholder" />
+
+          {/* You, the replier. */}
+          <View className="flex-row items-center gap-2.5">
+            <Avatar name={meName} size={28} uri={user?.imageUrl} />
+            <ThemedText size="sm" weight="medium">
+              {meName}
+            </ThemedText>
+          </View>
+
+          <TextInput
+            className="min-h-24 rounded-xl border border-placeholder bg-background px-3 py-2 font-outfit text-md text-foreground"
+            maxLength={2000}
+            multiline
+            onChangeText={setBody}
+            placeholder="Share your response…"
+            placeholderTextColor={colors.muted}
+            ref={inputRef}
+            textAlignVertical="top"
+            value={body}
+          />
+          <Button
+            disabled={!body.trim() || submitting}
+            label={isEdit ? "Save" : "Send reply"}
+            loading={submitting}
+            onPress={() => onSubmit(body.trim())}
+          />
+        </Pressable>
+      </KeyboardAvoidingView>
+    </Pressable>
   );
 }

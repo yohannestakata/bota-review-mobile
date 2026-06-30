@@ -91,7 +91,9 @@ export default function SavedScreen() {
           <BranchCard
             branch={item}
             isSaved={(savedIds ?? EMPTY_SAVED).has(item.id)}
-            onPress={(branch) => router.push(`/branch/${branch.id}?source=saved`)}
+            onPress={(branch) =>
+              router.push(`/branch/${branch.id}?source=saved`)
+            }
             onToggleSave={onToggleSave}
           />
         )}

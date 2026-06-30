@@ -207,7 +207,8 @@ export default function SearchScreen() {
   // Removable chips for each applied sheet filter (neighborhood/cuisine/tag/
   // price). Tapping a chip clears just that filter; Open now / Nearby keep their
   // own toggle chips in the row above.
-  const activeChips: { key: string; label: string; onRemove: () => void }[] = [];
+  const activeChips: { key: string; label: string; onRemove: () => void }[] =
+    [];
   if (neighborhoodId) {
     const match = neighborhoods.data?.find((n) => n.id === neighborhoodId);
     activeChips.push({
@@ -269,7 +270,9 @@ export default function SearchScreen() {
         <View className="flex-row gap-2">
           <Pressable
             className={`flex-row items-center gap-2 rounded-full border px-4 py-2 ${
-              filterCount > 0 ? "border-foreground" : "border-placeholder bg-surface"
+              filterCount > 0
+                ? "border-foreground"
+                : "border-placeholder bg-surface"
             }`}
             onPress={() => filterSheetRef.current?.present()}
           >

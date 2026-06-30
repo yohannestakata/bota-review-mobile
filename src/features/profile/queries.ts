@@ -26,8 +26,7 @@ export const profileKeys = {
     [...profileKeys.all, "reviews", userId ?? "anonymous"] as const,
   replies: (userId: string | null | undefined) =>
     [...profileKeys.all, "replies", userId ?? "anonymous"] as const,
-  publicProfile: (id: string) =>
-    [...profileKeys.all, "public", id] as const,
+  publicProfile: (id: string) => [...profileKeys.all, "public", id] as const,
   publicReviews: (id: string) =>
     [...profileKeys.publicProfile(id), "reviews"] as const,
 };
@@ -110,17 +109,10 @@ export function usePublicReviews(id: string) {
   return useInfiniteQuery({
     queryKey: profileKeys.publicReviews(id),
     queryFn: ({ pageParam }) =>
-      getPublicReviews(
-        id,
-        pageParam,
-        PUBLIC_REVIEWS_PAGE_SIZE,
-        getToken,
-      ),
+      getPublicReviews(id, pageParam, PUBLIC_REVIEWS_PAGE_SIZE, getToken),
     enabled: Boolean(id),
     initialPageParam: 1,
     getNextPageParam: (lastPage, pages) =>
-      lastPage.length < PUBLIC_REVIEWS_PAGE_SIZE
-        ? undefined
-        : pages.length + 1,
+      lastPage.length < PUBLIC_REVIEWS_PAGE_SIZE ? undefined : pages.length + 1,
   });
 }

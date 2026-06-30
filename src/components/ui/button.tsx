@@ -23,15 +23,15 @@ type ButtonProps = {
 
 const VARIANTS: Record<
   Variant,
-  { container: string; tone: "inverse" | "default"; color: string }
+  { container: string; tone: "inverse" | "default" | "brand"; color: string }
 > = {
   primary: { container: "bg-primary", tone: "inverse", color: colors.inverse },
   secondary: {
-    container: "bg-surface border border-placeholder",
-    tone: "default",
-    color: colors.foreground,
+    container: "border border-primary bg-surface",
+    tone: "brand",
+    color: colors.primary,
   },
-  ghost: { container: "", tone: "default", color: colors.foreground },
+  ghost: { container: "", tone: "brand", color: colors.primary },
 };
 
 const SIZES: Record<Size, string> = {

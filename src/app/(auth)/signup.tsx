@@ -166,8 +166,7 @@ export default function SignupScreen() {
     ? verifyForm.formState.errors.root?.message
     : accountForm.formState.errors.root?.message;
   const accountBusy = accountForm.formState.isSubmitting || googleLoading;
-  const verificationBusy =
-    verifyForm.formState.isSubmitting || resendLoading;
+  const verificationBusy = verifyForm.formState.isSubmitting || resendLoading;
   const pendingEmail = accountForm.getValues("email");
 
   return (

@@ -116,12 +116,12 @@ export default function Index() {
             refreshing={
               home.isRefetching || (isSignedIn === true && saved.isRefetching)
             }
-            tintColor={colors.foreground}
+            tintColor={colors.primary}
           />
         }
         showsVerticalScrollIndicator={false}
       >
-        <View className="mt-6 px-6">
+        <View className="mt-5 px-6">
           <View className="flex-row items-center justify-between">
             <Pressable
               accessibilityLabel={isSignedIn ? "Open profile" : "Sign in"}
@@ -140,9 +140,9 @@ export default function Index() {
                   uri={user?.imageUrl}
                 />
               ) : (
-                <View className="size-10 items-center justify-center rounded-full bg-surface-muted">
+                <View className="size-11 items-center justify-center rounded-full bg-surface-muted">
                   <AppIcon
-                    color={colors.foreground}
+                    color={colors.primary}
                     icon={UserCircleIcon}
                     size={24}
                   />
@@ -155,12 +155,12 @@ export default function Index() {
               status={location.status}
             />
           </View>
-          <ThemedText className="mt-4" size="3xl" weight="medium">
+          <ThemedText className="mt-5" size="3xl" weight="bold">
             {greeting}
           </ThemedText>
         </View>
 
-        <View className="mt-6 px-6">
+        <View className="mt-7 px-6">
           <HomeSearchBar onPress={() => router.push("/search")} />
         </View>
 
@@ -191,7 +191,7 @@ export default function Index() {
         ) : null}
 
         {home.isSuccess && collections.length > 0 ? (
-          <View className="mt-6">
+          <View className="mt-8">
             <CollectionCircles
               items={collections}
               onPress={(slug) => router.push(`/collection/${slug}`)}
@@ -212,8 +212,8 @@ export default function Index() {
         ))}
 
         {home.isSuccess && highlyRated && highlyRated.items.length > 0 ? (
-          <View className="mt-8 gap-4 px-6">
-            <ThemedText size="xl" weight="semibold">
+          <View className="mt-10 gap-5 px-6">
+            <ThemedText size="2xl" weight="bold">
               Highly rated
             </ThemedText>
             {highlyRated.items.map((branch) => (

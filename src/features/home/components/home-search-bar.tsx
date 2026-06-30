@@ -12,12 +12,12 @@ type HomeSearchBarProps = {
 export function HomeSearchBar({ onPress }: HomeSearchBarProps) {
   return (
     <Pressable
-      className="h-16 flex-row items-center gap-2 rounded-full bg-surface px-6"
+      className="h-[74px] flex-row items-center gap-3 rounded-full border border-border bg-surface px-7"
       onPress={onPress}
       style={shadows.searchBar}
     >
-      <AppIcon color={colors.muted} icon={Search01Icon} size={24} />
-      <ThemedText size="md" tone="muted">
+      <AppIcon color={colors.primary} icon={Search01Icon} size={26} />
+      <ThemedText size="lg" tone="default" weight="medium">
         Search restaurants, cafés, cuisines
       </ThemedText>
     </Pressable>

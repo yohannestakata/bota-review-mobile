@@ -42,7 +42,11 @@ export function BranchHero({ imageUrl, scrollY, onPress }: BranchHeroProps) {
   return (
     <Animated.View
       style={[
-        { height: HERO_HEIGHT, width: "100%", backgroundColor: colors.placeholder },
+        {
+          height: HERO_HEIGHT,
+          width: "100%",
+          backgroundColor: colors.placeholder,
+        },
         animatedStyle,
       ]}
     >

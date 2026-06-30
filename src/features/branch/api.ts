@@ -255,9 +255,13 @@ export async function uploadOwnerPhoto(
   if (!uploadResponse.ok) {
     let detail = `status ${uploadResponse.status}`;
     try {
-      const body = (await uploadResponse.json()) as { error?: { message?: string } };
+      const body = (await uploadResponse.json()) as {
+        error?: { message?: string };
+      };
       detail = body.error?.message ?? detail;
-    } catch { /* no json body */ }
+    } catch {
+      /* no json body */
+    }
     throw new Error(`Cloudinary upload failed: ${detail}`);
   }
 

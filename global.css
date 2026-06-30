@@ -3,53 +3,53 @@
 @tailwind utilities;
 
 :root {
-    --font-size-5xl: 47.78px;
-    --font-size-4xl: 39.81px;
-    --font-size-3xl: 33.18px;
-    --font-size-2xl: 27.65px;
-    --font-size-xl: 23.04px;
-    --font-size-lg: 19.2px;
-    --font-size-md: 16px;
-    --font-size-sm: 13.33px;
-    --font-size-xs: 11.11px;
+  --font-size-5xl: 44px;
+  --font-size-4xl: 36px;
+  --font-size-3xl: 30px;
+  --font-size-2xl: 25px;
+  --font-size-xl: 22px;
+  --font-size-lg: 18px;
+  --font-size-md: 16px;
+  --font-size-sm: 14px;
+  --font-size-xs: 12px;
 
-    --line-height-5xl: 54px;
-    --line-height-4xl: 46px;
-    --line-height-3xl: 40px;
-    --line-height-2xl: 34px;
-    --line-height-xl: 30px;
-    --line-height-lg: 26px;
-    --line-height-md: 24px;
-    --line-height-sm: 20px;
-    --line-height-xs: 16px;
+  --line-height-5xl: 50px;
+  --line-height-4xl: 42px;
+  --line-height-3xl: 36px;
+  --line-height-2xl: 31px;
+  --line-height-xl: 28px;
+  --line-height-lg: 24px;
+  --line-height-md: 24px;
+  --line-height-sm: 19px;
+  --line-height-xs: 16px;
 
-    --letter-spacing-5xl: -0.96px;
-    --letter-spacing-4xl: -0.72px;
-    --letter-spacing-3xl: -0.48px;
-    --letter-spacing-2xl: -0.24px;
-    --letter-spacing-xl: -0.12px;
-    --letter-spacing-lg: 0px;
-    --letter-spacing-md: 0px;
-    --letter-spacing-sm: 0.08px;
-    --letter-spacing-xs: 0.12px;
+  --letter-spacing-5xl: 0px;
+  --letter-spacing-4xl: 0px;
+  --letter-spacing-3xl: 0px;
+  --letter-spacing-2xl: 0px;
+  --letter-spacing-xl: 0px;
+  --letter-spacing-lg: 0px;
+  --letter-spacing-md: 0px;
+  --letter-spacing-sm: 0px;
+  --letter-spacing-xs: 0px;
 
-    /* Color tokens — keep in sync with src/lib/theme.ts (used for JS color props). */
-    --color-background: #fefdfb; /* cream — the app's base surface */
-    --color-surface: #ffffff; /* white — raised cards/buttons on the cream base */
-    --color-surface-muted: #f0ede7; /* muted panel that reads as inset on cream */
-    --color-border: #e6e2da; /* warm hairline, visible on both cream and white */
-    --color-placeholder: #ece7d9; /* skeleton/image placeholder — a touch warmer than surface-muted */
-    --color-foreground: #171717;
-    --color-muted: #737373;
-    --color-subtle: #d4d4d4;
-    --color-primary: #000000;
-    --color-inverse: #ffffff;
-    --color-rating: #f59e0b;
-    --color-favorite: #e11d48;
-    --color-success: #16a34a;
-    --color-success-soft: #dcfce7;
-    --color-warning: #b45309;
-    --color-warning-soft: #fef3c7;
-    --color-danger: #dc2626;
-    --color-danger-soft: #fee2e2;
+  /* Color tokens — keep in sync with src/lib/theme.ts (used for JS color props). */
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f5f6f2;
+  --color-border: #e4e7df;
+  --color-placeholder: #edf0ea;
+  --color-foreground: #1f241f;
+  --color-muted: #6b7068;
+  --color-subtle: #c8cec3;
+  --color-primary: #004733;
+  --color-inverse: #ffffff;
+  --color-rating: #004733;
+  --color-favorite: #e11d48;
+  --color-success: #00885f;
+  --color-success-soft: #dff5eb;
+  --color-warning: #b45309;
+  --color-warning-soft: #fef3c7;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fee2e2;
 }

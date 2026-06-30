@@ -1,11 +1,18 @@
 import { zodFormResolver } from "@/lib/zod-resolver";
-import { Add01Icon, Cancel01Icon, Image01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon } from "@hugeicons/core-free-icons";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { ActivityIndicator, Pressable, ScrollView, Switch, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Switch,
+  TextInput,
+  View,
+} from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
@@ -42,16 +49,13 @@ type DayState = { isOpen: boolean; from: string; to: string };
 type HoursState = Record<DayKey, DayState>;
 
 function toHoursState(hours: BranchHours | null | undefined): HoursState {
-  return DAY_KEYS.reduce(
-    (acc, day) => {
-      const slots = hours?.[day] as [string, string][] | undefined;
-      acc[day] = slots?.length
-        ? { isOpen: true, from: slots[0][0], to: slots[0][1] }
-        : { isOpen: false, from: "09:00", to: "22:00" };
-      return acc;
-    },
-    {} as HoursState,
-  );
+  return DAY_KEYS.reduce((acc, day) => {
+    const slots = hours?.[day] as [string, string][] | undefined;
+    acc[day] = slots?.length
+      ? { isOpen: true, from: slots[0][0], to: slots[0][1] }
+      : { isOpen: false, from: "09:00", to: "22:00" };
+    return acc;
+  }, {} as HoursState);
 }
 
 function fromHoursState(state: HoursState): BranchHours {
@@ -90,7 +94,7 @@ export default function ManageListingScreen() {
   const resolvedHours: HoursState =
     hoursState ?? (data ? toHoursState(data.hours) : toHoursState(null));
 
-  const { control, handleSubmit, formState } = useForm<FormValues>({
+  const { control, handleSubmit } = useForm<FormValues>({
     resolver: zodFormResolver(schema),
     values: { phone: data?.phone ?? "" },
   });
@@ -158,7 +162,9 @@ export default function ManageListingScreen() {
       <SafeAreaView className="flex-1 bg-background">
         <View className="flex-row items-center justify-between px-4 py-3">
           <CloseButton onPress={() => router.back()} />
-          <ThemedText size="lg" weight="semibold">Manage listing</ThemedText>
+          <ThemedText size="lg" weight="semibold">
+            Manage listing
+          </ThemedText>
           <View className="w-6" />
         </View>
         <View className="flex-1 items-center justify-center">
@@ -172,7 +178,9 @@ export default function ManageListingScreen() {
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-row items-center justify-between px-4 py-3">
         <CloseButton onPress={() => router.back()} />
-        <ThemedText size="lg" weight="semibold">Manage listing</ThemedText>
+        <ThemedText size="lg" weight="semibold">
+          Manage listing
+        </ThemedText>
         <View className="w-6" />
       </View>
 
@@ -208,16 +216,23 @@ export default function ManageListingScreen() {
                     <View className="flex-row items-center justify-between">
                       <ThemedText weight="medium">{DAY_LABELS[day]}</ThemedText>
                       <Switch
-                        onValueChange={(value) => setDay(day, { isOpen: value })}
+                        onValueChange={(value) =>
+                          setDay(day, { isOpen: value })
+                        }
                         thumbColor={colors.inverse}
-                        trackColor={{ false: colors.border, true: colors.foreground }}
+                        trackColor={{
+                          false: colors.border,
+                          true: colors.foreground,
+                        }}
                         value={state.isOpen}
                       />
                     </View>
                     {state.isOpen ? (
                       <View className="mt-3 flex-row items-center gap-3">
                         <View className="flex-1">
-                          <ThemedText className="mb-1" size="xs" tone="muted">Opens</ThemedText>
+                          <ThemedText className="mb-1" size="xs" tone="muted">
+                            Opens
+                          </ThemedText>
                           <TextInput
                             className="h-10 rounded-xl border border-placeholder bg-background px-3 font-outfit text-sm text-foreground"
                             maxLength={5}
@@ -228,7 +243,9 @@ export default function ManageListingScreen() {
                           />
                         </View>
                         <View className="flex-1">
-                          <ThemedText className="mb-1" size="xs" tone="muted">Closes</ThemedText>
+                          <ThemedText className="mb-1" size="xs" tone="muted">
+                            Closes
+                          </ThemedText>
                           <TextInput
                             className="h-10 rounded-xl border border-placeholder bg-background px-3 font-outfit text-sm text-foreground"
                             maxLength={5}
@@ -240,7 +257,9 @@ export default function ManageListingScreen() {
                         </View>
                       </View>
                     ) : (
-                      <ThemedText className="mt-1" size="sm" tone="muted">Closed</ThemedText>
+                      <ThemedText className="mt-1" size="sm" tone="muted">
+                        Closed
+                      </ThemedText>
                     )}
                   </View>
                 );
@@ -276,7 +295,9 @@ export default function ManageListingScreen() {
                 ) : (
                   <View className="items-center gap-1">
                     <AppIcon color={colors.muted} icon={Add01Icon} size={22} />
-                    <ThemedText size="xs" tone="muted">Add photo</ThemedText>
+                    <ThemedText size="xs" tone="muted">
+                      Add photo
+                    </ThemedText>
                   </View>
                 )}
               </Pressable>

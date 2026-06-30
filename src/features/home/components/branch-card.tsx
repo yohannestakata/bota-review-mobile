@@ -3,7 +3,7 @@ import {
   FavouriteIcon,
   StarIcon,
 } from "@hugeicons/core-free-icons";
-import { colors } from "@/lib/theme";
+import { colors, shadows } from "@/lib/theme";
 import { Image } from "expo-image";
 import { Pressable, View } from "react-native";
 
@@ -16,6 +16,7 @@ type BranchCardProps = {
   isSaved: boolean;
   onToggleSave: (branch: BranchCardData) => void;
   onPress?: (branch: BranchCardData) => void;
+  layout?: "portrait" | "wide";
 };
 
 export function BranchCard({
@@ -23,6 +24,7 @@ export function BranchCard({
   isSaved,
   onToggleSave,
   onPress,
+  layout = "wide",
 }: BranchCardProps) {
   const subtitle = [branch.label, branch.neighborhood?.name]
     .filter(Boolean)
@@ -37,9 +39,14 @@ export function BranchCard({
         : `${branch.distanceKm.toFixed(1)} km`
       : null;
 
+  const imageClass =
+    layout === "portrait"
+      ? "aspect-[4/5] rounded-[28px]"
+      : "aspect-[4/3] rounded-[24px]";
+
   return (
     <Pressable className="w-full" onPress={() => onPress?.(branch)}>
-      <View className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-placeholder">
+      <View className={`w-full overflow-hidden bg-placeholder ${imageClass}`}>
         {branch.coverPhotoUrl ? (
           <Image
             contentFit="cover"
@@ -51,8 +58,8 @@ export function BranchCard({
 
         {branch.isOpenNow !== undefined ? (
           <View
-            className={`absolute left-2 top-2 rounded-full border bg-surface px-2 py-0.5 ${
-              branch.isOpenNow ? "border-success" : "border-danger"
+            className={`absolute left-3 top-3 rounded-full bg-surface px-3 py-1 ${
+              branch.isOpenNow ? "" : "border border-danger"
             }`}
           >
             <ThemedText
@@ -66,26 +73,27 @@ export function BranchCard({
         ) : null}
 
         <Pressable
-          className="absolute right-2 top-2 size-9 items-center justify-center rounded-full bg-white/90"
+          className="absolute right-3 top-3 size-12 items-center justify-center rounded-full bg-surface"
           hitSlop={8}
           onPress={() => onToggleSave(branch)}
+          style={shadows.cardControl}
         >
           <AppIcon
             color={isSaved ? colors.favorite : colors.foreground}
             icon={FavouriteIcon}
-            size={18}
+            size={24}
             strokeWidth={isSaved ? 2.5 : 2}
           />
         </Pressable>
       </View>
 
-      <View className="mt-2">
+      <View className="mt-3">
         <View className="flex-row items-center gap-1">
           <ThemedText
             className="shrink"
             numberOfLines={1}
             size="lg"
-            weight="medium"
+            weight="semibold"
           >
             {branch.placeName}
           </ThemedText>
@@ -107,7 +115,7 @@ export function BranchCard({
         <View className="mt-0.5 flex-row items-center gap-1">
           {hasRating ? (
             <>
-              <AppIcon color={colors.foreground} icon={StarIcon} size={14} />
+              <AppIcon color={colors.rating} icon={StarIcon} size={14} />
               <ThemedText size="sm" weight="medium">
                 {Number(branch.rating).toFixed(1)}
               </ThemedText>

@@ -15,15 +15,11 @@ const STATUS_LABEL: Record<OwnClaim["status"], string> = {
   rejected: "Not approved",
 };
 
-const STATUS_TONE: Record<
-  OwnClaim["status"],
-  "muted" | "brand" | "danger"
-> = {
+const STATUS_TONE: Record<OwnClaim["status"], "muted" | "brand" | "danger"> = {
   pending: "muted",
   verified: "brand",
   rejected: "danger",
 };
-
 
 function ClaimCard({ claim }: { claim: OwnClaim }) {
   return (

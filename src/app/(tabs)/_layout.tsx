@@ -21,8 +21,8 @@ import { debugLog } from "@/lib/debug";
 type SyncState = "pending" | "ready" | "error";
 
 // Fixed, uniform icon size for every tab.
-const TAB_ICON_SIZE = 24;
-const TAB_ACTIVE_COLOR = colors.foreground;
+const TAB_ICON_SIZE = 25;
+const TAB_ACTIVE_COLOR = colors.primary;
 const TAB_INACTIVE_COLOR = colors.muted;
 
 function TabsLoadingScreen() {
@@ -135,6 +135,14 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colors.background,
           borderTopColor: colors.border,
+          height: 86,
+          paddingTop: 8,
+          paddingBottom: 22,
+        },
+        tabBarLabelStyle: {
+          fontFamily: "Outfit-Medium",
+          fontSize: 12,
+          lineHeight: 16,
         },
       }}
     >

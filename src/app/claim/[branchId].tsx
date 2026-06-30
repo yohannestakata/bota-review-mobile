@@ -1,8 +1,5 @@
 import { zodFormResolver } from "@/lib/zod-resolver";
-import {
-  CheckmarkBadge01Icon,
-  Clock01Icon,
-} from "@hugeicons/core-free-icons";
+import { CheckmarkBadge01Icon, Clock01Icon } from "@hugeicons/core-free-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Pressable, ScrollView, View } from "react-native";
@@ -13,7 +10,10 @@ import { z } from "zod";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CloseButton } from "@/components/ui/close-button";
-import { ControlledTextArea, ControlledTextInput } from "@/components/ui/form-field";
+import {
+  ControlledTextArea,
+  ControlledTextInput,
+} from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
@@ -44,17 +44,20 @@ const VERIFICATION_METHODS: {
   {
     value: "business_email",
     label: "Business email",
-    description: "We'll send a verification link to your business email address.",
+    description:
+      "We'll send a verification link to your business email address.",
   },
   {
     value: "social_media",
     label: "Social media",
-    description: "Send us a message from the business's official social account.",
+    description:
+      "Send us a message from the business's official social account.",
   },
   {
     value: "phone_call",
     label: "Verification call",
-    description: "We'll call the publicly listed phone number for this business.",
+    description:
+      "We'll call the publicly listed phone number for this business.",
   },
   {
     value: "manual_review",
@@ -229,8 +232,7 @@ export default function ClaimBusinessScreen() {
     name: "verificationPlatform",
   });
   const isSocial = verificationMethod === "social_media";
-  const needsEvidence =
-    verificationMethod === "business_email" || isSocial;
+  const needsEvidence = verificationMethod === "business_email" || isSocial;
 
   const platformLabel = SOCIAL_PLATFORMS.find(
     (p) => p.value === verificationPlatform,
