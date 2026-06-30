@@ -26,8 +26,16 @@ export function BranchCard({
   onPress,
   layout = "wide",
 }: BranchCardProps) {
-  const subtitle = [branch.label, branch.neighborhood?.name]
-    .filter(Boolean)
+  const subtitleParts = [branch.label, branch.neighborhood?.name].filter(
+    (value): value is string => Boolean(value),
+  );
+  const subtitle = subtitleParts
+    .filter(
+      (value, index, values) =>
+        values.findIndex(
+          (candidate) => candidate.toLowerCase() === value.toLowerCase(),
+        ) === index,
+    )
     .join(" · ");
 
   const price = priceLabel(branch.priceLevel);
