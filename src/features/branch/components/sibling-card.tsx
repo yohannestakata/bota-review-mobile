@@ -1,4 +1,4 @@
-import { CheckmarkBadge01Icon, StarIcon } from "@hugeicons/core-free-icons";
+import { StarIcon } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
 import { Pressable, View } from "react-native";
 
@@ -55,24 +55,14 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
       </View>
 
       <View className="mt-2">
-        <View className="flex-row items-center gap-1">
-          <ThemedText
-            className="shrink"
-            numberOfLines={1}
-            size="lg"
-            weight="medium"
-          >
-            {title}
-          </ThemedText>
-          {branch.verificationStatus &&
-          branch.verificationStatus !== "unverified" ? (
-            <AppIcon
-              color={colors.success}
-              icon={CheckmarkBadge01Icon}
-              size={15}
-            />
-          ) : null}
-        </View>
+        <ThemedText
+          className="shrink"
+          numberOfLines={1}
+          size="lg"
+          weight="medium"
+        >
+          {title}
+        </ThemedText>
 
         <View className="mt-0.5 flex-row items-center gap-1">
           {hasRating ? (

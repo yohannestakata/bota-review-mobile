@@ -1,6 +1,5 @@
 import {
   ArrowRight01Icon,
-  CheckmarkBadge01Icon,
   Location01Icon,
   PencilEdit02Icon,
 } from "@hugeicons/core-free-icons";
@@ -223,18 +222,9 @@ export default function BranchDetailScreen() {
                 {eyebrow}
               </ThemedText>
             ) : null}
-            <View className="flex-row items-center gap-2">
-              <ThemedText className="shrink" size="3xl" weight="medium">
-                {data.place.name}
-              </ThemedText>
-              {data.verificationStatus !== "unverified" ? (
-                <AppIcon
-                  color={colors.success}
-                  icon={CheckmarkBadge01Icon}
-                  size={20}
-                />
-              ) : null}
-            </View>
+            <ThemedText className="shrink" size="3xl" weight="medium">
+              {data.place.name}
+            </ThemedText>
 
             <View className="flex-row items-center gap-2">
               <Stars size={16} value={ratingValue} />
@@ -266,6 +256,11 @@ export default function BranchDetailScreen() {
                 <AppIcon color={colors.muted} icon={Location01Icon} size={15} />
                 <ThemedText tone="muted">{data.addressText}</ThemedText>
               </View>
+            ) : null}
+            {data.verificationStatus === "business_verified" ? (
+              <ThemedText size="sm" tone="brand" weight="medium">
+                Owner verified
+              </ThemedText>
             ) : null}
           </View>
 
@@ -577,7 +572,7 @@ export default function BranchDetailScreen() {
                 <View className="mt-0.5">
                   <AppIcon
                     color={colors.foreground}
-                    icon={CheckmarkBadge01Icon}
+                    icon={PencilEdit02Icon}
                     size={22}
                   />
                 </View>
@@ -586,7 +581,7 @@ export default function BranchDetailScreen() {
                     Is this your business?
                   </ThemedText>
                   <ThemedText size="sm" tone="muted">
-                    Claim it to verify ownership and get a verified badge.
+                    Claim it to verify ownership and manage listing details.
                   </ThemedText>
                 </View>
                 <View className="mt-0.5">
