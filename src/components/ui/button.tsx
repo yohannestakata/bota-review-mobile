@@ -80,7 +80,8 @@ export function Button({
           {leftSlot ?? null}
           {icon ? <AppIcon color={v.color} icon={icon} size={18} /> : null}
           <ThemedText
-            className={textClassName}
+            className={`shrink text-center ${textClassName ?? ""}`}
+            numberOfLines={2}
             tone={tone ?? v.tone}
             weight="semibold"
           >

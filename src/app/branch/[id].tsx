@@ -615,7 +615,6 @@ export default function BranchDetailScreen() {
         style={{ paddingBottom: insets.bottom + 12 }}
       >
         <Button
-          icon={PencilEdit02Icon}
           label="Write a review"
           onPress={() => requireSignIn(() => router.push(`/review/${data.id}`))}
           size="sm"
