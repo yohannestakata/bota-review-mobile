@@ -12,7 +12,7 @@ type HomeSearchBarProps = {
 export function HomeSearchBar({ onPress }: HomeSearchBarProps) {
   return (
     <Pressable
-      className="h-[58px] flex-row items-center gap-2.5 rounded-full border border-border bg-surface px-5"
+      className="h-14 flex-row items-center gap-2.5 rounded-full border border-border bg-surface px-5"
       onPress={onPress}
       style={shadows.searchBar}
     >
