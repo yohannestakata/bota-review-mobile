@@ -250,7 +250,7 @@ export default function SearchScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View className="gap-3 px-6 pb-2 pt-2">
-        <View className="h-[60px] flex-row items-center gap-2 rounded-full border border-placeholder bg-surface px-5">
+        <View className="h-14 flex-row items-center gap-2 rounded-full border border-placeholder bg-surface px-5">
           <AppIcon color={colors.muted} icon={Search01Icon} size={22} />
           <TextInput
             className="flex-1 font-outfit text-md text-foreground"
