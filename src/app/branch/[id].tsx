@@ -30,6 +30,7 @@ import {
   lowestPrice,
   OpeningHours,
   QuickActions,
+  type RatingBreakdownItem,
   ReplyComposerModal,
   ReviewRow,
   SiblingCard,
@@ -70,6 +71,45 @@ function SectionTitle({ title }: { title: string }) {
 
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function RatingBreakdown({
+  items,
+  total,
+}: {
+  items: RatingBreakdownItem[];
+  total: number;
+}) {
+  return (
+    <View className="flex-1 gap-1.5">
+      {items.map((item) => (
+        <View className="flex-row items-center gap-2" key={item.rating}>
+          <ThemedText size="xs" tone="muted">
+            {item.rating}
+          </ThemedText>
+          <View className="h-1.5 flex-1 overflow-hidden rounded-full bg-border">
+            <View
+              className="h-full rounded-full bg-rating"
+              style={{
+                width:
+                  total > 0 && item.count > 0
+                    ? `${Math.max(3, Math.min(100, item.percentage))}%`
+                    : "0%",
+              }}
+            />
+          </View>
+          <ThemedText
+            className="w-7 text-right"
+            size="xs"
+            tone="muted"
+            weight="medium"
+          >
+            {item.count}
+          </ThemedText>
+        </View>
+      ))}
+    </View>
+  );
 }
 
 export default function BranchDetailScreen() {
@@ -451,15 +491,22 @@ export default function BranchDetailScreen() {
             </ThemedText>
 
             {hasRating ? (
-              <View className="flex-row items-center gap-4 rounded-2xl bg-surface-muted p-4">
-                <ThemedText size="4xl" weight="bold">
-                  {ratingValue.toFixed(1)}
-                </ThemedText>
-                <View className="gap-1">
-                  <Stars size={16} value={ratingValue} />
-                  <ThemedText size="sm" tone="muted">
-                    Based on {data.reviewCount} reviews
-                  </ThemedText>
+              <View className="rounded-2xl bg-surface-muted p-4">
+                <View className="flex-row items-center gap-5">
+                  <View className="items-start gap-1">
+                    <ThemedText size="4xl" weight="bold">
+                      {ratingValue.toFixed(1)}
+                    </ThemedText>
+                    <Stars size={16} value={ratingValue} />
+                    <ThemedText size="sm" tone="muted">
+                      {data.reviewCount}{" "}
+                      {data.reviewCount === 1 ? "review" : "reviews"}
+                    </ThemedText>
+                  </View>
+                  <RatingBreakdown
+                    items={data.ratingBreakdown ?? []}
+                    total={data.reviewCount}
+                  />
                 </View>
               </View>
             ) : null}

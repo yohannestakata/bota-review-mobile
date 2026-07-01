@@ -52,6 +52,12 @@ export type BranchReview = {
 
 export type BranchHours = Record<string, [string, string][]>;
 
+export type RatingBreakdownItem = {
+  rating: number;
+  count: number;
+  percentage: number;
+};
+
 export type BranchDetail = {
   id: string;
   placeId: string;
@@ -66,6 +72,7 @@ export type BranchDetail = {
   verificationStatus: "unverified" | "editor_verified" | "business_verified";
   rating: string;
   reviewCount: number;
+  ratingBreakdown: RatingBreakdownItem[];
   place: {
     id: string;
     slug: string;
