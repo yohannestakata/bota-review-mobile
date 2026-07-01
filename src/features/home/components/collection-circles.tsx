@@ -27,7 +27,7 @@ export function CollectionCircles({ items, onPress }: CollectionCirclesProps) {
           key={item.slug}
           onPress={() => onPress(item.slug)}
         >
-          <View className="size-[88px] overflow-hidden rounded-[28px] bg-placeholder">
+          <View className="size-[88px] overflow-hidden rounded-full bg-placeholder">
             {item.coverImageUrl ? (
               <Image
                 contentFit="cover"
