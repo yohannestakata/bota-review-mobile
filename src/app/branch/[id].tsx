@@ -87,7 +87,7 @@ function RatingBreakdown({
           <ThemedText size="xs" tone="muted">
             {item.rating}
           </ThemedText>
-          <View className="h-1.5 flex-1 overflow-hidden rounded-full bg-border">
+          <View className="h-2.5 flex-1 overflow-hidden rounded-full bg-border">
             <View
               className="h-full rounded-full bg-rating"
               style={{
@@ -98,14 +98,6 @@ function RatingBreakdown({
               }}
             />
           </View>
-          <ThemedText
-            className="w-7 text-right"
-            size="xs"
-            tone="muted"
-            weight="medium"
-          >
-            {item.count}
-          </ThemedText>
         </View>
       ))}
     </View>
