@@ -23,11 +23,11 @@ export function CollectionCircles({ items, onPress }: CollectionCirclesProps) {
     >
       {items.map((item) => (
         <Pressable
-          className="w-[88px] items-center gap-2"
+          className="w-20 items-center gap-2"
           key={item.slug}
           onPress={() => onPress(item.slug)}
         >
-          <View className="size-[88px] overflow-hidden rounded-full bg-placeholder">
+          <View className="size-20 overflow-hidden rounded-full bg-placeholder">
             {item.coverImageUrl ? (
               <Image
                 contentFit="cover"
