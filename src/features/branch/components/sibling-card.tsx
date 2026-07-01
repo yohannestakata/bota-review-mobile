@@ -4,6 +4,7 @@ import { Pressable, View } from "react-native";
 import { FilledStar } from "@/components/ui/filled-star";
 import { ThemedText } from "@/components/ui/themed-text";
 import { priceLabel, type BranchCard as BranchCardData } from "@/lib/api";
+import { colors } from "@/lib/theme";
 
 type SiblingCardProps = {
   branch: BranchCardData;
@@ -40,10 +41,16 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
             className={`absolute left-2 top-2 rounded-full border bg-surface px-2 py-0.5 ${
               branch.isOpenNow ? "border-success" : "border-danger"
             }`}
+            style={{
+              borderColor: branch.isOpenNow ? colors.success : colors.danger,
+            }}
           >
             <ThemedText
               className={branch.isOpenNow ? "text-success" : "text-danger"}
               size="xs"
+              style={{
+                color: branch.isOpenNow ? colors.success : colors.danger,
+              }}
               weight="medium"
             >
               {branch.isOpenNow ? "Open" : "Closed"}

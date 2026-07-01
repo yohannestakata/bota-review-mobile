@@ -18,6 +18,7 @@ export const colors = {
   rating: "#004733",
   favorite: "#e11d48",
   success: "#00885f",
+  danger: "#dc2626",
 } as const;
 
 export type ColorToken = keyof typeof colors;

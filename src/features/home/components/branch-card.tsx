@@ -67,10 +67,16 @@ export function BranchCard({
             className={`absolute left-3 top-3 rounded-full bg-surface px-3 py-1 ${
               branch.isOpenNow ? "" : "border border-danger"
             }`}
+            style={
+              branch.isOpenNow ? undefined : { borderColor: colors.danger }
+            }
           >
             <ThemedText
               className={branch.isOpenNow ? "text-success" : "text-danger"}
               size="xs"
+              style={{
+                color: branch.isOpenNow ? colors.success : colors.danger,
+              }}
               weight="medium"
             >
               {branch.isOpenNow ? "Open" : "Closed"}
