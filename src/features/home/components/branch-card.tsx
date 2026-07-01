@@ -63,14 +63,7 @@ export function BranchCard({
         ) : null}
 
         {branch.isOpenNow !== undefined ? (
-          <View
-            className={`absolute left-3 top-3 rounded-full bg-surface px-3 py-1 ${
-              branch.isOpenNow ? "" : "border border-danger"
-            }`}
-            style={
-              branch.isOpenNow ? undefined : { borderColor: colors.danger }
-            }
-          >
+          <View className="absolute left-3 top-3 rounded-full bg-surface px-3 py-1">
             <ThemedText
               className={branch.isOpenNow ? "text-success" : "text-danger"}
               size="xs"

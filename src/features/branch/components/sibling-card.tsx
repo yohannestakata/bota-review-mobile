@@ -37,14 +37,7 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
         ) : null}
 
         {branch.isOpenNow !== undefined ? (
-          <View
-            className={`absolute left-2 top-2 rounded-full border bg-surface px-2 py-0.5 ${
-              branch.isOpenNow ? "border-success" : "border-danger"
-            }`}
-            style={{
-              borderColor: branch.isOpenNow ? colors.success : colors.danger,
-            }}
-          >
+          <View className="absolute left-2 top-2 rounded-full bg-surface px-2 py-0.5">
             <ThemedText
               className={branch.isOpenNow ? "text-success" : "text-danger"}
               size="xs"
