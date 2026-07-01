@@ -23,13 +23,11 @@ export function HomeSection({
   onPressBranch,
 }: HomeSectionProps) {
   const { width } = useWindowDimensions();
-  const cardWidth = Math.floor(
-    (width - RAIL_SIDE_PADDING * 2 - RAIL_GAP) / 2,
-  );
+  const cardWidth = Math.floor((width - RAIL_SIDE_PADDING * 2 - RAIL_GAP) / 2);
 
   return (
     <View className="mt-10">
-      <ThemedText className="px-6" size="2xl" weight="bold">
+      <ThemedText className="px-6" size="xl" weight="bold">
         {section.title}
       </ThemedText>
       <ScrollView

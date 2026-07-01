@@ -17,8 +17,14 @@ export function HomeSearchBar({ onPress }: HomeSearchBarProps) {
       style={shadows.searchBar}
     >
       <AppIcon color={colors.primary} icon={Search01Icon} size={26} />
-      <ThemedText size="lg" tone="default" weight="medium">
-        Search restaurants, cafés, cuisines
+      <ThemedText
+        className="min-w-0 flex-1"
+        numberOfLines={1}
+        size="lg"
+        tone="default"
+        weight="medium"
+      >
+        Search places
       </ThemedText>
     </Pressable>
   );

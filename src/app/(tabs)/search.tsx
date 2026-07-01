@@ -255,7 +255,7 @@ export default function SearchScreen() {
           <TextInput
             className="flex-1 font-outfit text-md text-foreground"
             onChangeText={setText}
-            placeholder="Pizza? Coffee? Injera?"
+            placeholder="Search places"
             placeholderTextColor={colors.muted}
             returnKeyType="search"
             value={text}
