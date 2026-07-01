@@ -483,9 +483,9 @@ export default function BranchDetailScreen() {
             </ThemedText>
 
             {hasRating ? (
-              <View className="rounded-2xl bg-surface-muted p-5">
-                <View className="flex-row items-center gap-6">
-                  <View className="w-24 items-start gap-1.5">
+              <View className="rounded-2xl bg-surface-muted p-4">
+                <View className="flex-row items-center gap-5">
+                  <View className="items-start gap-1">
                     <ThemedText size="4xl" weight="bold">
                       {ratingValue.toFixed(1)}
                     </ThemedText>
