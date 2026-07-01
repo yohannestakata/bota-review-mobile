@@ -51,7 +51,7 @@ function DialogButton({
   return (
     <Pressable
       className={cn(
-        "h-14 flex-row items-center justify-center rounded-full px-6",
+        "h-14 flex-row items-center justify-center rounded-full",
         full ? "w-full" : "flex-1",
         style === "destructive" && "bg-danger",
         style === "cancel" && "border border-placeholder bg-background",
@@ -114,18 +114,18 @@ export function AlertProvider({ children }: { children: ReactNode }) {
         transparent
         visible={options != null}
       >
-        <View className="flex-1 items-center justify-center px-10">
+        <View className="flex-1 items-center justify-center px-6">
           <Pressable
             className="absolute inset-0 bg-black/40"
             onPress={onBackdrop}
           />
           {options ? (
-            <View className="w-full max-w-sm rounded-3xl bg-surface p-6">
+            <View className="w-full rounded-3xl bg-surface p-6">
               <ThemedText size="lg" weight="semibold">
                 {options.title}
               </ThemedText>
               {options.message ? (
-                <ThemedText className="mt-2" tone="muted">
+                <ThemedText className="mt-1" tone="muted">
                   {options.message}
                 </ThemedText>
               ) : null}

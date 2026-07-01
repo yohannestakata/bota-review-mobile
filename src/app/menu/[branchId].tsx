@@ -60,9 +60,7 @@ export default function MenuScreen() {
           contentContainerClassName="px-6 pb-12 pt-2"
           showsVerticalScrollIndicator={false}
         >
-          <View className="rounded-3xl bg-surface p-5">
-            <MenuList menus={data} />
-          </View>
+          <MenuList menus={data} />
         </ScrollView>
       )}
     </SafeAreaView>

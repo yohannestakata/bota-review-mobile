@@ -95,7 +95,7 @@ export function BranchCard({
       <View className="mt-3" style={{ paddingLeft: textInset }}>
         <ThemedText
           className="shrink"
-          numberOfLines={2}
+          numberOfLines={1}
           size="lg"
           weight="semibold"
         >
