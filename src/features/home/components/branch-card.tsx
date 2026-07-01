@@ -102,7 +102,7 @@ export function BranchCard({
           {branch.placeName}
         </ThemedText>
         {subtitle ? (
-          <ThemedText numberOfLines={2} tone="muted">
+          <ThemedText numberOfLines={2} size="sm" tone="muted">
             {subtitle}
           </ThemedText>
         ) : null}
