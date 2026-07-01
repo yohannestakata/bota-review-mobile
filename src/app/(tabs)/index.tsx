@@ -160,7 +160,7 @@ export default function Index() {
           </ThemedText>
         </View>
 
-        <View className="mt-7 px-6">
+        <View className="mt-6 px-6">
           <HomeSearchBar onPress={() => router.push("/search")} />
         </View>
 
@@ -191,7 +191,7 @@ export default function Index() {
         ) : null}
 
         {home.isSuccess && collections.length > 0 ? (
-          <View className="mt-8">
+          <View className="mt-6">
             <CollectionCircles
               items={collections}
               onPress={(slug) => router.push(`/collection/${slug}`)}
@@ -212,8 +212,8 @@ export default function Index() {
         ))}
 
         {home.isSuccess && highlyRated && highlyRated.items.length > 0 ? (
-          <View className="mt-10 gap-5 px-6">
-            <ThemedText size="2xl" weight="bold">
+          <View className="mt-12 gap-4 px-6">
+            <ThemedText size="xl" weight="bold">
               Highly rated
             </ThemedText>
             {highlyRated.items.map((branch) => (

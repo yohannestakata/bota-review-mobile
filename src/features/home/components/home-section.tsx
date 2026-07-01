@@ -26,12 +26,12 @@ export function HomeSection({
   const cardWidth = Math.floor((width - RAIL_SIDE_PADDING * 2 - RAIL_GAP) / 2);
 
   return (
-    <View className="mt-10">
+    <View className="mt-12">
       <ThemedText className="px-6" size="xl" weight="bold">
         {section.title}
       </ThemedText>
       <ScrollView
-        contentContainerClassName="gap-4 px-6 pt-4"
+        contentContainerClassName="gap-4 px-6 pt-3"
         horizontal
         showsHorizontalScrollIndicator={false}
       >
