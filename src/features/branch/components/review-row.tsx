@@ -102,7 +102,7 @@ function ReplyItem({
   // Comment-thread style: avatar + name/date header, then full-width body.
   return (
     <View className="gap-2">
-      <View className="flex-row items-center gap-2.5">
+      <View className="flex-row items-start gap-2.5">
         <Avatar
           name={isOwner ? businessName : reply.user.displayName}
           size={28}
@@ -121,15 +121,21 @@ function ReplyItem({
             {formatRelativeDate(reply.createdAt)}
           </ThemedText>
         </View>
+        {showReport ? (
+          <Pressable
+            accessibilityLabel="Report reply"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={onReport}
+          >
+            <AppIcon color={colors.muted} icon={MoreHorizontalIcon} size={18} />
+          </Pressable>
+        ) : null}
       </View>
 
       <ThemedText size="sm" tone="muted">
         {reply.body}
       </ThemedText>
-
-      {showReport ? (
-        <ActionLink label="Report" onPress={onReport!} tone="muted" />
-      ) : null}
     </View>
   );
 }
