@@ -1,11 +1,9 @@
-import { StarIcon } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
 import { Pressable, View } from "react-native";
 
-import { AppIcon } from "@/components/ui/huge-icon";
+import { FilledStar } from "@/components/ui/filled-star";
 import { ThemedText } from "@/components/ui/themed-text";
 import { priceLabel, type BranchCard as BranchCardData } from "@/lib/api";
-import { colors } from "@/lib/theme";
 
 type SiblingCardProps = {
   branch: BranchCardData;
@@ -67,7 +65,7 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
         <View className="mt-0.5 flex-row items-center gap-1">
           {hasRating ? (
             <>
-              <AppIcon color={colors.foreground} icon={StarIcon} size={14} />
+              <FilledStar size={14} />
               <ThemedText size="sm" weight="medium">
                 {Number(branch.rating).toFixed(1)}
               </ThemedText>

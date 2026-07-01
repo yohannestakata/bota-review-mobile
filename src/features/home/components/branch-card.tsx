@@ -1,8 +1,9 @@
-import { FavouriteIcon, StarIcon } from "@hugeicons/core-free-icons";
+import { FavouriteIcon } from "@hugeicons/core-free-icons";
 import { colors, shadows } from "@/lib/theme";
 import { Image } from "expo-image";
 import { Pressable, View } from "react-native";
 
+import { FilledStar } from "@/components/ui/filled-star";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { priceLabel, type BranchCard as BranchCardData } from "@/lib/api";
@@ -110,7 +111,7 @@ export function BranchCard({
         <View className="mt-0.5 flex-row items-center gap-1">
           {hasRating ? (
             <>
-              <AppIcon color={colors.rating} icon={StarIcon} size={14} />
+              <FilledStar size={14} />
               <ThemedText size="sm" weight="medium">
                 {Number(branch.rating).toFixed(1)}
               </ThemedText>

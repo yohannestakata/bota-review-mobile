@@ -1,7 +1,6 @@
-import { StarIcon } from "@hugeicons/core-free-icons";
 import { View } from "react-native";
 
-import { AppIcon } from "@/components/ui/huge-icon";
+import { FilledStar } from "@/components/ui/filled-star";
 import { colors } from "@/lib/theme";
 
 type StarsProps = {
@@ -16,12 +15,10 @@ export function Stars({ value, size = 14 }: StarsProps) {
   return (
     <View className="flex-row items-center" style={{ gap: 2 }}>
       {[0, 1, 2, 3, 4].map((i) => (
-        <AppIcon
+        <FilledStar
           color={i < filled ? colors.rating : colors.subtle}
-          icon={StarIcon}
           key={i}
           size={size}
-          strokeWidth={2}
         />
       ))}
     </View>

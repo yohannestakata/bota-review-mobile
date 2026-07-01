@@ -1,8 +1,7 @@
-import { StarIcon } from "@hugeicons/core-free-icons";
 import { colors } from "@/lib/theme";
 import { Pressable, View } from "react-native";
 
-import { AppIcon } from "@/components/ui/huge-icon";
+import { FilledStar } from "@/components/ui/filled-star";
 
 type RatingInputProps = {
   value: number;
@@ -15,11 +14,9 @@ export function RatingInput({ value, onChange, size = 40 }: RatingInputProps) {
     <View className="flex-row" style={{ gap: 8 }}>
       {[1, 2, 3, 4, 5].map((star) => (
         <Pressable hitSlop={6} key={star} onPress={() => onChange(star)}>
-          <AppIcon
+          <FilledStar
             color={star <= value ? colors.rating : colors.subtle}
-            icon={StarIcon}
             size={size}
-            strokeWidth={2}
           />
         </Pressable>
       ))}
