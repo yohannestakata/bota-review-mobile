@@ -24,7 +24,7 @@ export function HomeSearchBar({ onPress }: HomeSearchBarProps) {
         tone="default"
         weight="medium"
       >
-        Search places
+        What are you craving?
       </ThemedText>
     </Pressable>
   );
