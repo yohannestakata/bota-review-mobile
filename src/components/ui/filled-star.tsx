@@ -1,5 +1,6 @@
-import { Text } from "react-native";
+import { StarIcon } from "@hugeicons/core-free-icons";
 
+import { AppIcon } from "@/components/ui/huge-icon";
 import { colors } from "@/lib/theme";
 
 type FilledStarProps = {
@@ -11,17 +12,5 @@ export function FilledStar({
   color = colors.rating,
   size = 14,
 }: FilledStarProps) {
-  return (
-    <Text
-      allowFontScaling={false}
-      style={{
-        color,
-        fontFamily: "Outfit-Bold",
-        fontSize: size,
-        lineHeight: size,
-      }}
-    >
-      ★
-    </Text>
-  );
+  return <AppIcon color={color} fill={color} icon={StarIcon} size={size} />;
 }
