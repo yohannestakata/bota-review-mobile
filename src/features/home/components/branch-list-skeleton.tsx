@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function BranchCardSkeleton() {
   return (
     <View>
-      <Skeleton className="aspect-[4/3] w-full rounded-[24px]" />
+      <Skeleton className="aspect-[4/3] w-full rounded-[20px]" />
       <View className="mt-3 gap-1.5">
         <Skeleton className="h-5 w-2/3 rounded-full" />
         <Skeleton className="h-4 w-1/2 rounded-full" />
