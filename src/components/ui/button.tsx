@@ -1,11 +1,16 @@
 import type { ComponentProps, ReactNode } from "react";
-import { ActivityIndicator, Pressable } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { colors } from "@/lib/theme";
 
-type Variant = "primary" | "secondary" | "ghost";
+type Variant = "primary" | "secondary" | "outline" | "ghost";
 type Size = "md" | "sm";
 type IconType = ComponentProps<typeof AppIcon>["icon"];
 
@@ -19,6 +24,8 @@ type ButtonProps = {
   icon?: IconType;
   leftSlot?: ReactNode;
   className?: string;
+  textClassName?: string;
+  tone?: "inverse" | "default" | "brand" | "muted";
 };
 
 const VARIANTS: Record<
@@ -30,6 +37,11 @@ const VARIANTS: Record<
     container: "border border-primary bg-surface",
     tone: "brand",
     color: colors.primary,
+  },
+  outline: {
+    container: "border border-placeholder bg-surface",
+    tone: "default",
+    color: colors.foreground,
   },
   ghost: { container: "", tone: "brand", color: colors.primary },
 };
@@ -49,6 +61,8 @@ export function Button({
   icon,
   leftSlot,
   className = "",
+  textClassName,
+  tone,
 }: ButtonProps) {
   const v = VARIANTS[variant];
   const isDisabled = disabled || loading;
@@ -65,11 +79,113 @@ export function Button({
         <>
           {leftSlot ?? null}
           {icon ? <AppIcon color={v.color} icon={icon} size={18} /> : null}
-          <ThemedText tone={v.tone} weight="semibold">
+          <ThemedText
+            className={textClassName}
+            tone={tone ?? v.tone}
+            weight="semibold"
+          >
             {label}
           </ThemedText>
         </>
       )}
+    </Pressable>
+  );
+}
+
+export function IconButton({
+  icon,
+  onPress,
+  accessibilityLabel,
+  overlay = false,
+  size = 40,
+  iconSize = 20,
+  className = "",
+  style,
+  children,
+}: {
+  icon?: IconType;
+  onPress: () => void;
+  accessibilityLabel: string;
+  overlay?: boolean;
+  size?: number;
+  iconSize?: number;
+  className?: string;
+  style?: StyleProp<ViewStyle>;
+  children?: ReactNode;
+}) {
+  return (
+    <Pressable
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
+      className={`items-center justify-center rounded-full ${
+        overlay ? "bg-white/20" : "bg-surface"
+      } ${className}`}
+      hitSlop={8}
+      onPress={onPress}
+      style={[{ height: size, width: size }, style]}
+    >
+      {children ??
+        (icon ? (
+          <AppIcon
+            color={overlay ? colors.inverse : colors.foreground}
+            icon={icon}
+            size={iconSize}
+          />
+        ) : null)}
+    </Pressable>
+  );
+}
+
+export function ChipButton({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      className={`rounded-full px-4 py-2 ${
+        selected ? "bg-primary" : "border border-placeholder bg-surface"
+      }`}
+      onPress={onPress}
+    >
+      <ThemedText
+        size="sm"
+        tone={selected ? "inverse" : "default"}
+        weight="medium"
+      >
+        {label}
+      </ThemedText>
+    </Pressable>
+  );
+}
+
+export function ActionTile({
+  icon,
+  label,
+  onPress,
+  disabled = false,
+}: {
+  icon: IconType;
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Pressable
+      className={`flex-1 items-center gap-1.5 rounded-2xl bg-surface-muted py-3 ${
+        disabled ? "opacity-40" : ""
+      }`}
+      disabled={disabled}
+      onPress={onPress}
+    >
+      <AppIcon color={colors.foreground} icon={icon} size={22} />
+      <ThemedText size="sm" weight="medium">
+        {label}
+      </ThemedText>
     </Pressable>
   );
 }

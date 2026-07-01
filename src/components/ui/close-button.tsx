@@ -1,8 +1,7 @@
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
-import { Pressable } from "react-native";
 
-import { AppIcon } from "@/components/ui/huge-icon";
-import { colors, shadows } from "@/lib/theme";
+import { IconButton } from "@/components/ui/button";
+import { shadows } from "@/lib/theme";
 
 export function CloseButton({
   onPress,
@@ -12,21 +11,12 @@ export function CloseButton({
   overlay?: boolean;
 }) {
   return (
-    <Pressable
+    <IconButton
       accessibilityLabel="Close"
-      accessibilityRole="button"
-      className={`size-10 items-center justify-center rounded-full ${
-        overlay ? "bg-white/20" : "bg-surface"
-      }`}
-      hitSlop={8}
+      icon={Cancel01Icon}
       onPress={onPress}
+      overlay={overlay}
       style={shadows.navigation}
-    >
-      <AppIcon
-        color={overlay ? colors.inverse : colors.foreground}
-        icon={Cancel01Icon}
-        size={20}
-      />
-    </Pressable>
+    />
   );
 }

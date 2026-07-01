@@ -1,20 +1,15 @@
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
-import { Pressable } from "react-native";
 
-import { AppIcon } from "@/components/ui/huge-icon";
-import { colors, shadows } from "@/lib/theme";
+import { IconButton } from "@/components/ui/button";
+import { shadows } from "@/lib/theme";
 
 export function BackButton({ onPress }: { onPress: () => void }) {
   return (
-    <Pressable
+    <IconButton
       accessibilityLabel="Go back"
-      accessibilityRole="button"
-      className="size-10 items-center justify-center rounded-full bg-surface"
-      hitSlop={8}
+      icon={ArrowLeft01Icon}
       onPress={onPress}
       style={shadows.navigation}
-    >
-      <AppIcon color={colors.foreground} icon={ArrowLeft01Icon} size={20} />
-    </Pressable>
+    />
   );
 }

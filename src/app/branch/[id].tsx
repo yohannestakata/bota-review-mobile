@@ -323,19 +323,20 @@ export default function BranchDetailScreen() {
                   </View>
                 ))}
 
-                <Pressable
-                  className="mt-2 h-12 flex-row items-center justify-center rounded-full border border-placeholder"
+                <Button
+                  className="mt-2"
+                  label={`See full menu (${menuItemCount} ${
+                    menuItemCount === 1 ? "item" : "items"
+                  })`}
                   onPress={() =>
                     router.push({
                       pathname: "/menu/[branchId]",
                       params: { branchId: data.id, name: data.place.name },
                     })
                   }
-                >
-                  <ThemedText weight="medium">
-                    {`See full menu (${menuItemCount} ${menuItemCount === 1 ? "item" : "items"})`}
-                  </ThemedText>
-                </Pressable>
+                  size="sm"
+                  variant="outline"
+                />
               </View>
             </>
           ) : null}
@@ -493,25 +494,23 @@ export default function BranchDetailScreen() {
             )}
 
             {data.reviewCount > data.recentReviews.length ? (
-              <Pressable
-                className="h-12 flex-row items-center justify-center rounded-full border border-placeholder"
+              <Button
+                label={`See all ${data.reviewCount} reviews`}
                 onPress={() =>
                   router.push({
                     pathname: "/reviews/[branchId]",
                     params: { branchId: data.id, name: data.place.name },
                   })
                 }
-              >
-                <ThemedText weight="medium">
-                  See all {data.reviewCount} reviews
-                </ThemedText>
-              </Pressable>
+                size="sm"
+                variant="outline"
+              />
             ) : null}
           </View>
 
           <View className="mt-8 px-6">
-            <Pressable
-              className="h-14 flex-row items-center justify-center rounded-full border border-placeholder"
+            <Button
+              label="Suggest an edit or report closed"
               onPress={() =>
                 requireSignIn(() =>
                   router.push({
@@ -520,11 +519,10 @@ export default function BranchDetailScreen() {
                   }),
                 )
               }
-            >
-              <ThemedText tone="muted" weight="medium">
-                Suggest an edit or report closed
-              </ThemedText>
-            </Pressable>
+              size="sm"
+              tone="muted"
+              variant="outline"
+            />
           </View>
 
           {isOwnBranch ? (

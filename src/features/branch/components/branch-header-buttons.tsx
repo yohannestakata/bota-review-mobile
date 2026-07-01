@@ -1,29 +1,10 @@
 import { ArrowLeft01Icon, FavouriteIcon } from "@hugeicons/core-free-icons";
 import { colors, shadows } from "@/lib/theme";
-import type { ReactNode } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { IconButton } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
-
-function CircleButton({
-  children,
-  onPress,
-}: {
-  children: ReactNode;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      className="size-11 items-center justify-center rounded-full bg-surface"
-      hitSlop={8}
-      onPress={onPress}
-      style={shadows.navigation}
-    >
-      {children}
-    </Pressable>
-  );
-}
 
 type BranchHeaderButtonsProps = {
   isSaved: boolean;
@@ -46,18 +27,29 @@ export function BranchHeaderButtons({
       pointerEvents="box-none"
       style={{ top: insets.top + 8 }}
     >
-      <CircleButton onPress={onBack}>
-        <AppIcon color={colors.foreground} icon={ArrowLeft01Icon} size={22} />
-      </CircleButton>
+      <IconButton
+        accessibilityLabel="Go back"
+        icon={ArrowLeft01Icon}
+        iconSize={22}
+        onPress={onBack}
+        size={44}
+        style={shadows.navigation}
+      />
 
-      <CircleButton onPress={onToggleSave}>
+      <IconButton
+        accessibilityLabel={isSaved ? "Remove from saved" : "Save branch"}
+        icon={FavouriteIcon}
+        onPress={onToggleSave}
+        size={44}
+        style={shadows.navigation}
+      >
         <AppIcon
           color={isSaved ? colors.favorite : colors.foreground}
           icon={FavouriteIcon}
           size={20}
           strokeWidth={isSaved ? 2.5 : 2}
         />
-      </CircleButton>
+      </IconButton>
     </View>
   );
 }
