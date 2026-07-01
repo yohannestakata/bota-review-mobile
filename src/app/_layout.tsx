@@ -70,7 +70,9 @@ function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView
+      style={{ flex: 1, backgroundColor: colors.background }}
+    >
       <KeyboardProvider>
         <ClerkProvider
           publishableKey={clerkPublishableKey}
