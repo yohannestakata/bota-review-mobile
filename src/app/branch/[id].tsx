@@ -81,10 +81,10 @@ function RatingBreakdown({
   total: number;
 }) {
   return (
-    <View className="flex-1 gap-1.5">
+    <View className="flex-1 gap-2">
       {items.map((item) => (
-        <View className="flex-row items-center gap-2" key={item.rating}>
-          <ThemedText size="xs" tone="muted">
+        <View className="flex-row items-center gap-2.5" key={item.rating}>
+          <ThemedText className="w-2.5" size="xs" tone="muted">
             {item.rating}
           </ThemedText>
           <View className="h-2.5 flex-1 overflow-hidden rounded-full bg-border">
@@ -483,9 +483,9 @@ export default function BranchDetailScreen() {
             </ThemedText>
 
             {hasRating ? (
-              <View className="rounded-2xl bg-surface-muted p-4">
-                <View className="flex-row items-center gap-5">
-                  <View className="items-start gap-1">
+              <View className="rounded-2xl bg-surface-muted p-5">
+                <View className="flex-row items-center gap-6">
+                  <View className="w-24 items-start gap-1.5">
                     <ThemedText size="4xl" weight="bold">
                       {ratingValue.toFixed(1)}
                     </ThemedText>
