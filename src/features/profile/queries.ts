@@ -6,7 +6,11 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import { deleteReviewReply, updateReviewReply } from "@/features/branch/api";
+import {
+  deleteReviewReply,
+  updateReviewReply,
+  type ReviewReply,
+} from "@/features/branch/api";
 import { getCurrentUser } from "@/lib/api";
 
 import {
@@ -14,6 +18,7 @@ import {
   getMyReviews,
   getPublicProfile,
   getPublicReviews,
+  type MyReply,
 } from "./api";
 
 const PUBLIC_REVIEWS_PAGE_SIZE = 20;
@@ -64,13 +69,38 @@ export function useMyReplies() {
 export function useUpdateMyReply() {
   const { getToken, userId } = useAuth();
   const queryClient = useQueryClient();
+  const repliesKey = profileKeys.replies(userId);
 
-  return useMutation({
+  return useMutation<
+    ReviewReply & { moderationStatus: string },
+    Error,
+    { replyId: string; body: string },
+    { previousReplies?: MyReply[] }
+  >({
     mutationFn: (vars: { replyId: string; body: string }) =>
       updateReviewReply(vars.replyId, vars.body, getToken),
-    onSuccess: () => {
+    onMutate: async (vars) => {
+      await queryClient.cancelQueries({ queryKey: repliesKey });
+      const previousReplies = queryClient.getQueryData<MyReply[]>(repliesKey);
+
+      queryClient.setQueryData<MyReply[]>(repliesKey, (current) =>
+        current?.map((reply) =>
+          reply.id === vars.replyId
+            ? { ...reply, body: vars.body, moderationStatus: "pending" }
+            : reply,
+        ),
+      );
+
+      return { previousReplies };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previousReplies) {
+        queryClient.setQueryData(repliesKey, context.previousReplies);
+      }
+    },
+    onSettled: () => {
       void queryClient.invalidateQueries({
-        queryKey: profileKeys.replies(userId),
+        queryKey: repliesKey,
       });
       // Reflect the edit on any branch detail / all-reviews list too.
       void queryClient.invalidateQueries({ queryKey: ["branch"] });
@@ -81,12 +111,33 @@ export function useUpdateMyReply() {
 export function useDeleteMyReply() {
   const { getToken, userId } = useAuth();
   const queryClient = useQueryClient();
+  const repliesKey = profileKeys.replies(userId);
 
-  return useMutation({
+  return useMutation<
+    { success: boolean },
+    Error,
+    string,
+    { previousReplies?: MyReply[] }
+  >({
     mutationFn: (replyId: string) => deleteReviewReply(replyId, getToken),
-    onSuccess: () => {
+    onMutate: async (replyId) => {
+      await queryClient.cancelQueries({ queryKey: repliesKey });
+      const previousReplies = queryClient.getQueryData<MyReply[]>(repliesKey);
+
+      queryClient.setQueryData<MyReply[]>(repliesKey, (current) =>
+        current?.filter((reply) => reply.id !== replyId),
+      );
+
+      return { previousReplies };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previousReplies) {
+        queryClient.setQueryData(repliesKey, context.previousReplies);
+      }
+    },
+    onSettled: () => {
       void queryClient.invalidateQueries({
-        queryKey: profileKeys.replies(userId),
+        queryKey: repliesKey,
       });
       void queryClient.invalidateQueries({ queryKey: ["branch"] });
     },

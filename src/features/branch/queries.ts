@@ -1,6 +1,7 @@
 import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { profileKeys, type MyReview } from "@/features/profile";
 import {
   archiveReview,
   createClaim,
@@ -16,6 +17,8 @@ import {
   reportReviewReply,
   updateOwnerInfo,
   updateReview,
+  type BranchDetail,
+  type BranchReview,
   type CreateClaimBody,
   type CreateReviewBody,
   type UpdateOwnerInfoBody,
@@ -196,28 +199,167 @@ function invalidateAfterReviewChange(
 }
 
 export function useUpdateReview() {
-  const { getToken } = useAuth();
+  const { getToken, userId } = useAuth();
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<
+    BranchReview,
+    Error,
+    { reviewId: string; branchId: string; body: UpdateReviewBody },
+    {
+      previousDetail?: BranchDetail;
+      previousMyReviews?: MyReview[];
+      previousReviews?: BranchReview[];
+    }
+  >({
     mutationFn: (vars: {
       reviewId: string;
       branchId: string;
       body: UpdateReviewBody;
     }) => updateReview(vars.reviewId, vars.body, getToken),
-    onSuccess: (_data, vars) =>
+    onMutate: async (vars) => {
+      const detailKey = branchKeys.detail(vars.branchId);
+      const reviewsKey = branchKeys.reviews(vars.branchId);
+      const myReviewsKey = profileKeys.reviews(userId);
+
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: detailKey }),
+        queryClient.cancelQueries({ queryKey: reviewsKey }),
+        queryClient.cancelQueries({ queryKey: myReviewsKey }),
+      ]);
+
+      const previousDetail = queryClient.getQueryData<BranchDetail>(detailKey);
+      const previousReviews =
+        queryClient.getQueryData<BranchReview[]>(reviewsKey);
+      const previousMyReviews =
+        queryClient.getQueryData<MyReview[]>(myReviewsKey);
+
+      queryClient.setQueryData<BranchDetail>(detailKey, (current) =>
+        current
+          ? {
+              ...current,
+              recentReviews: current.recentReviews.filter(
+                (review) => review.id !== vars.reviewId,
+              ),
+            }
+          : current,
+      );
+      queryClient.setQueryData<BranchReview[]>(reviewsKey, (current) =>
+        current?.filter((review) => review.id !== vars.reviewId),
+      );
+      queryClient.setQueryData<MyReview[]>(myReviewsKey, (current) =>
+        current?.map((review) =>
+          review.id === vars.reviewId
+            ? {
+                ...review,
+                rating: vars.body.rating ?? review.rating,
+                text: vars.body.text ?? review.text,
+                moderationStatus: "pending",
+              }
+            : review,
+        ),
+      );
+
+      return { previousDetail, previousReviews, previousMyReviews };
+    },
+    onError: (_error, vars, context) => {
+      if (context?.previousDetail) {
+        queryClient.setQueryData(
+          branchKeys.detail(vars.branchId),
+          context.previousDetail,
+        );
+      }
+      if (context?.previousReviews) {
+        queryClient.setQueryData(
+          branchKeys.reviews(vars.branchId),
+          context.previousReviews,
+        );
+      }
+      if (context?.previousMyReviews) {
+        queryClient.setQueryData(
+          profileKeys.reviews(userId),
+          context.previousMyReviews,
+        );
+      }
+    },
+    onSettled: (_data, _error, vars) =>
       invalidateAfterReviewChange(queryClient, vars.branchId),
   });
 }
 
 export function useDeleteReview() {
-  const { getToken } = useAuth();
+  const { getToken, userId } = useAuth();
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<
+    void,
+    Error,
+    { reviewId: string; branchId: string },
+    {
+      previousDetail?: BranchDetail;
+      previousMyReviews?: MyReview[];
+      previousReviews?: BranchReview[];
+    }
+  >({
     mutationFn: (vars: { reviewId: string; branchId: string }) =>
       archiveReview(vars.reviewId, getToken),
-    onSuccess: (_data, vars) =>
+    onMutate: async (vars) => {
+      const detailKey = branchKeys.detail(vars.branchId);
+      const reviewsKey = branchKeys.reviews(vars.branchId);
+      const myReviewsKey = profileKeys.reviews(userId);
+
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: detailKey }),
+        queryClient.cancelQueries({ queryKey: reviewsKey }),
+        queryClient.cancelQueries({ queryKey: myReviewsKey }),
+      ]);
+
+      const previousDetail = queryClient.getQueryData<BranchDetail>(detailKey);
+      const previousReviews =
+        queryClient.getQueryData<BranchReview[]>(reviewsKey);
+      const previousMyReviews =
+        queryClient.getQueryData<MyReview[]>(myReviewsKey);
+
+      queryClient.setQueryData<BranchDetail>(detailKey, (current) =>
+        current
+          ? {
+              ...current,
+              recentReviews: current.recentReviews.filter(
+                (review) => review.id !== vars.reviewId,
+              ),
+            }
+          : current,
+      );
+      queryClient.setQueryData<BranchReview[]>(reviewsKey, (current) =>
+        current?.filter((review) => review.id !== vars.reviewId),
+      );
+      queryClient.setQueryData<MyReview[]>(myReviewsKey, (current) =>
+        current?.filter((review) => review.id !== vars.reviewId),
+      );
+
+      return { previousDetail, previousReviews, previousMyReviews };
+    },
+    onError: (_error, vars, context) => {
+      if (context?.previousDetail) {
+        queryClient.setQueryData(
+          branchKeys.detail(vars.branchId),
+          context.previousDetail,
+        );
+      }
+      if (context?.previousReviews) {
+        queryClient.setQueryData(
+          branchKeys.reviews(vars.branchId),
+          context.previousReviews,
+        );
+      }
+      if (context?.previousMyReviews) {
+        queryClient.setQueryData(
+          profileKeys.reviews(userId),
+          context.previousMyReviews,
+        );
+      }
+    },
+    onSettled: (_data, _error, vars) =>
       invalidateAfterReviewChange(queryClient, vars.branchId),
   });
 }
