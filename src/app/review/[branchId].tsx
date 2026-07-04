@@ -32,7 +32,7 @@ import { getErrorCode } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 
-const MIN_CHARS = 20;
+const MIN_CHARS = 3;
 const MAX_CHARS = 2000;
 const MAX_PHOTOS = 3;
 const REVIEW_ALREADY_EXISTS = "REVIEW_ALREADY_EXISTS";
@@ -102,7 +102,7 @@ export default function WriteReviewScreen() {
   const { control, handleSubmit, formState, reset, setValue } =
     useForm<ReviewValues>({
       resolver: zodFormResolver(reviewSchema),
-      mode: "onChange",
+      mode: "onSubmit",
       defaultValues: {
         rating: ratingParam ? Number(ratingParam) : 0,
         text: textParam ?? "",
@@ -113,6 +113,7 @@ export default function WriteReviewScreen() {
   const trimmedLength = useWatch({ control, name: "text" }).trim().length;
   const visitDate = useWatch({ control, name: "visitDate" });
   const busy = createReview.isPending || updateReview.isPending || uploading;
+  const textError = formState.errors.text?.message;
 
   // Hydrate the form once the canonical review loads (edit mode only).
   useEffect(() => {
@@ -309,11 +310,13 @@ export default function WriteReviewScreen() {
               name="text"
               placeholder="What did you order? How was the vibe?"
             />
-            <ThemedText size="sm" tone="muted">
-              {trimmedLength < MIN_CHARS
-                ? `At least ${MIN_CHARS - trimmedLength} more characters`
-                : `${trimmedLength}/${MAX_CHARS}`}
-            </ThemedText>
+            {!textError ? (
+              <ThemedText size="sm" tone="muted">
+                {trimmedLength > 0
+                  ? `${trimmedLength}/${MAX_CHARS}`
+                  : "A quick note is enough."}
+              </ThemedText>
+            ) : null}
           </View>
 
           <View className="gap-2">
@@ -377,7 +380,7 @@ export default function WriteReviewScreen() {
 
         <View className="px-6 pb-2 pt-2">
           <Button
-            disabled={!formState.isValid || busy}
+            disabled={busy}
             label={isEdit ? "Save changes" : "Submit review"}
             loading={busy}
             onPress={onSubmit}
