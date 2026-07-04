@@ -44,6 +44,9 @@ export function BranchCard({
         ? `${Math.round(branch.distanceKm * 1000)} m`
         : `${branch.distanceKm.toFixed(1)} km`
       : null;
+  // Price + distance share a single truncating line so a long price range never
+  // pushes the row past the card edge.
+  const secondaryMeta = [price, distance].filter(Boolean).join(" · ");
 
   const imageClass =
     layout === "portrait"
@@ -108,9 +111,9 @@ export function BranchCard({
           </ThemedText>
         ) : null}
 
-        <View className="mt-0.5 flex-row items-center gap-1">
+        <View className="mt-0.5 flex-row items-center gap-1.5">
           {hasRating ? (
-            <>
+            <View className="flex-row items-center gap-1">
               <FilledStar size={14} />
               <ThemedText size="sm" weight="medium">
                 {Number(branch.rating).toFixed(1)}
@@ -118,22 +121,20 @@ export function BranchCard({
               <ThemedText size="sm" tone="muted">
                 ({branch.reviewCount})
               </ThemedText>
-            </>
+            </View>
           ) : (
-            <ThemedText size="sm" tone="muted">
+            <ThemedText size="sm" weight="medium">
               New
             </ThemedText>
           )}
-          {price ? (
-            <ThemedText size="sm" tone="muted">
-              {" · "}
-              {price}
-            </ThemedText>
-          ) : null}
-          {distance ? (
-            <ThemedText size="sm" tone="muted">
-              {" · "}
-              {distance}
+          {secondaryMeta ? (
+            <ThemedText
+              className="flex-1"
+              numberOfLines={1}
+              size="sm"
+              tone="muted"
+            >
+              {`· ${secondaryMeta}`}
             </ThemedText>
           ) : null}
         </View>
