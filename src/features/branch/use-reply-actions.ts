@@ -33,7 +33,7 @@ export function useReplyActions(branchId: string) {
       });
       setTarget(null);
       if (result.moderationStatus !== "approved") {
-        Alert.alert("Reply posted", "Your reply is live.");
+        Alert.alert("Reply landed", "Your take is part of the conversation.");
       }
     } catch (error) {
       Alert.alert("Reply hit a snag", getErrorMessage(error));
