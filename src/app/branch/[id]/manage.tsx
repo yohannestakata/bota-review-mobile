@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
-  Switch,
   TextInput,
   View,
 } from "react-native";
@@ -22,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { CloseButton } from "@/components/ui/close-button";
 import { ControlledTextInput } from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
+import { Switch } from "@/components/ui/switch";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   uploadOwnerPhoto,
@@ -219,11 +219,6 @@ export default function ManageListingScreen() {
                         onValueChange={(value) =>
                           setDay(day, { isOpen: value })
                         }
-                        thumbColor={colors.inverse}
-                        trackColor={{
-                          false: colors.border,
-                          true: colors.foreground,
-                        }}
                         value={state.isOpen}
                       />
                     </View>

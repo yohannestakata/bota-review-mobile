@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Switch, TextInput, View } from "react-native";
+import { TextInput, View } from "react-native";
 
+import { Switch } from "@/components/ui/switch";
 import { ThemedText } from "@/components/ui/themed-text";
 import { colors } from "@/lib/theme";
 
@@ -94,8 +95,6 @@ export function HoursField({
                 <ThemedText weight="medium">{day.label}</ThemedText>
                 <Switch
                   onValueChange={(open) => update(day.key, { open })}
-                  thumbColor={colors.inverse}
-                  trackColor={{ false: colors.border, true: colors.foreground }}
                   value={state_.open}
                 />
               </View>
