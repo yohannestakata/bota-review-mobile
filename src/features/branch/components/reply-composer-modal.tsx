@@ -113,23 +113,24 @@ function ReplyComposerContent({
             {/* You, the replier. */}
             <View className="flex-row gap-2.5">
               <Avatar name={meName} size={28} uri={user?.imageUrl} />
-              <View className="flex-1 gap-2">
+              <View className="flex-1">
                 <ThemedText size="sm" weight="medium">
                   {meName}
                 </ThemedText>
-                <TextInput
-                  className="min-h-24 rounded-xl border border-placeholder bg-background px-3 py-2 font-outfit text-md text-foreground"
-                  maxLength={2000}
-                  multiline
-                  onChangeText={setBody}
-                  placeholder="Share your response…"
-                  placeholderTextColor={colors.muted}
-                  ref={inputRef}
-                  textAlignVertical="top"
-                  value={body}
-                />
               </View>
             </View>
+
+            <TextInput
+              className="min-h-24 rounded-xl border border-placeholder bg-background px-3 py-2 font-outfit text-md text-foreground"
+              maxLength={2000}
+              multiline
+              onChangeText={setBody}
+              placeholder="Share your response…"
+              placeholderTextColor={colors.muted}
+              ref={inputRef}
+              textAlignVertical="top"
+              value={body}
+            />
           </View>
           <Button
             disabled={!body.trim() || submitting}
