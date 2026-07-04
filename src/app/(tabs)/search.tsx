@@ -32,7 +32,7 @@ import {
   type SearchSort,
 } from "@/features/search";
 import { analytics } from "@/lib/analytics";
-import { priceLabel, type BranchCard as BranchCardData } from "@/lib/api";
+import type { BranchCard as BranchCardData } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useLocation } from "@/lib/use-location";
@@ -51,7 +51,6 @@ export default function SearchScreen() {
   const [neighborhoodId, setNeighborhoodId] = useState<string>();
   const [cuisineIds, setCuisineIds] = useState<string[]>([]);
   const [tagIds, setTagIds] = useState<string[]>([]);
-  const [priceLevels, setPriceLevels] = useState<number[]>([]);
   const [sort, setSort] = useState<Exclude<SearchSort, "distance">>("rating");
   const [openNow, setOpenNow] = useState(false);
   const [nearby, setNearby] = useState(false);
@@ -76,7 +75,6 @@ export default function SearchScreen() {
       neighborhoodId,
       cuisineId: cuisineIds.length > 0 ? cuisineIds : undefined,
       tagId: tagIds.length > 0 ? tagIds : undefined,
-      priceLevel: priceLevels.length > 0 ? priceLevels : undefined,
       openNow: openNow || undefined,
       sort: sortByDistance ? ("distance" as const) : sort,
       lat: coords?.lat,
@@ -87,7 +85,6 @@ export default function SearchScreen() {
       neighborhoodId,
       cuisineIds,
       tagIds,
-      priceLevels,
       openNow,
       sortByDistance,
       sort,
@@ -118,7 +115,6 @@ export default function SearchScreen() {
     (neighborhoodId ? 1 : 0) +
     cuisineIds.length +
     tagIds.length +
-    priceLevels.length +
     (sort === "rating" ? 0 : 1);
   const active =
     debouncedQ.length >= 2 || filterCount > 0 || openNow || sortByDistance;
@@ -158,7 +154,6 @@ export default function SearchScreen() {
           neighborhoodId: neighborhoodId ?? null,
           cuisineIds,
           tagIds,
-          priceLevels,
           openNow,
           sort,
         },
@@ -173,7 +168,6 @@ export default function SearchScreen() {
     neighborhoodId,
     cuisineIds,
     tagIds,
-    priceLevels,
     openNow,
     sort,
   ]);
@@ -198,14 +192,13 @@ export default function SearchScreen() {
     setNeighborhoodId(undefined);
     setCuisineIds([]);
     setTagIds([]);
-    setPriceLevels([]);
     setSort("rating");
     setOpenNow(false);
     setNearby(false);
   }
 
-  // Removable chips for each applied sheet filter (neighborhood/cuisine/tag/
-  // price). Tapping a chip clears just that filter; Open now / Nearby keep their
+  // Removable chips for each applied sheet filter (neighborhood/cuisine/tag).
+  // Tapping a chip clears just that filter; Open now / Nearby keep their
   // own toggle chips in the row above.
   const activeChips: { key: string; label: string; onRemove: () => void }[] =
     [];
@@ -239,14 +232,6 @@ export default function SearchScreen() {
       onRemove: () => setTagIds((prev) => prev.filter((x) => x !== id)),
     });
   });
-  priceLevels.forEach((level) => {
-    activeChips.push({
-      key: `price-${level}`,
-      label: priceLabel(level),
-      onRemove: () => setPriceLevels((prev) => prev.filter((x) => x !== level)),
-    });
-  });
-
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View className="gap-3 px-6 pb-2 pt-2">
@@ -436,13 +421,6 @@ export default function SearchScreen() {
           });
           setCuisineIds((prev) => toggle(prev, id));
         }}
-        onTogglePrice={(level) => {
-          analytics.track("filter_applied", {
-            filter_type: "price",
-            filter_value: level,
-          });
-          setPriceLevels((prev) => toggle(prev, level));
-        }}
         onToggleTag={(id) => {
           analytics.track("filter_applied", {
             filter_type: "tag",
@@ -450,7 +428,6 @@ export default function SearchScreen() {
           });
           setTagIds((prev) => toggle(prev, id));
         }}
-        priceLevels={priceLevels}
         sort={sort}
         tagIds={tagIds}
         tags={tags.data ?? []}

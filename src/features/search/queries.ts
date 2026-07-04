@@ -64,7 +64,6 @@ export function useSearch(params: SearchParams) {
     params.neighborhoodId ||
     params.cuisineId?.length ||
     params.tagId?.length ||
-    params.priceLevel?.length ||
     params.openNow ||
     (params.sort !== undefined && params.sort !== "rating"),
   );

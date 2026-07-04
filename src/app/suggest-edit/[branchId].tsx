@@ -36,20 +36,12 @@ const FIELDS = [
   { value: "Name", label: "Name", mode: "value" },
   { value: "Phone", label: "Phone", mode: "value" },
   { value: "Address", label: "Address", mode: "value" },
-  { value: "Price", label: "Price", mode: "price" },
   { value: "Hours", label: "Hours", mode: "note" },
   { value: "Menu/prices", label: "Menu/prices", mode: "note" },
   { value: "Photos", label: "Photos", mode: "note" },
   { value: "Tags/amenities", label: "Tags/amenities", mode: "note" },
   { value: "Wrong info", label: "Wrong info", mode: "note" },
   { value: "Duplicate", label: "Duplicate", mode: "note" },
-] as const;
-
-const PRICE_LEVELS = [
-  { value: "1", label: "$" },
-  { value: "2", label: "$$" },
-  { value: "3", label: "$$$" },
-  { value: "4", label: "$$$$" },
 ] as const;
 
 const AMENITIES = [
@@ -73,7 +65,6 @@ const suggestEditObject = z.object({
   fieldName: z.string(),
   suggestedValue: z.string(),
   note: z.string(),
-  extraPriceLevel: z.string(),
   extraHours: z.string(),
   extraMenu: z.string(),
   extraAddress: z.string(),
@@ -88,7 +79,6 @@ const DEFAULT_VALUES: SuggestEditValues = {
   fieldName: "",
   suggestedValue: "",
   note: "",
-  extraPriceLevel: "",
   extraHours: "",
   extraMenu: "",
   extraAddress: "",
@@ -98,9 +88,6 @@ const DEFAULT_VALUES: SuggestEditValues = {
 
 function extraDetailsNote(values: SuggestEditValues) {
   const lines: string[] = [];
-  if (values.extraPriceLevel) {
-    lines.push(`Price range: ${"$".repeat(Number(values.extraPriceLevel))}`);
-  }
   if (values.extraHours.trim())
     lines.push(`Hours: ${values.extraHours.trim()}`);
   if (values.extraMenu.trim())
@@ -195,15 +182,12 @@ export default function SuggestEditScreen() {
     (field) => field.value === values.fieldName,
   );
   const isValueCorrection = isCorrection && selectedField?.mode === "value";
-  const isPriceCorrection = isCorrection && selectedField?.mode === "price";
   const isNoteCorrection = isCorrection && selectedField?.mode === "note";
 
-  const hasPrimaryCorrection =
-    isValueCorrection || isPriceCorrection
-      ? values.suggestedValue.trim().length > 0
-      : values.note.trim().length > 0;
+  const hasPrimaryCorrection = isValueCorrection
+    ? values.suggestedValue.trim().length > 0
+    : values.note.trim().length > 0;
   const hasExtraDetails =
-    Boolean(values.extraPriceLevel) ||
     values.extraHours.trim().length > 0 ||
     values.extraMenu.trim().length > 0 ||
     values.extraAddress.trim().length > 0 ||
@@ -223,7 +207,6 @@ export default function SuggestEditScreen() {
 
   function resetContributionFields() {
     resetPrimaryFields();
-    setValue("extraPriceLevel", "");
     setValue("extraHours", "");
     setValue("extraMenu", "");
     setValue("extraAddress", "");
@@ -242,10 +225,9 @@ export default function SuggestEditScreen() {
   }
 
   const onSubmit = handleSubmit((formValues) => {
-    const correctionValue =
-      isValueCorrection || isPriceCorrection
-        ? formValues.suggestedValue.trim()
-        : "";
+    const correctionValue = isValueCorrection
+      ? formValues.suggestedValue.trim()
+      : "";
     const noteValue = submissionNote(formValues);
 
     const body: BranchSubmissionBody =
@@ -346,28 +328,6 @@ export default function SuggestEditScreen() {
                 />
               ) : null}
 
-              {isPriceCorrection ? (
-                <View className="gap-2">
-                  <ThemedText size="sm" weight="medium">
-                    What is the price level?
-                  </ThemedText>
-                  <View className="flex-row flex-wrap gap-2">
-                    {PRICE_LEVELS.map((level) => (
-                      <Pill
-                        key={level.value}
-                        label={level.label}
-                        onPress={() =>
-                          setValue("suggestedValue", level.value, {
-                            shouldValidate: true,
-                          })
-                        }
-                        selected={values.suggestedValue === level.value}
-                      />
-                    ))}
-                  </View>
-                </View>
-              ) : null}
-
               {isNoteCorrection ? (
                 <ControlledTextArea
                   control={control}
@@ -386,33 +346,6 @@ export default function SuggestEditScreen() {
             subtitle="Add details only if they're handy."
             title="Know a little more?"
           >
-            {!isPriceCorrection ? (
-              <View className="gap-2">
-                <ThemedText size="sm" weight="medium">
-                  Price range
-                </ThemedText>
-                <View className="flex-row flex-wrap gap-2">
-                  {PRICE_LEVELS.map((level) => (
-                    <Pill
-                      key={level.value}
-                      label={level.label}
-                      onPress={() =>
-                        setValue(
-                          "extraPriceLevel",
-                          values.extraPriceLevel === level.value
-                            ? ""
-                            : level.value,
-                          { shouldValidate: true },
-                        )
-                      }
-                      selected={values.extraPriceLevel === level.value}
-                      surface="muted"
-                    />
-                  ))}
-                </View>
-              </View>
-            ) : null}
-
             <ControlledTextArea
               control={control}
               inputClassName="min-h-20"

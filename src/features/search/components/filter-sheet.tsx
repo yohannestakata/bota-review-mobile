@@ -18,18 +18,12 @@ import { Pressable, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
-import {
-  priceLabel,
-  type Cuisine,
-  type Neighborhood,
-  type Tag,
-} from "@/lib/api";
+import type { Cuisine, Neighborhood, Tag } from "@/lib/api";
 import { colors } from "@/lib/theme";
 
 import { FilterChip } from "./filter-chip";
 import type { SearchSort } from "../api";
 
-const PRICE_LEVELS = [1, 2, 3, 4];
 const SNAP_POINTS = ["90%"];
 const SORT_OPTIONS: {
   value: Exclude<SearchSort, "distance">;
@@ -55,14 +49,12 @@ type FilterSheetProps = {
   tags: Tag[];
   cuisineIds: string[];
   tagIds: string[];
-  priceLevels: number[];
   neighborhoodId?: string;
   sort: Exclude<SearchSort, "distance">;
   onSelectNeighborhood: (id: string) => void;
   onSelectSort: (sort: Exclude<SearchSort, "distance">) => void;
   onToggleCuisine: (id: string) => void;
   onToggleTag: (id: string) => void;
-  onTogglePrice: (level: number) => void;
   onClear: () => void;
 };
 
@@ -85,14 +77,12 @@ export const FilterSheet = forwardRef<FilterSheetRef, FilterSheetProps>(
       tags,
       cuisineIds,
       tagIds,
-      priceLevels,
       neighborhoodId,
       sort,
       onSelectNeighborhood,
       onSelectSort,
       onToggleCuisine,
       onToggleTag,
-      onTogglePrice,
       onClear,
     },
     ref,
@@ -187,17 +177,6 @@ export const FilterSheet = forwardRef<FilterSheetRef, FilterSheetProps>(
                 ))}
               </Section>
             ) : null}
-
-            <Section title="Price">
-              {PRICE_LEVELS.map((level) => (
-                <FilterChip
-                  key={level}
-                  label={priceLabel(level)}
-                  onPress={() => onTogglePrice(level)}
-                  selected={priceLevels.includes(level)}
-                />
-              ))}
-            </Section>
 
             {cuisines.length > 0 ? (
               <Section title="Cuisine">

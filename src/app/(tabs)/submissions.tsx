@@ -29,13 +29,6 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Something went wrong";
 }
 
-const PRICE_LEVELS = [
-  { value: "1", label: "$" },
-  { value: "2", label: "$$" },
-  { value: "3", label: "$$$" },
-  { value: "4", label: "$$$$" },
-] as const;
-
 const AMENITIES = [
   "Wi-Fi",
   "Parking",
@@ -53,7 +46,6 @@ const submissionSchema = z.object({
   description: z.string().trim().optional(),
   contactPhone: z.string().trim().optional(),
   contactEmail: optionalEmailField,
-  priceLevel: z.string(),
   hours: z.string().trim().optional(),
   menu: z.string().trim().optional(),
   amenities: z.array(z.string()),
@@ -67,7 +59,6 @@ const DEFAULT_VALUES: SubmissionValues = {
   description: "",
   contactPhone: "",
   contactEmail: "",
-  priceLevel: "",
   hours: "",
   menu: "",
   amenities: [],
@@ -75,9 +66,6 @@ const DEFAULT_VALUES: SubmissionValues = {
 
 function extraDetailsNote(values: SubmissionValues) {
   const lines: string[] = [];
-  if (values.priceLevel) {
-    lines.push(`Price range: ${"$".repeat(Number(values.priceLevel))}`);
-  }
   if (values.hours?.trim()) lines.push(`Hours: ${values.hours.trim()}`);
   if (values.menu?.trim()) lines.push(`Menu/prices: ${values.menu.trim()}`);
   if (values.amenities.length > 0) {
@@ -231,33 +219,6 @@ export default function SubmissionsScreen() {
               placeholder="What kind of place is it? What's good there?"
               surface="muted"
             />
-
-            <View className="gap-2">
-              <ThemedText size="sm" weight="medium">
-                Price range
-              </ThemedText>
-              <Controller
-                control={control}
-                name="priceLevel"
-                render={({ field }) => (
-                  <View className="flex-row flex-wrap gap-2">
-                    {PRICE_LEVELS.map((level) => (
-                      <Pill
-                        key={level.value}
-                        label={level.label}
-                        onPress={() =>
-                          field.onChange(
-                            field.value === level.value ? "" : level.value,
-                          )
-                        }
-                        selected={field.value === level.value}
-                        surface="muted"
-                      />
-                    ))}
-                  </View>
-                )}
-              />
-            </View>
 
             <Controller
               control={control}

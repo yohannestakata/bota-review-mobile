@@ -6,7 +6,8 @@ import { Pressable, View } from "react-native";
 import { FilledStar } from "@/components/ui/filled-star";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
-import { priceLabel, type BranchCard as BranchCardData } from "@/lib/api";
+import type { BranchCard as BranchCardData } from "@/lib/api";
+import { formatMenuPriceRange } from "@/lib/price";
 
 type BranchCardProps = {
   branch: BranchCardData;
@@ -35,7 +36,7 @@ export function BranchCard({
     )
     .join(" · ");
 
-  const price = priceLabel(branch.priceLevel);
+  const price = formatMenuPriceRange(branch.menuPriceRange);
   const hasRating = branch.reviewCount > 0;
   const distance =
     branch.distanceKm != null

@@ -3,7 +3,8 @@ import { Pressable, View } from "react-native";
 
 import { FilledStar } from "@/components/ui/filled-star";
 import { ThemedText } from "@/components/ui/themed-text";
-import { priceLabel, type BranchCard as BranchCardData } from "@/lib/api";
+import type { BranchCard as BranchCardData } from "@/lib/api";
+import { formatMenuPriceRange } from "@/lib/price";
 import { colors } from "@/lib/theme";
 
 type SiblingCardProps = {
@@ -15,7 +16,7 @@ type SiblingCardProps = {
 // neighborhood (the place is already obvious here) and without the save heart.
 export function SiblingCard({ branch, onPress }: SiblingCardProps) {
   const title = branch.neighborhood?.name ?? branch.label ?? "Location";
-  const price = priceLabel(branch.priceLevel);
+  const price = formatMenuPriceRange(branch.menuPriceRange);
   const hasRating = branch.reviewCount > 0;
   const distance =
     branch.distanceKm != null

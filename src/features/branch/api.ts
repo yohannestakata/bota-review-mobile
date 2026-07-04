@@ -6,6 +6,7 @@ import {
   type Tag,
   type TokenGetter,
 } from "@/lib/api";
+import type { MenuPriceRange } from "@/lib/price";
 
 export type BranchPhoto = {
   id: string;
@@ -70,6 +71,7 @@ export type BranchDetail = {
   phone: string | null;
   hours: BranchHours | null;
   priceLevel: number | null;
+  menuPriceRange?: MenuPriceRange | null;
   verificationStatus: "unverified" | "editor_verified" | "business_verified";
   rating: string;
   reviewCount: number;

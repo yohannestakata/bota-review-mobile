@@ -1,4 +1,5 @@
 import { debugLog } from "@/lib/debug";
+import type { MenuPriceRange } from "@/lib/price";
 
 export type TokenGetter = () => Promise<string | null>;
 
@@ -140,6 +141,7 @@ export type BranchCard = {
   rating: number;
   reviewCount: number;
   priceLevel: number | null;
+  menuPriceRange?: MenuPriceRange | null;
   cuisines: Cuisine[];
   topTags: Tag[];
   informationLastVerifiedAt: string | null;
@@ -152,13 +154,4 @@ export type BranchCard = {
 
 export function getNeighborhoods(getToken: TokenGetter) {
   return apiFetch<Neighborhood[]>("/neighborhoods", getToken);
-}
-
-// Maps the backend's numeric price level (1-4) to a "$"-"$$$$" label.
-export function priceLabel(level: number | null): string {
-  if (!level || level < 1) {
-    return "";
-  }
-
-  return "$".repeat(Math.min(level, 4));
 }

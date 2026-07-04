@@ -1,11 +1,10 @@
 import type { Menu, MenuItem } from "./api";
+import { formatBirrPrice } from "@/lib/price";
 
 // Prices are stored as numeric strings (e.g. "320.00"). Addis menus quote whole
 // birr, so round and suffix with "Br".
 export function formatBirr(price: string): string {
-  const value = Number(price);
-  if (!Number.isFinite(value)) return price;
-  return `${Math.round(value)} Br`;
+  return formatBirrPrice(price);
 }
 
 export type MenuCategory = { category: string; items: MenuItem[] };

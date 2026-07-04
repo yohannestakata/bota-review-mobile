@@ -18,7 +18,6 @@ export type SearchParams = {
   neighborhoodId?: string;
   cuisineId?: string[];
   tagId?: string[];
-  priceLevel?: number[];
   openNow?: boolean;
   lat?: number;
   lng?: number;
@@ -35,9 +34,6 @@ export function searchBranches(params: SearchParams, getToken: TokenGetter) {
   }
   params.cuisineId?.forEach((id) => query.append("cuisineId", id));
   params.tagId?.forEach((id) => query.append("tagId", id));
-  params.priceLevel?.forEach((level) =>
-    query.append("priceLevel", String(level)),
-  );
   if (params.openNow) {
     query.set("openNow", "true");
   }

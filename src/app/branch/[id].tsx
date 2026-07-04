@@ -46,7 +46,8 @@ import { useMe } from "@/features/profile";
 import { useSavedBranchIds, useToggleSave } from "@/features/home";
 import { Alert } from "@/components/ui/alert";
 import { analytics } from "@/lib/analytics";
-import { getErrorMessage, priceLabel } from "@/lib/api";
+import { getErrorMessage } from "@/lib/api";
+import { formatMenuPriceRange } from "@/lib/price";
 import { useLocation } from "@/lib/use-location";
 
 function Chip({ label }: { label: string }) {
@@ -228,7 +229,7 @@ export default function BranchDetailScreen() {
 
   const data = branch.data;
   const cover = data.photos[0]?.url ?? null;
-  const price = priceLabel(data.priceLevel);
+  const price = formatMenuPriceRange(data.menuPriceRange);
   const hasRating = data.reviewCount > 0;
   const ratingValue = Number(data.rating);
   const eyebrow = [capitalize(data.place.type), data.neighborhood?.name]
