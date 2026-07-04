@@ -76,14 +76,17 @@ export function TimeField({
                   </ThemedText>
                 </Pressable>
               </View>
-              <DateTimePicker
-                display="spinner"
-                mode="time"
-                onChange={(_event, date) => {
-                  if (date) setDraft(date);
-                }}
-                value={draft}
-              />
+              <View className="items-center">
+                <DateTimePicker
+                  display="spinner"
+                  mode="time"
+                  onChange={(_event, date) => {
+                    if (date) setDraft(date);
+                  }}
+                  style={{ alignSelf: "center" }}
+                  value={draft}
+                />
+              </View>
             </Pressable>
           </Pressable>
         </Modal>
