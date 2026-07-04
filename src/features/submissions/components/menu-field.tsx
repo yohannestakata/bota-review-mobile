@@ -1,30 +1,48 @@
-import { Add01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import { useAuth } from "@clerk/clerk-expo";
+import {
+  Add01Icon,
+  Cancel01Icon,
+  ImageAdd01Icon,
+} from "@hugeicons/core-free-icons";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { TextField } from "@/components/ui/text-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { colors } from "@/lib/theme";
 
-import type { SubmissionMenuItem } from "../api";
+import { uploadSubmissionPhoto, type SubmissionMenuItem } from "../api";
 
-type Item = { id: string; name: string; price: string };
+type Item = {
+  id: string;
+  name: string;
+  price: string;
+  imageUrl?: string;
+  publicId?: string;
+  uploading?: boolean;
+};
 
 // Structured items for the submission (only rows with a name).
 function toItems(items: Item[]): SubmissionMenuItem[] {
   return items
     .filter((item) => item.name.trim())
     .map((item) => {
+      const next: SubmissionMenuItem = { name: item.name.trim() };
       const price = item.price.trim();
-      return price
-        ? { name: item.name.trim(), price: Number(price) }
-        : { name: item.name.trim() };
+      if (price) next.price = Number(price);
+      if (item.imageUrl && item.publicId) {
+        next.imageUrl = item.imageUrl;
+        next.publicId = item.publicId;
+      }
+      return next;
     });
 }
 
-// Structured "menu or prices" editor: rows of item name + price you can add and
-// remove. Emits SubmissionMenuItem[].
+// Structured "menu or prices" editor: rows of item photo + name + price you can
+// add and remove. Emits SubmissionMenuItem[].
 export function MenuField({
   value,
   onChange,
@@ -32,6 +50,7 @@ export function MenuField({
   value: SubmissionMenuItem[];
   onChange: (value: SubmissionMenuItem[]) => void;
 }) {
+  const { getToken } = useAuth();
   const idRef = useRef(1);
   const makeItem = (): Item => ({
     id: String(idRef.current++),
@@ -39,25 +58,79 @@ export function MenuField({
     price: "",
   });
   const [items, setItems] = useState<Item[]>(() => [makeItem()]);
+  // Mirror of items so async photo uploads apply against the latest rows.
+  const itemsRef = useRef(items);
+  // The last structured value we emitted, so we can tell a real external reset
+  // (parent cleared the field) apart from our own emit of a nameless row —
+  // otherwise adding a photo before a name would wipe the row.
+  const lastEmitted = useRef<SubmissionMenuItem[]>([]);
 
-  // Reset when the form clears the field (e.g. after submit).
+  // Reset only when the form clears the field externally (e.g. after submit).
   useEffect(() => {
-    if (value.length === 0) setItems([makeItem()]);
+    if (value.length === 0 && lastEmitted.current.length > 0) {
+      const fresh = [makeItem()];
+      itemsRef.current = fresh;
+      lastEmitted.current = [];
+      setItems(fresh);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   function apply(next: Item[]) {
+    const emitted = toItems(next);
+    itemsRef.current = next;
+    lastEmitted.current = emitted;
     setItems(next);
-    onChange(toItems(next));
+    onChange(emitted);
   }
 
   function setItem(id: string, patch: Partial<Item>) {
-    apply(items.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+    apply(
+      itemsRef.current.map((item) =>
+        item.id === id ? { ...item, ...patch } : item,
+      ),
+    );
   }
 
   function removeItem(id: string) {
-    const next = items.filter((item) => item.id !== id);
+    const next = itemsRef.current.filter((item) => item.id !== id);
     apply(next.length ? next : [makeItem()]);
+  }
+
+  async function pickImage(id: string) {
+    const permission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      base64: true,
+      mediaTypes: ["images"],
+      quality: 0.8,
+    });
+    if (result.canceled) return;
+
+    const asset = result.assets[0];
+    setItem(id, { uploading: true });
+    try {
+      const uploaded = await uploadSubmissionPhoto(
+        {
+          uri: asset.uri,
+          width: asset.width,
+          height: asset.height,
+          fileName: asset.fileName,
+          mimeType: asset.mimeType,
+          base64: asset.base64,
+        },
+        getToken,
+      );
+      setItem(id, {
+        imageUrl: uploaded.url,
+        publicId: uploaded.publicId,
+        uploading: false,
+      });
+    } catch {
+      setItem(id, { uploading: false });
+    }
   }
 
   return (
@@ -69,6 +142,23 @@ export function MenuField({
       <View className="gap-2">
         {items.map((item) => (
           <View className="flex-row items-center gap-2" key={item.id}>
+            <Pressable
+              className="h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-placeholder bg-background"
+              disabled={item.uploading}
+              onPress={() => pickImage(item.id)}
+            >
+              {item.uploading ? (
+                <ActivityIndicator color={colors.muted} size="small" />
+              ) : item.imageUrl ? (
+                <Image
+                  contentFit="cover"
+                  source={{ uri: item.imageUrl }}
+                  style={{ width: "100%", height: "100%" }}
+                />
+              ) : (
+                <AppIcon color={colors.muted} icon={ImageAdd01Icon} size={20} />
+              )}
+            </Pressable>
             <TextField
               className="flex-1"
               onChangeText={(name) => setItem(item.id, { name })}
@@ -77,7 +167,7 @@ export function MenuField({
               value={item.name}
             />
             <TextField
-              className="w-28"
+              className="w-24"
               keyboardType="number-pad"
               onChangeText={(price) =>
                 setItem(item.id, { price: price.replace(/\D/g, "") })

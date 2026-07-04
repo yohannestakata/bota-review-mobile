@@ -14,7 +14,14 @@ export type SubmissionHoursEntry = {
   close: string; // "HH:MM"
 };
 
-export type SubmissionMenuItem = { name: string; price?: number };
+export type SubmissionMenuItem = {
+  name: string;
+  price?: number;
+  // A photo the submitter uploaded for this item (Cloudinary ref), attached to
+  // the menu item on approve.
+  imageUrl?: string;
+  publicId?: string;
+};
 
 export type SubmissionStructuredDetails = {
   hours?: SubmissionHoursEntry[];
