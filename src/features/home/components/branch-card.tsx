@@ -102,10 +102,22 @@ export function BranchCard({
         >
           {branch.placeName}
         </ThemedText>
-        {subtitle ? (
-          <ThemedText numberOfLines={2} size="sm" tone="muted">
-            {subtitle}
-          </ThemedText>
+        {subtitle || distance ? (
+          <View className="flex-row items-center gap-2">
+            <ThemedText
+              className="flex-1"
+              numberOfLines={1}
+              size="sm"
+              tone="muted"
+            >
+              {subtitle}
+            </ThemedText>
+            {distance ? (
+              <ThemedText size="sm" tone="muted">
+                {distance}
+              </ThemedText>
+            ) : null}
+          </View>
         ) : null}
 
         <View className="mt-0.5 flex-row items-center gap-1.5">
@@ -130,12 +142,6 @@ export function BranchCard({
             </ThemedText>
           ) : null}
         </View>
-
-        {distance ? (
-          <ThemedText className="mt-0.5" size="sm" tone="muted">
-            {distance}
-          </ThemedText>
-        ) : null}
       </View>
     </Pressable>
   );
