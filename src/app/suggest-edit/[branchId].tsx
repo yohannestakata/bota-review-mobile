@@ -14,8 +14,6 @@ import {
   ControlledTextArea,
   ControlledTextInput,
 } from "@/components/ui/form-field";
-import { ControlledPhoneInput } from "@/components/ui/phone-input";
-import { OptionalDetailsPanel } from "@/components/ui/optional-details-panel";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   useCreateBranchSubmission,
@@ -45,15 +43,6 @@ const FIELDS = [
   { value: "Duplicate", label: "Duplicate", mode: "note" },
 ] as const;
 
-const AMENITIES = [
-  "Wi-Fi",
-  "Parking",
-  "Outdoor seating",
-  "Good for work",
-  "Good for groups",
-  "Fasting options",
-] as const;
-
 const LISTING_DETAILS_FIELD = "Listing details";
 const SUBMISSION_NOTE_LIMIT = 500;
 
@@ -66,11 +55,6 @@ const suggestEditObject = z.object({
   fieldName: z.string(),
   suggestedValue: z.string(),
   note: z.string(),
-  extraHours: z.string(),
-  extraMenu: z.string(),
-  extraAddress: z.string(),
-  extraPhone: z.string(),
-  extraAmenities: z.array(z.string()),
 });
 
 type SuggestEditValues = z.infer<typeof suggestEditObject>;
@@ -80,36 +64,10 @@ const DEFAULT_VALUES: SuggestEditValues = {
   fieldName: "",
   suggestedValue: "",
   note: "",
-  extraHours: "",
-  extraMenu: "",
-  extraAddress: "",
-  extraPhone: "",
-  extraAmenities: [],
 };
 
-function extraDetailsNote(values: SuggestEditValues) {
-  const lines: string[] = [];
-  if (values.extraHours.trim())
-    lines.push(`Hours: ${values.extraHours.trim()}`);
-  if (values.extraMenu.trim())
-    lines.push(`Menu/prices: ${values.extraMenu.trim()}`);
-  if (values.extraAddress.trim()) {
-    lines.push(`Address: ${values.extraAddress.trim()}`);
-  }
-  if (values.extraPhone.trim())
-    lines.push(`Phone: ${values.extraPhone.trim()}`);
-  if (values.extraAmenities.length > 0) {
-    lines.push(`Amenities: ${values.extraAmenities.join(", ")}`);
-  }
-  return lines.length > 0
-    ? `Help complete this listing:\n${lines.join("\n")}`
-    : "";
-}
-
 function submissionNote(values: SuggestEditValues) {
-  return [values.note.trim(), extraDetailsNote(values)]
-    .filter(Boolean)
-    .join("\n\n");
+  return values.note.trim();
 }
 
 const suggestEditSchema = suggestEditObject.superRefine((values, ctx) => {
@@ -166,8 +124,6 @@ export default function SuggestEditScreen() {
   }>();
   const submit = useCreateBranchSubmission(branchId);
 
-  const [helpMore, setHelpMore] = useState(false);
-
   const { control, handleSubmit, setError, setValue, formState } =
     useForm<SuggestEditValues>({
       resolver: zodFormResolver(suggestEditSchema),
@@ -188,18 +144,9 @@ export default function SuggestEditScreen() {
   const hasPrimaryCorrection = isValueCorrection
     ? values.suggestedValue.trim().length > 0
     : values.note.trim().length > 0;
-  const hasExtraDetails =
-    values.extraHours.trim().length > 0 ||
-    values.extraMenu.trim().length > 0 ||
-    values.extraAddress.trim().length > 0 ||
-    values.extraPhone.trim().length > 0 ||
-    values.extraAmenities.length > 0;
   const canSubmit =
     !submit.isPending &&
-    (!isCorrection ||
-      (values.fieldName
-        ? hasPrimaryCorrection || hasExtraDetails
-        : hasExtraDetails));
+    (!isCorrection || (Boolean(values.fieldName) && hasPrimaryCorrection));
 
   function resetPrimaryFields() {
     setValue("suggestedValue", "");
@@ -208,21 +155,6 @@ export default function SuggestEditScreen() {
 
   function resetContributionFields() {
     resetPrimaryFields();
-    setValue("extraHours", "");
-    setValue("extraMenu", "");
-    setValue("extraAddress", "");
-    setValue("extraPhone", "");
-    setValue("extraAmenities", []);
-  }
-
-  function toggleAmenity(value: string) {
-    setValue(
-      "extraAmenities",
-      values.extraAmenities.includes(value)
-        ? values.extraAmenities.filter((item) => item !== value)
-        : [...values.extraAmenities, value],
-      { shouldValidate: true },
-    );
   }
 
   const onSubmit = handleSubmit((formValues) => {
@@ -340,65 +272,6 @@ export default function SuggestEditScreen() {
               ) : null}
             </>
           ) : null}
-
-          <OptionalDetailsPanel
-            expanded={helpMore}
-            onToggle={() => setHelpMore((value) => !value)}
-            subtitle="Add details only if they're handy."
-            title="Know a little more?"
-          >
-            <ControlledTextArea
-              control={control}
-              inputClassName="min-h-20"
-              label="Hours"
-              name="extraHours"
-              placeholder="e.g. Open until 10 most nights."
-              surface="muted"
-            />
-
-            <ControlledTextArea
-              control={control}
-              inputClassName="min-h-20"
-              label="Menu or prices"
-              name="extraMenu"
-              placeholder="e.g. Macchiato is 90 birr now."
-              surface="muted"
-            />
-
-            <View className="gap-3">
-              <ControlledTextInput
-                control={control}
-                label="Address"
-                maxLength={80}
-                name="extraAddress"
-                placeholder="Only if you know it"
-                surface="muted"
-              />
-              <ControlledPhoneInput
-                control={control}
-                label="Phone"
-                name="extraPhone"
-                surface="muted"
-              />
-            </View>
-
-            <View className="gap-2">
-              <ThemedText size="sm" weight="medium">
-                Amenities
-              </ThemedText>
-              <View className="flex-row flex-wrap gap-2">
-                {AMENITIES.map((amenity) => (
-                  <Pill
-                    key={amenity}
-                    label={amenity}
-                    onPress={() => toggleAmenity(amenity)}
-                    selected={values.extraAmenities.includes(amenity)}
-                    surface="muted"
-                  />
-                ))}
-              </View>
-            </View>
-          </OptionalDetailsPanel>
 
           {!isNoteCorrection ? (
             <ControlledTextArea
