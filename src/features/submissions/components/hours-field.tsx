@@ -5,6 +5,8 @@ import { Switch } from "@/components/ui/switch";
 import { ThemedText } from "@/components/ui/themed-text";
 import { TimeField } from "@/components/ui/time-field";
 
+import type { SubmissionHoursEntry } from "../api";
+
 const DAYS = [
   { key: "mon", short: "Mon", label: "Monday" },
   { key: "tue", short: "Tue", label: "Tuesday" },
@@ -26,34 +28,35 @@ function emptyState(): HoursState {
   }, {} as HoursState);
 }
 
-// Serializes to a compact, readable string for the submission note, e.g.
-// "Mon 09:00–18:00, Tue 09:00–18:00, Sat 10:00–14:00".
-function serialize(state: HoursState): string {
-  return DAYS.filter((day) => state[day.key].open)
-    .map((day) => `${day.short} ${state[day.key].from}–${state[day.key].to}`)
-    .join(", ");
+// Structured open-day entries for the submission (only the open days).
+function toEntries(state: HoursState): SubmissionHoursEntry[] {
+  return DAYS.filter((day) => state[day.key].open).map((day) => ({
+    day: day.key,
+    open: state[day.key].from,
+    close: state[day.key].to,
+  }));
 }
 
-// A structured opening-hours editor that writes a serialized string up to the
-// form. Used in the "report a missing place" submission form.
+// A structured opening-hours editor that emits SubmissionHoursEntry[]. Used in
+// the submission and suggest-edit forms.
 export function HoursField({
   value,
-  onChangeText,
+  onChange,
 }: {
-  value: string;
-  onChangeText: (value: string) => void;
+  value: SubmissionHoursEntry[];
+  onChange: (value: SubmissionHoursEntry[]) => void;
 }) {
   const [state, setState] = useState<HoursState>(emptyState);
 
   // Reset internal state when the form clears the field (e.g. after submit).
   useEffect(() => {
-    if (value === "") setState(emptyState());
+    if (value.length === 0) setState(emptyState());
   }, [value]);
 
   function update(key: DayKey, patch: Partial<DayState>) {
     setState((prev) => {
       const next = { ...prev, [key]: { ...prev[key], ...patch } };
-      onChangeText(serialize(next));
+      onChange(toEntries(next));
       return next;
     });
   }

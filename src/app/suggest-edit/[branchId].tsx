@@ -58,6 +58,14 @@ const suggestEditObject = z.object({
   fieldName: z.string(),
   suggestedValue: z.string(),
   note: z.string(),
+  hours: z.array(
+    z.object({
+      day: z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
+      open: z.string(),
+      close: z.string(),
+    }),
+  ),
+  menu: z.array(z.object({ name: z.string(), price: z.number().optional() })),
 });
 
 type SuggestEditValues = z.infer<typeof suggestEditObject>;
@@ -67,6 +75,8 @@ const DEFAULT_VALUES: SuggestEditValues = {
   fieldName: "",
   suggestedValue: "",
   note: "",
+  hours: [],
+  menu: [],
 };
 
 function submissionNote(values: SuggestEditValues) {
@@ -143,10 +153,16 @@ export default function SuggestEditScreen() {
   );
   const isValueCorrection = isCorrection && selectedField?.mode === "value";
   const isNoteCorrection = isCorrection && selectedField?.mode === "note";
+  const isHoursField = selectedField?.value === "Hours";
+  const isMenuField = selectedField?.value === "Menu/prices";
 
   const hasPrimaryCorrection = isValueCorrection
     ? values.suggestedValue.trim().length > 0
-    : values.note.trim().length > 0;
+    : isHoursField
+      ? values.hours.length > 0
+      : isMenuField
+        ? values.menu.length > 0
+        : values.note.trim().length > 0;
   const canSubmit =
     !submit.isPending &&
     (!isCorrection || (Boolean(values.fieldName) && hasPrimaryCorrection));
@@ -154,6 +170,8 @@ export default function SuggestEditScreen() {
   function resetPrimaryFields() {
     setValue("suggestedValue", "");
     setValue("note", "");
+    setValue("hours", []);
+    setValue("menu", []);
   }
 
   function resetContributionFields() {
@@ -166,6 +184,13 @@ export default function SuggestEditScreen() {
       : "";
     const noteValue = submissionNote(formValues);
 
+    const structuredDetails =
+      formValues.fieldName === "Hours" && formValues.hours.length
+        ? { hours: formValues.hours }
+        : formValues.fieldName === "Menu/prices" && formValues.menu.length
+          ? { menu: formValues.menu }
+          : undefined;
+
     const body: BranchSubmissionBody =
       formValues.kind === "field_correction"
         ? {
@@ -173,6 +198,7 @@ export default function SuggestEditScreen() {
             fieldName: formValues.fieldName || LISTING_DETAILS_FIELD,
             ...(correctionValue ? { suggestedValue: correctionValue } : {}),
             ...(noteValue ? { note: noteValue } : {}),
+            ...(structuredDetails ? { details: structuredDetails } : {}),
           }
         : { type: formValues.kind, ...(noteValue ? { note: noteValue } : {}) };
 
@@ -276,22 +302,22 @@ export default function SuggestEditScreen() {
                 selectedField?.value === "Hours" ? (
                   <Controller
                     control={control}
-                    name="note"
+                    name="hours"
                     render={({ field }) => (
                       <HoursField
-                        onChangeText={field.onChange}
-                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                        value={field.value ?? []}
                       />
                     )}
                   />
                 ) : selectedField?.value === "Menu/prices" ? (
                   <Controller
                     control={control}
-                    name="note"
+                    name="menu"
                     render={({ field }) => (
                       <MenuField
-                        onChangeText={field.onChange}
-                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                        value={field.value ?? []}
                       />
                     )}
                   />

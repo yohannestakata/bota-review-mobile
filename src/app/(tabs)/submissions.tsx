@@ -33,7 +33,7 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Something went wrong";
 }
 
-const AMENITIES = [
+const HELPFUL_DETAILS = [
   "Wi-Fi",
   "Parking",
   "Outdoor seating",
@@ -42,17 +42,21 @@ const AMENITIES = [
   "Fasting options",
 ] as const;
 
-const SUBMISSION_NOTE_LIMIT = 500;
-
 const submissionSchema = z.object({
   placeName: z.string().trim().min(1, "Place name is required"),
   neighborhood: z.string().trim().optional(),
   description: z.string().trim().optional(),
   contactPhone: z.string().trim().optional(),
   contactEmail: optionalEmailField,
-  hours: z.string().trim().optional(),
-  menu: z.string().trim().optional(),
-  amenities: z.array(z.string()),
+  hours: z.array(
+    z.object({
+      day: z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
+      open: z.string(),
+      close: z.string(),
+    }),
+  ),
+  menu: z.array(z.object({ name: z.string(), price: z.number().optional() })),
+  helpfulDetails: z.array(z.string()),
 });
 
 type SubmissionValues = z.infer<typeof submissionSchema>;
@@ -63,23 +67,10 @@ const DEFAULT_VALUES: SubmissionValues = {
   description: "",
   contactPhone: "",
   contactEmail: "",
-  hours: "",
-  menu: "",
-  amenities: [],
+  hours: [],
+  menu: [],
+  helpfulDetails: [],
 };
-
-function extraDetailsNote(values: SubmissionValues) {
-  const lines: string[] = [];
-  if (values.hours?.trim()) lines.push(`Hours: ${values.hours.trim()}`);
-  if (values.menu?.trim()) lines.push(`Menu/prices: ${values.menu.trim()}`);
-  if (values.amenities.length > 0) {
-    lines.push(`Amenities: ${values.amenities.join(", ")}`);
-  }
-
-  return lines.length > 0
-    ? `Help complete this missing place:\n${lines.join("\n")}`
-    : "";
-}
 
 function Pill({
   label,
@@ -133,18 +124,13 @@ export default function SubmissionsScreen() {
     if (values.description) details.description = values.description;
     if (values.contactPhone) details.contactPhone = values.contactPhone;
     if (values.contactEmail) details.contactEmail = values.contactEmail;
-
-    const note = extraDetailsNote(values);
-    if (note.length > SUBMISSION_NOTE_LIMIT) {
-      setError("root", {
-        message: "Keep optional details under 500 characters total.",
-      });
-      return;
-    }
+    if (values.hours.length) details.hours = values.hours;
+    if (values.menu.length) details.menu = values.menu;
+    if (values.helpfulDetails.length) details.amenities = values.helpfulDetails;
 
     return new Promise<void>((resolve) => {
       report.mutate(
-        { details, ...(note ? { note } : {}) },
+        { details },
         {
           onSuccess: () => {
             reset(DEFAULT_VALUES);
@@ -233,81 +219,78 @@ export default function SubmissionsScreen() {
                 control={control}
                 inputClassName="min-h-28"
                 label="What is it like?"
-              maxLength={500}
-              name="description"
-              placeholder="What kind of place is it? What's good there?"
-              surface="muted"
-            />
-
-            <Controller
-              control={control}
-              name="hours"
-              render={({ field }) => (
-                <HoursField
-                  onChangeText={field.onChange}
-                  value={field.value ?? ""}
-                />
-              )}
-            />
-
-            <Controller
-              control={control}
-              name="menu"
-              render={({ field }) => (
-                <MenuField
-                  onChangeText={field.onChange}
-                  value={field.value ?? ""}
-                />
-              )}
-            />
-
-            <View className="gap-3">
-              <ControlledPhoneInput
-                control={control}
-                label="Contact phone"
-                name="contactPhone"
+                maxLength={500}
+                name="description"
+                placeholder="What kind of place is it? What's good there?"
                 surface="muted"
               />
-              <ControlledTextInput
-                autoCapitalize="none"
-                autoComplete="email"
-                control={control}
-                keyboardType="email-address"
-                label="Contact email"
-                name="contactEmail"
-                placeholder="Their email, if you know it"
-                surface="muted"
-              />
-            </View>
 
-            <View className="gap-2">
-              <ThemedText size="sm" weight="medium">
-                Amenities
-              </ThemedText>
               <Controller
                 control={control}
-                name="amenities"
+                name="hours"
                 render={({ field }) => (
-                  <View className="flex-row flex-wrap gap-2">
-                    {AMENITIES.map((amenity) => (
-                      <Pill
-                        key={amenity}
-                        label={amenity}
-                        onPress={() =>
-                          field.onChange(
-                            field.value.includes(amenity)
-                              ? field.value.filter((item) => item !== amenity)
-                              : [...field.value, amenity],
-                          )
-                        }
-                        selected={field.value.includes(amenity)}
-                        surface="muted"
-                      />
-                    ))}
-                  </View>
+                  <HoursField
+                    onChange={field.onChange}
+                    value={field.value ?? []}
+                  />
                 )}
               />
-            </View>
+
+              <Controller
+                control={control}
+                name="menu"
+                render={({ field }) => (
+                  <MenuField onChange={field.onChange} value={field.value ?? []} />
+                )}
+              />
+
+              <View className="gap-3">
+                <ControlledPhoneInput
+                  control={control}
+                  label="Contact phone"
+                  name="contactPhone"
+                  surface="muted"
+                />
+                <ControlledTextInput
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  control={control}
+                  keyboardType="email-address"
+                  label="Contact email"
+                  name="contactEmail"
+                  placeholder="Their email, if you know it"
+                  surface="muted"
+                />
+              </View>
+
+              <View className="gap-2">
+                <ThemedText size="sm" weight="medium">
+                  Helpful details
+                </ThemedText>
+                <Controller
+                  control={control}
+                  name="helpfulDetails"
+                  render={({ field }) => (
+                    <View className="flex-row flex-wrap gap-2">
+                      {HELPFUL_DETAILS.map((detail) => (
+                        <Pill
+                          key={detail}
+                          label={detail}
+                          onPress={() =>
+                            field.onChange(
+                              field.value.includes(detail)
+                                ? field.value.filter((item) => item !== detail)
+                                : [...field.value, detail],
+                            )
+                          }
+                          selected={field.value.includes(detail)}
+                          surface="muted"
+                        />
+                      ))}
+                    </View>
+                  )}
+                />
+              </View>
             </View>
           ) : null}
 

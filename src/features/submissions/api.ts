@@ -1,11 +1,27 @@
 import { apiFetch, type TokenGetter } from "@/lib/api";
 
+export type SubmissionHoursEntry = {
+  day: "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+  open: string; // "HH:MM"
+  close: string; // "HH:MM"
+};
+
+export type SubmissionMenuItem = { name: string; price?: number };
+
+export type SubmissionStructuredDetails = {
+  hours?: SubmissionHoursEntry[];
+  menu?: SubmissionMenuItem[];
+};
+
 export type PlaceMissingDetails = {
   placeName: string;
   neighborhood?: string;
   description?: string;
   contactPhone?: string;
   contactEmail?: string;
+  hours?: SubmissionHoursEntry[];
+  menu?: SubmissionMenuItem[];
+  amenities?: string[];
 };
 
 export function reportMissingPlace(
@@ -30,6 +46,7 @@ export type BranchSubmissionBody =
       currentValue?: string;
       suggestedValue?: string;
       note?: string;
+      details?: SubmissionStructuredDetails;
     }
   | { type: "temporarily_closed"; note?: string }
   | { type: "permanently_closed"; note?: string };

@@ -7,28 +7,30 @@ import { TextField } from "@/components/ui/text-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { colors } from "@/lib/theme";
 
+import type { SubmissionMenuItem } from "../api";
+
 type Item = { id: string; name: string; price: string };
 
-// Serializes filled items to a readable string for the submission note, e.g.
-// "Macchiato — 90 Br, Burger — 250 Br".
-function serialize(items: Item[]): string {
+// Structured items for the submission (only rows with a name).
+function toItems(items: Item[]): SubmissionMenuItem[] {
   return items
     .filter((item) => item.name.trim())
     .map((item) => {
       const price = item.price.trim();
-      return price ? `${item.name.trim()} — ${price} Br` : item.name.trim();
-    })
-    .join(", ");
+      return price
+        ? { name: item.name.trim(), price: Number(price) }
+        : { name: item.name.trim() };
+    });
 }
 
 // Structured "menu or prices" editor: rows of item name + price you can add and
-// remove, instead of a single free-text box.
+// remove. Emits SubmissionMenuItem[].
 export function MenuField({
   value,
-  onChangeText,
+  onChange,
 }: {
-  value: string;
-  onChangeText: (value: string) => void;
+  value: SubmissionMenuItem[];
+  onChange: (value: SubmissionMenuItem[]) => void;
 }) {
   const idRef = useRef(1);
   const makeItem = (): Item => ({
@@ -40,13 +42,13 @@ export function MenuField({
 
   // Reset when the form clears the field (e.g. after submit).
   useEffect(() => {
-    if (value === "") setItems([makeItem()]);
+    if (value.length === 0) setItems([makeItem()]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   function apply(next: Item[]) {
     setItems(next);
-    onChangeText(serialize(next));
+    onChange(toItems(next));
   }
 
   function setItem(id: string, patch: Partial<Item>) {
