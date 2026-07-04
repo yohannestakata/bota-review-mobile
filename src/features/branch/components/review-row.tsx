@@ -16,7 +16,7 @@ import { PhotoViewer } from "./photo-viewer";
 const COLLAPSED_LINES = 4;
 const REPLY_PREVIEW_COUNT = 2;
 export const REPLY_AVATAR_SIZE = 28;
-export const REPLY_NAME_SIZE = "sm" as const;
+export const REPLY_NAME_SIZE = "md" as const;
 
 export function CollapsibleReviewText({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
@@ -135,7 +135,7 @@ function ReplyItem({
         ) : null}
       </View>
 
-      <ThemedText size="sm" tone="muted">
+      <ThemedText size="md" tone="muted">
         {reply.body}
       </ThemedText>
     </View>
