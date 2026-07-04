@@ -1,7 +1,7 @@
 import { zodFormResolver } from "@/lib/zod-resolver";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { Pressable, ScrollView, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,6 +17,8 @@ import {
 import { ControlledPhoneInput } from "@/components/ui/phone-input";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
+  HoursField,
+  MenuField,
   useCreateBranchSubmission,
   type BranchSubmissionBody,
 } from "@/features/submissions";
@@ -271,13 +273,37 @@ export default function SuggestEditScreen() {
               ) : null}
 
               {isNoteCorrection ? (
-                <ControlledTextArea
-                  control={control}
-                  inputClassName="min-h-28"
-                  label="What should we know?"
-                  name="note"
-                  placeholder="Tell us what needs attention."
-                />
+                selectedField?.value === "Hours" ? (
+                  <Controller
+                    control={control}
+                    name="note"
+                    render={({ field }) => (
+                      <HoursField
+                        onChangeText={field.onChange}
+                        value={field.value ?? ""}
+                      />
+                    )}
+                  />
+                ) : selectedField?.value === "Menu/prices" ? (
+                  <Controller
+                    control={control}
+                    name="note"
+                    render={({ field }) => (
+                      <MenuField
+                        onChangeText={field.onChange}
+                        value={field.value ?? ""}
+                      />
+                    )}
+                  />
+                ) : (
+                  <ControlledTextArea
+                    control={control}
+                    inputClassName="min-h-28"
+                    label="What should we know?"
+                    name="note"
+                    placeholder="Tell us what needs attention."
+                  />
+                )
               ) : null}
             </>
           ) : null}
