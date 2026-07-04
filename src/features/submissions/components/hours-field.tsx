@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { TextInput, View } from "react-native";
+import { View } from "react-native";
 
 import { Switch } from "@/components/ui/switch";
 import { ThemedText } from "@/components/ui/themed-text";
-import { colors } from "@/lib/theme";
+import { TimeField } from "@/components/ui/time-field";
 
 const DAYS = [
   { key: "mon", short: "Mon", label: "Monday" },
@@ -32,26 +32,6 @@ function serialize(state: HoursState): string {
   return DAYS.filter((day) => state[day.key].open)
     .map((day) => `${day.short} ${state[day.key].from}–${state[day.key].to}`)
     .join(", ");
-}
-
-function TimeInput({
-  value,
-  onChangeText,
-}: {
-  value: string;
-  onChangeText: (value: string) => void;
-}) {
-  return (
-    <TextInput
-      className="h-10 w-20 rounded-xl border border-placeholder bg-surface px-3 text-center font-outfit text-sm text-foreground"
-      keyboardType="numbers-and-punctuation"
-      maxLength={5}
-      onChangeText={onChangeText}
-      placeholder="09:00"
-      placeholderTextColor={colors.muted}
-      value={value}
-    />
-  );
 }
 
 // A structured opening-hours editor that writes a serialized string up to the
@@ -100,13 +80,13 @@ export function HoursField({
               </View>
               {state_.open ? (
                 <View className="mt-3 flex-row items-center gap-2">
-                  <TimeInput
-                    onChangeText={(from) => update(day.key, { from })}
+                  <TimeField
+                    onChange={(from) => update(day.key, { from })}
                     value={state_.from}
                   />
                   <ThemedText tone="muted">–</ThemedText>
-                  <TimeInput
-                    onChangeText={(to) => update(day.key, { to })}
+                  <TimeField
+                    onChange={(to) => update(day.key, { to })}
                     value={state_.to}
                   />
                 </View>

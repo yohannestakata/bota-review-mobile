@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
-  TextInput,
   View,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
@@ -23,6 +22,7 @@ import { ControlledTextInput } from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { Switch } from "@/components/ui/switch";
 import { ThemedText } from "@/components/ui/themed-text";
+import { TimeField } from "@/components/ui/time-field";
 import {
   uploadOwnerPhoto,
   useBranch,
@@ -224,29 +224,21 @@ export default function ManageListingScreen() {
                     </View>
                     {state.isOpen ? (
                       <View className="mt-3 flex-row items-center gap-3">
-                        <View className="flex-1">
-                          <ThemedText className="mb-1" size="xs" tone="muted">
+                        <View className="flex-1 gap-1">
+                          <ThemedText size="xs" tone="muted">
                             Opens
                           </ThemedText>
-                          <TextInput
-                            className="h-10 rounded-xl border border-placeholder bg-background px-3 font-outfit text-sm text-foreground"
-                            maxLength={5}
-                            onChangeText={(v) => setDay(day, { from: v })}
-                            placeholder="09:00"
-                            placeholderTextColor={colors.muted}
+                          <TimeField
+                            onChange={(v) => setDay(day, { from: v })}
                             value={state.from}
                           />
                         </View>
-                        <View className="flex-1">
-                          <ThemedText className="mb-1" size="xs" tone="muted">
+                        <View className="flex-1 gap-1">
+                          <ThemedText size="xs" tone="muted">
                             Closes
                           </ThemedText>
-                          <TextInput
-                            className="h-10 rounded-xl border border-placeholder bg-background px-3 font-outfit text-sm text-foreground"
-                            maxLength={5}
-                            onChangeText={(v) => setDay(day, { to: v })}
-                            placeholder="22:00"
-                            placeholderTextColor={colors.muted}
+                          <TimeField
+                            onChange={(v) => setDay(day, { to: v })}
                             value={state.to}
                           />
                         </View>
