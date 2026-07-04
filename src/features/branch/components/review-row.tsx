@@ -15,6 +15,8 @@ import { PhotoViewer } from "./photo-viewer";
 
 const COLLAPSED_LINES = 4;
 const REPLY_PREVIEW_COUNT = 2;
+export const REPLY_AVATAR_SIZE = 28;
+export const REPLY_NAME_SIZE = "sm" as const;
 
 export function CollapsibleReviewText({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
@@ -105,13 +107,13 @@ function ReplyItem({
       <View className="flex-row items-start gap-2.5">
         <Avatar
           name={isOwner ? businessName : reply.user.displayName}
-          size={28}
+          size={REPLY_AVATAR_SIZE}
           uri={isOwner ? undefined : reply.user.avatarUrl}
         />
         <View className="flex-1">
           <ThemedText
             numberOfLines={1}
-            size="sm"
+            size={REPLY_NAME_SIZE}
             tone={isOwner ? "brand" : "default"}
             weight={isOwner ? "semibold" : "medium"}
           >

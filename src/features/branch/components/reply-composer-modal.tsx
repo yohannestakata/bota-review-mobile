@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 import { colors } from "@/lib/theme";
 
+import { REPLY_AVATAR_SIZE, REPLY_NAME_SIZE } from "./review-row";
+
 export type ReplyTarget = {
   reviewId: string;
   replyId?: string;
@@ -94,13 +96,17 @@ function ReplyComposerContent({
                 <View className="items-center">
                   <Avatar
                     name={target.reviewAuthorName ?? "Original review"}
-                    size={28}
+                    size={REPLY_AVATAR_SIZE}
                     uri={target.reviewAuthorAvatarUrl}
                   />
                   <View className="mt-2 w-px flex-1 bg-placeholder" />
                 </View>
                 <View className="flex-1 gap-1 pb-1">
-                  <ThemedText size="sm" weight="medium">
+                  <ThemedText
+                    className="leading-5"
+                    size={REPLY_NAME_SIZE}
+                    weight="medium"
+                  >
                     {target.reviewAuthorName ?? "Original review"}
                   </ThemedText>
                   <ThemedText numberOfLines={3} size="sm" tone="muted">
@@ -112,9 +118,17 @@ function ReplyComposerContent({
 
             {/* You, the replier. */}
             <View className="flex-row gap-2.5">
-              <Avatar name={meName} size={28} uri={user?.imageUrl} />
+              <Avatar
+                name={meName}
+                size={REPLY_AVATAR_SIZE}
+                uri={user?.imageUrl}
+              />
               <View className="flex-1">
-                <ThemedText size="sm" weight="medium">
+                <ThemedText
+                  className="leading-5"
+                  size={REPLY_NAME_SIZE}
+                  weight="medium"
+                >
                   {meName}
                 </ThemedText>
               </View>
