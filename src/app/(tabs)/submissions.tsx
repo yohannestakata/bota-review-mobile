@@ -21,6 +21,7 @@ import { ThemedText } from "@/components/ui/themed-text";
 import { colors } from "@/lib/theme";
 import {
   HoursField,
+  MenuField,
   NeighborhoodField,
   useReportMissingPlace,
   type PlaceMissingDetails,
@@ -249,13 +250,15 @@ export default function SubmissionsScreen() {
               )}
             />
 
-            <ControlledTextArea
+            <Controller
               control={control}
-              inputClassName="min-h-20"
-              label="Menu or prices"
               name="menu"
-              placeholder="e.g. Great breakfast, juice is around 120 birr."
-              surface="muted"
+              render={({ field }) => (
+                <MenuField
+                  onChangeText={field.onChange}
+                  value={field.value ?? ""}
+                />
+              )}
             />
 
             <View className="gap-3">
