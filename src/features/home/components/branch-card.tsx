@@ -44,6 +44,8 @@ export function BranchCard({
         ? `${Math.round(branch.distanceKm * 1000)} m`
         : `${branch.distanceKm.toFixed(1)} km`
       : null;
+  // Area · distance on one line, e.g. "Piassa · 1.2 km".
+  const locationLine = [subtitle, distance].filter(Boolean).join(" · ");
 
   const imageClass =
     layout === "portrait"
@@ -102,22 +104,10 @@ export function BranchCard({
         >
           {branch.placeName}
         </ThemedText>
-        {subtitle || distance ? (
-          <View className="flex-row items-center gap-2">
-            <ThemedText
-              className="flex-1"
-              numberOfLines={1}
-              size="sm"
-              tone="muted"
-            >
-              {subtitle}
-            </ThemedText>
-            {distance ? (
-              <ThemedText size="sm" tone="muted">
-                {distance}
-              </ThemedText>
-            ) : null}
-          </View>
+        {locationLine ? (
+          <ThemedText numberOfLines={1} size="sm" tone="muted">
+            {locationLine}
+          </ThemedText>
         ) : null}
 
         <View className="mt-0.5 flex-row items-center gap-1.5">
