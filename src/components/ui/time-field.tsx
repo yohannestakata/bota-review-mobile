@@ -1,9 +1,17 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState } from "react";
-import { Modal, Platform, Pressable, View } from "react-native";
+import { Modal, Platform, Pressable, StyleSheet, View } from "react-native";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  SlideInDown,
+  SlideOutDown,
+} from "react-native-reanimated";
 
 import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
+
+const EXIT_MS = 220;
 
 function parseTime(value: string): Date {
   const [h, m] = value.split(":").map(Number);
@@ -18,10 +26,9 @@ function formatTime(date: Date): string {
   return `${h}:${m}`;
 }
 
-// A "HH:MM" time value edited via the native time picker. On Android the picker
-// pops as a native dialog; on iOS we present the wheel in a slide-up modal so
-// tapping the field opens a picker immediately (iOS' inline "compact" picker
-// otherwise renders beside the field).
+// A "HH:MM" time value edited via the native time picker. Android pops the
+// native dialog; iOS presents the wheel in a bottom sheet whose overlay fades
+// while the sheet slides (driven by Reanimated, not the Modal's slide anim).
 export function TimeField({
   value,
   onChange,
@@ -29,61 +36,80 @@ export function TimeField({
   value: string;
   onChange: (value: string) => void;
 }) {
-  const [show, setShow] = useState(false);
+  const [androidShow, setAndroidShow] = useState(false);
+  const [iosOpen, setIosOpen] = useState(false); // Modal mounted
+  const [iosContent, setIosContent] = useState(false); // sheet/overlay rendered
   const [draft, setDraft] = useState<Date>(() => parseTime(value));
-
-  function open() {
-    setDraft(parseTime(value));
-    setShow(true);
-  }
 
   const field = (
     <Pressable
       className="h-10 justify-center rounded-xl border border-placeholder bg-surface px-4"
-      onPress={open}
+      onPress={() => {
+        setDraft(parseTime(value));
+        if (Platform.OS === "ios") {
+          setIosOpen(true);
+          setIosContent(true);
+        } else {
+          setAndroidShow(true);
+        }
+      }}
     >
       <ThemedText size="sm">{value}</ThemedText>
     </Pressable>
   );
 
   if (Platform.OS === "ios") {
+    // Unmount the sheet first (plays exit animations), then close the Modal.
+    function dismiss() {
+      setIosContent(false);
+      setTimeout(() => setIosOpen(false), EXIT_MS);
+    }
+
     return (
       <>
         {field}
         <Modal
-          animationType="slide"
-          onRequestClose={() => setShow(false)}
+          animationType="none"
+          onRequestClose={dismiss}
           transparent
-          visible={show}
+          visible={iosOpen}
         >
-          <Pressable
-            className="flex-1 justify-end bg-black/40"
-            onPress={() => setShow(false)}
-          >
-            <Pressable
-              className="gap-2 rounded-t-3xl bg-surface px-5 pb-8 pt-3"
-              onPress={(event) => event.stopPropagation()}
-            >
-              <View className="items-center">
-                <DateTimePicker
-                  display="spinner"
-                  mode="time"
-                  onChange={(_event, date) => {
-                    if (date) setDraft(date);
-                  }}
-                  style={{ alignSelf: "center" }}
-                  value={draft}
-                />
-              </View>
-              <Button
-                label="Done"
-                onPress={() => {
-                  onChange(formatTime(draft));
-                  setShow(false);
-                }}
-              />
-            </Pressable>
-          </Pressable>
+          {iosContent ? (
+            <View className="flex-1 justify-end">
+              <Animated.View
+                entering={FadeIn.duration(EXIT_MS)}
+                exiting={FadeOut.duration(EXIT_MS)}
+                style={StyleSheet.absoluteFill}
+              >
+                <Pressable className="flex-1 bg-black/40" onPress={dismiss} />
+              </Animated.View>
+              <Animated.View
+                entering={SlideInDown.duration(EXIT_MS)}
+                exiting={SlideOutDown.duration(EXIT_MS)}
+              >
+                <View className="gap-2 rounded-t-3xl bg-surface px-5 pb-8 pt-3">
+                  <View className="items-center">
+                    <DateTimePicker
+                      display="spinner"
+                      mode="time"
+                      onChange={(_event, date) => {
+                        if (date) setDraft(date);
+                      }}
+                      style={{ alignSelf: "center" }}
+                      value={draft}
+                    />
+                  </View>
+                  <Button
+                    label="Done"
+                    onPress={() => {
+                      onChange(formatTime(draft));
+                      dismiss();
+                    }}
+                  />
+                </View>
+              </Animated.View>
+            </View>
+          ) : null}
         </Modal>
       </>
     );
@@ -92,11 +118,11 @@ export function TimeField({
   return (
     <>
       {field}
-      {show ? (
+      {androidShow ? (
         <DateTimePicker
           mode="time"
           onChange={(event, date) => {
-            setShow(false);
+            setAndroidShow(false);
             if (event.type === "set" && date) onChange(formatTime(date));
           }}
           value={parseTime(value)}
