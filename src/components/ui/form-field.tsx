@@ -24,6 +24,20 @@ type BaseFieldProps = NativeTextInputProps & {
   surface?: "default" | "muted";
 };
 
+// Shared input styling so every field (form inputs, menu rows, etc.) looks
+// identical. Reuse this instead of hand-writing the classes.
+export function fieldInputClass(opts?: {
+  surface?: "default" | "muted";
+  error?: boolean;
+}): string {
+  const { surface = "default", error } = opts ?? {};
+  return cn(
+    "h-14 rounded-xl border px-4 py-0 font-outfit text-md text-foreground",
+    surface === "muted" ? "bg-background" : "bg-surface",
+    error ? "border-danger" : "border-placeholder",
+  );
+}
+
 function FieldError({ error }: { error?: string }) {
   if (!error) {
     return null;
@@ -56,10 +70,8 @@ export function FormTextInput({
       <View className="relative mt-2">
         <TextInput
           className={cn(
-            "h-14 rounded-xl border bg-surface px-4 py-0 font-outfit text-md text-foreground",
+            fieldInputClass({ surface, error: Boolean(error) }),
             secureTextEntry && "pr-14",
-            surface === "muted" && "bg-background",
-            error ? "border-danger" : "border-placeholder",
             inputClassName,
           )}
           placeholderTextColor={placeholderTextColor}

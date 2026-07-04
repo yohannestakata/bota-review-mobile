@@ -2,8 +2,10 @@ import { Add01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { useEffect, useRef, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 
+import { fieldInputClass } from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
+import { cn } from "@/lib/cn";
 import { colors } from "@/lib/theme";
 
 type Item = { id: string; name: string; price: string };
@@ -67,13 +69,18 @@ export function MenuField({
         {items.map((item) => (
           <View className="flex-row items-center gap-2" key={item.id}>
             <TextInput
-              className="h-11 flex-1 rounded-xl border border-placeholder bg-background px-3 font-outfit text-md text-foreground"
+              className={cn("flex-1", fieldInputClass({ surface: "muted" }))}
               onChangeText={(name) => setItem(item.id, { name })}
               placeholder="Item, e.g. Macchiato"
               placeholderTextColor={colors.muted}
               value={item.name}
             />
-            <View className="h-11 w-24 flex-row items-center rounded-xl border border-placeholder bg-background px-3">
+            <View
+              className={cn(
+                "w-28 flex-row items-center gap-1",
+                fieldInputClass({ surface: "muted" }),
+              )}
+            >
               <TextInput
                 className="flex-1 py-0 font-outfit text-md text-foreground"
                 keyboardType="number-pad"
