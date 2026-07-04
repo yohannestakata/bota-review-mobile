@@ -33,10 +33,7 @@ export function useReplyActions(branchId: string) {
       });
       setTarget(null);
       if (result.moderationStatus !== "approved") {
-        Alert.alert(
-          "Reply submitted",
-          "You can see it now. Others will see it once it's approved.",
-        );
+        Alert.alert("Reply posted", "Your reply is live.");
       }
     } catch (error) {
       Alert.alert("Couldn't post reply", getErrorMessage(error));
