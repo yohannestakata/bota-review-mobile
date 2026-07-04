@@ -117,7 +117,7 @@ function ReplyComposerContent({
             ) : null}
 
             {/* You, the replier. */}
-            <View className="flex-row gap-2.5">
+            <View className="flex-row items-center gap-2.5">
               <Avatar
                 name={meName}
                 size={REPLY_AVATAR_SIZE}
