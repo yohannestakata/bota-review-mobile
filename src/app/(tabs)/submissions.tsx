@@ -2,7 +2,7 @@ import { ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
 import { useAuth } from "@clerk/clerk-expo";
 import { zodFormResolver } from "@/lib/zod-resolver";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { Pressable, ScrollView, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -22,9 +22,14 @@ import { colors } from "@/lib/theme";
 import {
   HoursField,
   MenuField,
+  LocationPinField,
   NeighborhoodField,
+  PhotoField,
+  PlaceNameField,
   useAmenities,
+  useCuisines,
   useReportMissingPlace,
+  useTags,
   type PlaceMissingDetails,
 } from "@/features/submissions";
 import { cn } from "@/lib/cn";
@@ -36,10 +41,12 @@ function getErrorMessage(error: unknown) {
 
 const submissionSchema = z.object({
   placeName: z.string().trim().min(1, "Place name is required"),
+  existingPlaceId: z.string().optional(),
   neighborhood: z.string().trim().optional(),
   description: z.string().trim().optional(),
   contactPhone: z.string().trim().optional(),
   contactEmail: optionalEmailField,
+  type: z.enum(["restaurant", "cafe", "bakery", "bar"]).optional(),
   hours: z.array(
     z.object({
       day: z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
@@ -48,19 +55,44 @@ const submissionSchema = z.object({
     }),
   ),
   menu: z.array(z.object({ name: z.string(), price: z.number().optional() })),
+  cuisines: z.array(z.string()),
+  tags: z.array(z.string()),
+  coords: z.object({ lat: z.number(), lng: z.number() }).nullable(),
+  photos: z.array(
+    z.object({
+      publicId: z.string(),
+      url: z.string(),
+      width: z.number(),
+      height: z.number(),
+    }),
+  ),
   helpfulDetails: z.array(z.string()),
 });
+
+const PLACE_TYPES: { value: "restaurant" | "cafe" | "bakery" | "bar"; label: string }[] =
+  [
+    { value: "restaurant", label: "Restaurant" },
+    { value: "cafe", label: "Café" },
+    { value: "bakery", label: "Bakery" },
+    { value: "bar", label: "Bar" },
+  ];
 
 type SubmissionValues = z.infer<typeof submissionSchema>;
 
 const DEFAULT_VALUES: SubmissionValues = {
   placeName: "",
+  existingPlaceId: "",
   neighborhood: "",
   description: "",
   contactPhone: "",
   contactEmail: "",
+  type: undefined,
   hours: [],
   menu: [],
+  cuisines: [],
+  tags: [],
+  coords: null,
+  photos: [],
   helpfulDetails: [],
 };
 
@@ -101,24 +133,38 @@ export default function SubmissionsScreen() {
   const { isSignedIn } = useAuth();
   const report = useReportMissingPlace();
   const amenities = useAmenities();
+  const cuisines = useCuisines();
+  const tags = useTags();
 
   const [helpMore, setHelpMore] = useState(false);
 
-  const { control, handleSubmit, reset, setError, formState } =
+  const { control, handleSubmit, reset, setError, setValue, formState } =
     useForm<SubmissionValues>({
       resolver: zodFormResolver(submissionSchema),
       mode: "onChange",
       defaultValues: DEFAULT_VALUES,
     });
 
+  const existingPlaceId = useWatch({ control, name: "existingPlaceId" });
+
   const onSubmit = handleSubmit((values) => {
     const details: PlaceMissingDetails = { placeName: values.placeName };
+    if (values.existingPlaceId)
+      details.existingPlaceId = values.existingPlaceId;
     if (values.neighborhood) details.neighborhood = values.neighborhood;
     if (values.description) details.description = values.description;
     if (values.contactPhone) details.contactPhone = values.contactPhone;
     if (values.contactEmail) details.contactEmail = values.contactEmail;
+    if (values.type) details.type = values.type;
     if (values.hours.length) details.hours = values.hours;
     if (values.menu.length) details.menu = values.menu;
+    if (values.cuisines.length) details.cuisines = values.cuisines;
+    if (values.tags.length) details.tags = values.tags;
+    if (values.coords) {
+      details.latitude = values.coords.lat;
+      details.longitude = values.coords.lng;
+    }
+    if (values.photos.length) details.photos = values.photos;
     if (values.helpfulDetails.length) details.amenities = values.helpfulDetails;
 
     return new Promise<void>((resolve) => {
@@ -169,12 +215,29 @@ export default function SubmissionsScreen() {
           contentContainerClassName="gap-4 px-6 pt-4"
           keyboardShouldPersistTaps="handled"
         >
-          <ControlledTextInput
-            autoCapitalize="words"
+          <Controller
             control={control}
-            label="Place name *"
             name="placeName"
-            placeholder="e.g. Tomoca Coffee"
+            render={({ field, fieldState }) => (
+              <PlaceNameField
+                error={fieldState.error?.message}
+                existingPlaceId={existingPlaceId || undefined}
+                name={field.value}
+                onChangeName={field.onChange}
+                onSelectPlace={(place) => {
+                  if (place) {
+                    setValue("placeName", place.name, {
+                      shouldValidate: true,
+                    });
+                    setValue("existingPlaceId", place.id, {
+                      shouldValidate: true,
+                    });
+                  } else {
+                    setValue("existingPlaceId", "", { shouldValidate: true });
+                  }
+                }}
+              />
+            )}
           />
           <Controller
             control={control}
@@ -218,6 +281,68 @@ export default function SubmissionsScreen() {
                 surface="muted"
               />
 
+              <View className="gap-2">
+                <ThemedText size="sm" weight="medium">
+                  What kind of place?
+                </ThemedText>
+                <Controller
+                  control={control}
+                  name="type"
+                  render={({ field }) => (
+                    <View className="flex-row flex-wrap gap-2">
+                      {PLACE_TYPES.map((option) => (
+                        <Pill
+                          key={option.value}
+                          label={option.label}
+                          onPress={() =>
+                            field.onChange(
+                              field.value === option.value
+                                ? undefined
+                                : option.value,
+                            )
+                          }
+                          selected={field.value === option.value}
+                          surface="muted"
+                        />
+                      ))}
+                    </View>
+                  )}
+                />
+              </View>
+
+              {cuisines.data && cuisines.data.length > 0 ? (
+                <View className="gap-2">
+                  <ThemedText size="sm" weight="medium">
+                    Cuisines
+                  </ThemedText>
+                  <Controller
+                    control={control}
+                    name="cuisines"
+                    render={({ field }) => (
+                      <View className="flex-row flex-wrap gap-2">
+                        {cuisines.data.map((cuisine) => (
+                          <Pill
+                            key={cuisine.slug}
+                            label={cuisine.name}
+                            onPress={() =>
+                              field.onChange(
+                                field.value.includes(cuisine.slug)
+                                  ? field.value.filter(
+                                      (item) => item !== cuisine.slug,
+                                    )
+                                  : [...field.value, cuisine.slug],
+                              )
+                            }
+                            selected={field.value.includes(cuisine.slug)}
+                            surface="muted"
+                          />
+                        ))}
+                      </View>
+                    )}
+                  />
+                </View>
+              ) : null}
+
               <Controller
                 control={control}
                 name="hours"
@@ -234,6 +359,28 @@ export default function SubmissionsScreen() {
                 name="menu"
                 render={({ field }) => (
                   <MenuField onChange={field.onChange} value={field.value ?? []} />
+                )}
+              />
+
+              <Controller
+                control={control}
+                name="coords"
+                render={({ field }) => (
+                  <LocationPinField
+                    onChange={field.onChange}
+                    value={field.value}
+                  />
+                )}
+              />
+
+              <Controller
+                control={control}
+                name="photos"
+                render={({ field }) => (
+                  <PhotoField
+                    onChange={field.onChange}
+                    value={field.value ?? []}
+                  />
                 )}
               />
 
@@ -255,6 +402,39 @@ export default function SubmissionsScreen() {
                   surface="muted"
                 />
               </View>
+
+              {tags.data && tags.data.length > 0 ? (
+                <View className="gap-2">
+                  <ThemedText size="sm" weight="medium">
+                    Tags
+                  </ThemedText>
+                  <Controller
+                    control={control}
+                    name="tags"
+                    render={({ field }) => (
+                      <View className="flex-row flex-wrap gap-2">
+                        {tags.data.map((tag) => (
+                          <Pill
+                            key={tag.slug}
+                            label={tag.name}
+                            onPress={() =>
+                              field.onChange(
+                                field.value.includes(tag.slug)
+                                  ? field.value.filter(
+                                      (item) => item !== tag.slug,
+                                    )
+                                  : [...field.value, tag.slug],
+                              )
+                            }
+                            selected={field.value.includes(tag.slug)}
+                            surface="muted"
+                          />
+                        ))}
+                      </View>
+                    )}
+                  />
+                </View>
+              ) : null}
 
               {amenities.data && amenities.data.length > 0 ? (
                 <View className="gap-2">

@@ -160,3 +160,30 @@ export function getNeighborhoods(getToken: TokenGetter) {
 export function getAmenities(getToken: TokenGetter) {
   return apiFetch<Amenity[]>("/amenities", getToken);
 }
+
+export function getCuisines(getToken: TokenGetter) {
+  return apiFetch<Cuisine[]>("/cuisines", getToken);
+}
+
+export function getTags(getToken: TokenGetter) {
+  return apiFetch<Tag[]>("/tags", getToken);
+}
+
+// A published place as returned by the place search (GET /places?q=). Used to
+// dedupe "missing place" tips: if the place already exists, the submitter is
+// really adding a new branch to it.
+export type PlaceSearchResult = {
+  id: string;
+  slug: string;
+  type: string;
+  name: string;
+  branchCount: number;
+};
+
+export function searchPlaces(q: string, getToken: TokenGetter) {
+  const params = new URLSearchParams({ q, limit: "6" });
+  return apiFetch<PlaceSearchResult[]>(
+    `/places?${params.toString()}`,
+    getToken,
+  );
+}
