@@ -1,7 +1,8 @@
 import { ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
 import { useAuth } from "@clerk/clerk-expo";
 import { zodFormResolver } from "@/lib/zod-resolver";
-import { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Pressable, ScrollView, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
@@ -211,6 +212,22 @@ export default function SubmissionsScreen() {
     });
 
   const existingPlaceId = useWatch({ control, name: "existingPlaceId" });
+
+  // Deep-link from a place's "Add a location" — preselect the place so this
+  // submission becomes a new branch of it (not a duplicate place). The param is
+  // consumed once seeded so re-navigating (even to the same place) works again.
+  const { placeId, placeName } = useLocalSearchParams<{
+    placeId?: string;
+    placeName?: string;
+  }>();
+  useEffect(() => {
+    if (!placeId) return;
+    setValue("existingPlaceId", placeId, { shouldValidate: true });
+    if (placeName) {
+      setValue("placeName", placeName, { shouldValidate: true });
+    }
+    router.setParams({ placeId: "", placeName: "" });
+  }, [placeId, placeName, setValue]);
 
   const onSubmit = handleSubmit((values) => {
     const details: PlaceMissingDetails = { placeName: values.placeName };

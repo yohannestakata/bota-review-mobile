@@ -1,4 +1,5 @@
 import { useAuth } from "@clerk/clerk-expo";
+import { Add01Icon } from "@hugeicons/core-free-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback } from "react";
 import { Pressable, View } from "react-native";
@@ -6,7 +7,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { FlashList, ListGapLg } from "@/components/ui/flash-list";
 import { BackButton } from "@/components/ui/back-button";
+import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
+import { colors } from "@/lib/theme";
 import {
   BranchCard,
   BranchListSkeleton,
@@ -92,6 +95,25 @@ export default function PlaceOverviewScreen() {
                 {place.data.branchCount === 1 ? "location" : "locations"}
               </ThemedText>
             </View>
+          }
+          ListFooterComponent={
+            <Pressable
+              className="mt-5 flex-row items-center gap-3 rounded-2xl border border-placeholder p-4"
+              onPress={() =>
+                router.push({
+                  pathname: "/submissions",
+                  params: { placeId: id, placeName: place.data.name },
+                })
+              }
+            >
+              <AppIcon color={colors.foreground} icon={Add01Icon} size={20} />
+              <View className="flex-1">
+                <ThemedText weight="medium">Add a location</ThemedText>
+                <ThemedText size="sm" tone="muted">
+                  Know another {place.data.name} spot? Put it on Bota.
+                </ThemedText>
+              </View>
+            </Pressable>
           }
           onRefresh={() => place.refetch()}
           refreshing={place.isRefetching}
