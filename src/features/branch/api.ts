@@ -22,6 +22,7 @@ export type ReviewReply = {
   reviewId: string;
   authorRole: "owner" | "user";
   body: string;
+  moderationStatus?: "pending" | "approved" | "rejected" | "archived";
   createdAt: string;
   updatedAt: string;
   user: {

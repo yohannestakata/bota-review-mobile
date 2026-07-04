@@ -1,7 +1,12 @@
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { profileKeys, type MyReview } from "@/features/profile";
+import {
+  getMyReplies,
+  profileKeys,
+  type MyReply,
+  type MyReview,
+} from "@/features/profile";
 import {
   archiveReview,
   createClaim,
@@ -39,6 +44,85 @@ export const claimKeys = {
   all: ["claims"] as const,
   mine: () => [...claimKeys.all, "mine"] as const,
 };
+
+type ReplyViewer = {
+  avatarUrl: string | null;
+  displayName: string;
+  id: string;
+};
+
+function toReviewReply(reply: MyReply, viewer: ReplyViewer): ReviewReply {
+  return {
+    id: reply.id,
+    reviewId: reply.reviewId,
+    authorRole: reply.authorRole,
+    body: reply.body,
+    moderationStatus: reply.moderationStatus,
+    createdAt: reply.createdAt,
+    updatedAt: reply.updatedAt,
+    user: {
+      id: viewer.id,
+      displayName: viewer.displayName,
+      avatarUrl: viewer.avatarUrl,
+      trustLevel: "viewer",
+    },
+  };
+}
+
+function mergeOwnRepliesIntoReviews(
+  reviews: BranchReview[],
+  ownReplies: MyReply[],
+  branchId: string,
+  viewer: ReplyViewer,
+) {
+  const visibleOwnReplies = ownReplies.filter(
+    (reply) =>
+      reply.branchId === branchId &&
+      (reply.moderationStatus === "pending" ||
+        reply.moderationStatus === "approved"),
+  );
+
+  if (visibleOwnReplies.length === 0) return reviews;
+
+  const ownByReview = new Map<string, ReviewReply[]>();
+  for (const reply of visibleOwnReplies) {
+    const replies = ownByReview.get(reply.reviewId) ?? [];
+    replies.push(toReviewReply(reply, viewer));
+    ownByReview.set(reply.reviewId, replies);
+  }
+
+  return reviews.map((review) => {
+    const ownReviewReplies = ownByReview.get(review.id);
+    if (!ownReviewReplies?.length) return review;
+
+    const ownReplyIds = new Set(ownReviewReplies.map((reply) => reply.id));
+    return {
+      ...review,
+      replies: [
+        ...ownReviewReplies,
+        ...(review.replies ?? []).filter(
+          (reply) => !ownReplyIds.has(reply.id) && reply.user.id !== viewer.id,
+        ),
+      ],
+    };
+  });
+}
+
+function mergeOwnRepliesIntoBranch(
+  branch: BranchDetail,
+  ownReplies: MyReply[],
+  viewer: ReplyViewer,
+) {
+  return {
+    ...branch,
+    recentReviews: mergeOwnRepliesIntoReviews(
+      branch.recentReviews,
+      ownReplies,
+      branch.id,
+      viewer,
+    ),
+  };
+}
 
 export function useReview(reviewId: string | undefined) {
   const { getToken } = useAuth();
@@ -217,23 +301,64 @@ export function useReportReview() {
 }
 
 export function useBranchReviews(id: string) {
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn, userId } = useAuth();
+  const { user } = useUser();
+  const ownReplies = useQuery({
+    queryKey: profileKeys.replies(userId),
+    queryFn: () => getMyReplies(getToken),
+    enabled: isSignedIn === true && Boolean(id),
+  });
+  const viewer: ReplyViewer = {
+    id: userId ?? "me",
+    displayName: user?.fullName ?? user?.firstName ?? "You",
+    avatarUrl: user?.imageUrl ?? null,
+  };
 
-  return useQuery({
+  const reviews = useQuery({
     queryKey: branchKeys.reviews(id),
     queryFn: () => getBranchReviews(id, getToken),
     enabled: Boolean(id),
   });
+
+  return {
+    ...reviews,
+    data: reviews.data
+      ? mergeOwnRepliesIntoReviews(
+          reviews.data,
+          ownReplies.data ?? [],
+          id,
+          viewer,
+        )
+      : reviews.data,
+  };
 }
 
 export function useBranch(id: string) {
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn, userId } = useAuth();
+  const { user } = useUser();
+  const ownReplies = useQuery({
+    queryKey: profileKeys.replies(userId),
+    queryFn: () => getMyReplies(getToken),
+    enabled: isSignedIn === true && Boolean(id),
+  });
+  const viewer: ReplyViewer = {
+    id: userId ?? "me",
+    displayName: user?.fullName ?? user?.firstName ?? "You",
+    avatarUrl: user?.imageUrl ?? null,
+  };
 
-  return useQuery({
+  const branch = useQuery({
     queryKey: branchKeys.detail(id),
     queryFn: () => getBranch(id, getToken),
     enabled: Boolean(id),
   });
+
+  return {
+    ...branch,
+    data: branch.data
+      ? mergeOwnRepliesIntoBranch(branch.data, ownReplies.data ?? [], viewer)
+      : branch.data,
+  };
 }
 
 export function useBranchSiblings(

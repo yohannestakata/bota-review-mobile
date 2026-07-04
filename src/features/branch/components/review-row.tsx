@@ -97,6 +97,10 @@ function ReplyItem({
   const title = isOwner
     ? `Response from ${businessName ?? "the owner"}`
     : reply.user.displayName;
+  const timestamp =
+    isOwn && reply.moderationStatus === "pending"
+      ? `${formatRelativeDate(reply.createdAt)} · Pending`
+      : formatRelativeDate(reply.createdAt);
 
   // Own replies are managed from the profile screen, so no inline actions there.
   const showReport = !isOwn && Boolean(onReport);
@@ -120,7 +124,7 @@ function ReplyItem({
             {title}
           </ThemedText>
           <ThemedText size="xs" tone="muted">
-            {formatRelativeDate(reply.createdAt)}
+            {timestamp}
           </ThemedText>
         </View>
         {showReport ? (
