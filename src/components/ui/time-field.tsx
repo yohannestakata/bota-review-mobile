@@ -2,6 +2,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState } from "react";
 import { Modal, Platform, Pressable, View } from "react-native";
 
+import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 
 function parseTime(value: string): Date {
@@ -60,22 +61,9 @@ export function TimeField({
             onPress={() => setShow(false)}
           >
             <Pressable
-              className="rounded-t-3xl bg-surface pb-8"
+              className="gap-2 rounded-t-3xl bg-surface px-5 pb-8 pt-3"
               onPress={(event) => event.stopPropagation()}
             >
-              <View className="flex-row justify-end px-5 py-3">
-                <Pressable
-                  hitSlop={8}
-                  onPress={() => {
-                    onChange(formatTime(draft));
-                    setShow(false);
-                  }}
-                >
-                  <ThemedText tone="brand" weight="semibold">
-                    Done
-                  </ThemedText>
-                </Pressable>
-              </View>
               <View className="items-center">
                 <DateTimePicker
                   display="spinner"
@@ -87,6 +75,13 @@ export function TimeField({
                   value={draft}
                 />
               </View>
+              <Button
+                label="Done"
+                onPress={() => {
+                  onChange(formatTime(draft));
+                  setShow(false);
+                }}
+              />
             </Pressable>
           </Pressable>
         </Modal>
