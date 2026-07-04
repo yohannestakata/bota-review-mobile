@@ -87,52 +87,50 @@ function ReplyComposerContent({
             {isEdit ? "Edit reply" : "Reply"}
           </ThemedText>
 
-          {/* Original review being replied to. */}
-          {target.reviewText ? (
-            <View className="gap-2">
-              {target.reviewAuthorName ? (
-                <View className="flex-row items-center gap-2.5">
+          <View className="gap-3">
+            {/* Original review being replied to. */}
+            {target.reviewText ? (
+              <View className="flex-row gap-2.5">
+                <View className="items-center">
                   <Avatar
-                    name={target.reviewAuthorName}
+                    name={target.reviewAuthorName ?? "Original review"}
                     size={28}
                     uri={target.reviewAuthorAvatarUrl}
                   />
+                  <View className="mt-2 w-px flex-1 bg-placeholder" />
+                </View>
+                <View className="flex-1 gap-1 pb-1">
                   <ThemedText size="sm" weight="medium">
-                    {target.reviewAuthorName}
+                    {target.reviewAuthorName ?? "Original review"}
+                  </ThemedText>
+                  <ThemedText numberOfLines={3} size="sm" tone="muted">
+                    {target.reviewText}
                   </ThemedText>
                 </View>
-              ) : (
-                <ThemedText size="xs" tone="muted">
-                  Original review
+              </View>
+            ) : null}
+
+            {/* You, the replier. */}
+            <View className="flex-row gap-2.5">
+              <Avatar name={meName} size={28} uri={user?.imageUrl} />
+              <View className="flex-1 gap-2">
+                <ThemedText size="sm" weight="medium">
+                  {meName}
                 </ThemedText>
-              )}
-              <ThemedText numberOfLines={3} size="sm" tone="muted">
-                {target.reviewText}
-              </ThemedText>
+                <TextInput
+                  className="min-h-24 rounded-xl border border-placeholder bg-background px-3 py-2 font-outfit text-md text-foreground"
+                  maxLength={2000}
+                  multiline
+                  onChangeText={setBody}
+                  placeholder="Share your response…"
+                  placeholderTextColor={colors.muted}
+                  ref={inputRef}
+                  textAlignVertical="top"
+                  value={body}
+                />
+              </View>
             </View>
-          ) : null}
-
-          <View className="h-px bg-placeholder" />
-
-          {/* You, the replier. */}
-          <View className="flex-row items-center gap-2.5">
-            <Avatar name={meName} size={28} uri={user?.imageUrl} />
-            <ThemedText size="sm" weight="medium">
-              {meName}
-            </ThemedText>
           </View>
-
-          <TextInput
-            className="min-h-24 rounded-xl border border-placeholder bg-background px-3 py-2 font-outfit text-md text-foreground"
-            maxLength={2000}
-            multiline
-            onChangeText={setBody}
-            placeholder="Share your response…"
-            placeholderTextColor={colors.muted}
-            ref={inputRef}
-            textAlignVertical="top"
-            value={body}
-          />
           <Button
             disabled={!body.trim() || submitting}
             label={isEdit ? "Save" : "Send reply"}
