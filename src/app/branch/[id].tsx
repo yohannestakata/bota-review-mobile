@@ -7,8 +7,8 @@ import { useAuth } from "@clerk/clerk-expo";
 import { colors } from "@/lib/theme";
 import { Image } from "expo-image";
 import { router, type Href, useLocalSearchParams } from "expo-router";
-import { useEffect, useRef } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { useCallback, useEffect, useRef } from "react";
+import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
@@ -114,9 +114,11 @@ export default function BranchDetailScreen() {
   const { coords } = useLocation();
   const siblings = useBranchSiblings(id, coords ?? undefined);
   const menus = useBranchMenus(id);
-  const { data: savedIds } = useSavedBranchIds();
+  const saved = useSavedBranchIds();
+  const savedIds = saved.data;
   const toggleSave = useToggleSave();
-  const { data: ownClaims } = useOwnClaims();
+  const ownClaims = useOwnClaims();
+  const me = useMe();
 
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
@@ -126,8 +128,26 @@ export default function BranchDetailScreen() {
 
   const isSaved = savedIds?.has(id) ?? false;
   const isOwnBranch =
-    ownClaims?.some((c) => c.branchId === id && c.status === "verified") ??
+    ownClaims.data?.some((c) => c.branchId === id && c.status === "verified") ??
     false;
+  const refreshing =
+    branch.isRefetching ||
+    siblings.isRefetching ||
+    menus.isRefetching ||
+    (isSignedIn === true &&
+      (saved.isRefetching || ownClaims.isRefetching || me.isRefetching));
+
+  const refresh = useCallback(async () => {
+    const tasks: Promise<unknown>[] = [
+      branch.refetch(),
+      siblings.refetch(),
+      menus.refetch(),
+    ];
+    if (isSignedIn === true) {
+      tasks.push(saved.refetch(), ownClaims.refetch(), me.refetch());
+    }
+    await Promise.all(tasks);
+  }, [branch, isSignedIn, me, menus, ownClaims, saved, siblings]);
 
   // branch_viewed — once per branch entry; `source` carries the originating
   // screen (home, search, saved, collection, …), defaulting to "unknown".
@@ -159,7 +179,6 @@ export default function BranchDetailScreen() {
     action();
   }
 
-  const me = useMe();
   const replyActions = useReplyActions(id);
 
   const reportReview = useReportReview();
@@ -228,6 +247,16 @@ export default function BranchDetailScreen() {
       <Animated.ScrollView
         contentContainerStyle={{ paddingBottom: 112 }}
         onScroll={onScroll}
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary]}
+            onRefresh={() => {
+              void refresh();
+            }}
+            refreshing={refreshing}
+            tintColor={colors.primary}
+          />
+        }
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         style={{ flex: 1 }}
