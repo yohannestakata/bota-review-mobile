@@ -102,7 +102,7 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
 
       <View className="mt-5 flex-row gap-3">
         <View className="flex-1 items-center justify-center gap-0.5 rounded-2xl border border-placeholder bg-surface py-3">
-          <ThemedText size="xl" weight="semibold">
+          <ThemedText size="xl" weight="bold">
             {reviewCount}
           </ThemedText>
           <ThemedText size="sm" tone="muted">
@@ -110,7 +110,7 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
           </ThemedText>
         </View>
         <View className="flex-1 items-center justify-center gap-0.5 rounded-2xl border border-placeholder bg-surface py-3">
-          <ThemedText size="xl" weight="semibold">
+          <ThemedText size="xl" weight="bold">
             {savedCount}
           </ThemedText>
           <ThemedText size="sm" tone="muted">
@@ -160,7 +160,7 @@ function ProfileHeader({ reviewCount }: { reviewCount: number }) {
 
       <View className="my-5 h-px bg-border" />
 
-      <ThemedText className="mb-4" size="lg" weight="semibold">
+      <ThemedText className="mb-4" size="xl" weight="bold">
         Your reviews
       </ThemedText>
     </View>

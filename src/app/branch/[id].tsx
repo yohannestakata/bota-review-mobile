@@ -63,7 +63,7 @@ function Divider() {
 
 function SectionTitle({ title }: { title: string }) {
   return (
-    <ThemedText className="px-6" size="xl" weight="semibold">
+    <ThemedText className="px-6" size="xl" weight="bold">
       {title}
     </ThemedText>
   );
@@ -279,7 +279,7 @@ export default function BranchDetailScreen() {
                 {eyebrow}
               </ThemedText>
             ) : null}
-            <ThemedText className="shrink" size="3xl" weight="medium">
+            <ThemedText className="shrink" size="3xl" weight="bold">
               {data.place.name}
             </ThemedText>
 
@@ -356,7 +356,7 @@ export default function BranchDetailScreen() {
               </View>
               <View className="mt-6 gap-2 px-6">
                 <View className="flex-row items-center justify-between">
-                  <ThemedText size="xl" weight="semibold">
+                  <ThemedText size="xl" weight="bold">
                     Menu
                   </ThemedText>
                   {menuFrom ? (
@@ -405,7 +405,7 @@ export default function BranchDetailScreen() {
                 <Divider />
               </View>
               <View className="mt-6 gap-3 px-6">
-                <ThemedText size="xl" weight="semibold">
+                <ThemedText size="xl" weight="bold">
                   Amenities
                 </ThemedText>
                 <AmenityList amenities={data.amenities} />
@@ -420,7 +420,7 @@ export default function BranchDetailScreen() {
                 <Divider />
               </View>
               <View className="mt-6 gap-3 px-6">
-                <ThemedText size="xl" weight="semibold">
+                <ThemedText size="xl" weight="bold">
                   Hours
                 </ThemedText>
                 <OpeningHours hours={data.hours} />
@@ -469,7 +469,7 @@ export default function BranchDetailScreen() {
               </View>
               <View className="mt-6 gap-3">
                 <View className="flex-row items-center justify-between px-6">
-                  <ThemedText size="xl" weight="semibold">
+                  <ThemedText size="xl" weight="bold">
                     Other locations
                   </ThemedText>
                   <Pressable
@@ -503,7 +503,7 @@ export default function BranchDetailScreen() {
             <Divider />
           </View>
           <View className="mt-6 gap-4 px-6">
-            <ThemedText size="xl" weight="semibold">
+            <ThemedText size="xl" weight="bold">
               Reviews
             </ThemedText>
 

@@ -16,7 +16,7 @@ export function MenuList({ menus }: { menus: Menu[] }) {
       {menus.map((menu) => (
         <View className="gap-1" key={menu.id}>
           {showMenuNames ? (
-            <ThemedText className="mb-1" size="xl" weight="semibold">
+            <ThemedText className="mb-1" size="xl" weight="bold">
               {menu.name}
             </ThemedText>
           ) : null}

@@ -361,7 +361,7 @@ export default function SearchScreen() {
         }
         ListHeaderComponent={
           results.length > 0 ? (
-            <ThemedText className="mb-5" size="xl" weight="semibold">
+            <ThemedText className="mb-5" size="xl" weight="bold">
               {active ? "Results" : "Explore places"}
             </ThemedText>
           ) : null

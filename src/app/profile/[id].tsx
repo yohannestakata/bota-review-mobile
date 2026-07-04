@@ -139,7 +139,7 @@ export default function PublicProfileScreen() {
                 )}
               </View>
               <View className="flex-1 gap-1">
-                <ThemedText size="2xl" weight="medium">
+                <ThemedText size="2xl" weight="bold">
                   {profile.data.displayName}
                 </ThemedText>
                 <ThemedText tone="muted">

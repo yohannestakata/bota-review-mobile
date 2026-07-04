@@ -183,7 +183,7 @@ export default function SubmissionsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View className="px-6 pb-1 pt-2">
-        <ThemedText size="3xl" weight="medium">
+        <ThemedText size="3xl" weight="bold">
           Spotted a gem?
         </ThemedText>
         <ThemedText className="mt-1" tone="muted">

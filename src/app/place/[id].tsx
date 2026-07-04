@@ -79,7 +79,7 @@ export default function PlaceOverviewScreen() {
           keyExtractor={(item) => item.id}
           ListHeaderComponent={
             <View className="mb-5 gap-3">
-              <ThemedText size="3xl" weight="medium">
+              <ThemedText size="3xl" weight="bold">
                 {place.data.name}
               </ThemedText>
               {place.data.description ? (
