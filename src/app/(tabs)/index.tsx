@@ -168,7 +168,7 @@ export default function Index() {
 
         {home.isError && !home.data ? (
           <View className="mt-24 items-center gap-3 px-6">
-            <ThemedText size="lg" weight="medium">
+            <ThemedText size="xl" weight="bold">
               Well, this is awkward
             </ThemedText>
             <ThemedText className="text-center" tone="muted">

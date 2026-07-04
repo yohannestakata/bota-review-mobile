@@ -52,7 +52,7 @@ export default function CollectionScreen() {
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View className="flex-row items-center gap-3 px-4 py-3">
         <BackButton onPress={() => router.back()} />
-        <ThemedText numberOfLines={1} size="lg" weight="semibold">
+        <ThemedText numberOfLines={1} size="xl" weight="bold">
           {collection.data?.name ?? "Collection"}
         </ThemedText>
       </View>

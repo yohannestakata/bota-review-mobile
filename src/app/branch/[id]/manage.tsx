@@ -73,7 +73,7 @@ type FormValues = z.infer<typeof schema>;
 
 function SectionTitle({ title }: { title: string }) {
   return (
-    <ThemedText size="lg" weight="semibold">
+    <ThemedText size="xl" weight="bold">
       {title}
     </ThemedText>
   );
@@ -162,7 +162,7 @@ export default function ManageListingScreen() {
       <SafeAreaView className="flex-1 bg-background">
         <View className="flex-row items-center justify-between px-4 py-3">
           <CloseButton onPress={() => router.back()} />
-          <ThemedText size="lg" weight="semibold">
+          <ThemedText size="xl" weight="bold">
             Manage listing
           </ThemedText>
           <View className="w-6" />
@@ -178,7 +178,7 @@ export default function ManageListingScreen() {
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-row items-center justify-between px-4 py-3">
         <CloseButton onPress={() => router.back()} />
-        <ThemedText size="lg" weight="semibold">
+        <ThemedText size="xl" weight="bold">
           Manage listing
         </ThemedText>
         <View className="w-6" />

@@ -211,7 +211,7 @@ export default function BranchDetailScreen() {
   if (branch.isError || !branch.data) {
     return (
       <View className="flex-1 items-center justify-center gap-3 bg-background px-6">
-        <ThemedText size="lg" weight="medium">
+        <ThemedText size="xl" weight="bold">
           Hmm, couldn&apos;t load this spot
         </ThemedText>
         <Pressable onPress={() => branch.refetch()}>

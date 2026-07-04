@@ -165,7 +165,7 @@ function ScreenHeader({
   return (
     <View className="flex-row items-center justify-between px-4 py-3">
       <CloseButton onPress={onClose ?? (() => router.back())} />
-      <ThemedText size="lg" weight="semibold">
+      <ThemedText size="xl" weight="bold">
         {title}
       </ThemedText>
       <View className="w-6" />
@@ -183,7 +183,7 @@ function ClaimStatusScreen({ verified }: { verified: boolean }) {
           icon={verified ? CheckmarkBadge01Icon : Clock01Icon}
           size={40}
         />
-        <ThemedText size="lg" weight="semibold">
+        <ThemedText size="xl" weight="bold">
           {verified ? "You own this listing" : "Claim under review"}
         </ThemedText>
         <ThemedText className="text-center" tone="muted">

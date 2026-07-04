@@ -268,7 +268,7 @@ export default function WriteReviewScreen() {
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-row items-center justify-between px-4 py-3">
         <CloseButton onPress={attemptClose} />
-        <ThemedText size="lg" weight="semibold">
+        <ThemedText size="xl" weight="bold">
           {isEdit ? "Edit review" : "Write a review"}
         </ThemedText>
         <View className="w-6" />
@@ -281,7 +281,7 @@ export default function WriteReviewScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View className="gap-3">
-            <ThemedText size="lg" weight="medium">
+            <ThemedText size="xl" weight="bold">
               How was it?
             </ThemedText>
             <Controller
@@ -317,7 +317,7 @@ export default function WriteReviewScreen() {
           </View>
 
           <View className="gap-2">
-            <ThemedText size="lg" weight="medium">
+            <ThemedText size="xl" weight="bold">
               When did you visit?
             </ThemedText>
             <View className="flex-row items-center gap-3">
@@ -362,7 +362,7 @@ export default function WriteReviewScreen() {
 
           {!isEdit ? (
             <View className="gap-2">
-              <ThemedText size="lg" weight="medium">
+              <ThemedText size="xl" weight="bold">
                 Add a few photos
               </ThemedText>
               <PhotoGrid

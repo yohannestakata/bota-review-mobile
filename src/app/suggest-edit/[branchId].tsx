@@ -281,7 +281,7 @@ export default function SuggestEditScreen() {
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-row items-center justify-between px-4 py-3">
         <CloseButton onPress={attemptClose} />
-        <ThemedText size="lg" weight="semibold">
+        <ThemedText size="xl" weight="bold">
           Suggest an edit
         </ThemedText>
         <View className="w-6" />

@@ -14,7 +14,7 @@ export function AuthRequiredScreen({ title, body }: AuthRequiredScreenProps) {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View className="flex-1 items-center justify-center gap-3 px-8">
-        <ThemedText className="text-center" size="2xl" weight="semibold">
+        <ThemedText className="text-center" size="2xl" weight="bold">
           {title}
         </ThemedText>
         <ThemedText className="text-center" tone="muted">

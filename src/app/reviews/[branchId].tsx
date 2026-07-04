@@ -59,7 +59,7 @@ export default function BranchReviewsScreen() {
       <View className="flex-row items-center gap-3 px-4 py-3">
         <BackButton onPress={() => router.back()} />
         <View className="flex-1">
-          <ThemedText size="lg" weight="semibold">
+          <ThemedText size="xl" weight="bold">
             Reviews
           </ThemedText>
           {name ? (

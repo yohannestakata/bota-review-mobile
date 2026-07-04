@@ -71,7 +71,7 @@ export default function PublicProfileScreen() {
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <View className="flex-row items-center gap-3 px-4 py-3">
         <BackButton onPress={() => router.back()} />
-        <ThemedText size="lg" weight="semibold">
+        <ThemedText size="xl" weight="bold">
           Reviewer
         </ThemedText>
       </View>
@@ -92,7 +92,7 @@ export default function PublicProfileScreen() {
         </View>
       ) : isError || !profile.data ? (
         <View className="flex-1 items-center justify-center gap-3 px-6">
-          <ThemedText size="lg" weight="medium">
+          <ThemedText size="xl" weight="bold">
             User not found
           </ThemedText>
           <ThemedText className="text-center" tone="muted">

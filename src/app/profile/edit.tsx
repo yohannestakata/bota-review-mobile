@@ -117,7 +117,7 @@ export default function EditProfileScreen() {
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-row items-center justify-between px-4 py-3">
         <CloseButton onPress={() => router.back()} />
-        <ThemedText size="lg" weight="semibold">
+        <ThemedText size="xl" weight="bold">
           Edit profile
         </ThemedText>
         <View className="w-6" />
