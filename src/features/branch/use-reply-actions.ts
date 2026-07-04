@@ -35,7 +35,7 @@ export function useReplyActions(branchId: string) {
       if (result.moderationStatus !== "approved") {
         Alert.alert(
           "Reply submitted",
-          "Your reply will appear once it's approved.",
+          "You can see it now. Others will see it once it's approved.",
         );
       }
     } catch (error) {
