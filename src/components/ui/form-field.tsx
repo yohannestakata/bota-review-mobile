@@ -10,6 +10,7 @@ import {
 import { Pressable, TextInput, View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
+import { TextField } from "@/components/ui/text-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { cn } from "@/lib/cn";
 import { colors } from "@/lib/theme";
@@ -23,20 +24,6 @@ type BaseFieldProps = NativeTextInputProps & {
   inputClassName?: string;
   surface?: "default" | "muted";
 };
-
-// Shared input styling so every field (form inputs, menu rows, etc.) looks
-// identical. Reuse this instead of hand-writing the classes.
-export function fieldInputClass(opts?: {
-  surface?: "default" | "muted";
-  error?: boolean;
-}): string {
-  const { surface = "default", error } = opts ?? {};
-  return cn(
-    "h-14 rounded-xl border px-4 py-0 font-outfit text-md text-foreground",
-    surface === "muted" ? "bg-background" : "bg-surface",
-    error ? "border-danger" : "border-placeholder",
-  );
-}
 
 function FieldError({ error }: { error?: string }) {
   if (!error) {
@@ -68,15 +55,13 @@ export function FormTextInput({
         {label}
       </ThemedText>
       <View className="relative mt-2">
-        <TextInput
-          className={cn(
-            fieldInputClass({ surface, error: Boolean(error) }),
-            secureTextEntry && "pr-14",
-            inputClassName,
-          )}
+        <TextField
+          className={cn(secureTextEntry && "pr-14", inputClassName)}
+          error={Boolean(error)}
           placeholderTextColor={placeholderTextColor}
           secureTextEntry={secureTextEntry && !passwordVisible}
-          style={[{ includeFontPadding: false, lineHeight: 16 }, style]}
+          style={style}
+          surface={surface}
           textAlignVertical="center"
           {...props}
         />

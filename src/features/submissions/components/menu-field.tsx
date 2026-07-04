@@ -1,11 +1,10 @@
 import { Add01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, TextInput, View } from "react-native";
+import { Pressable, View } from "react-native";
 
-import { fieldInputClass } from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
+import { TextField } from "@/components/ui/text-field";
 import { ThemedText } from "@/components/ui/themed-text";
-import { cn } from "@/lib/cn";
 import { colors } from "@/lib/theme";
 
 type Item = { id: string; name: string; price: string };
@@ -68,33 +67,28 @@ export function MenuField({
       <View className="gap-2">
         {items.map((item) => (
           <View className="flex-row items-center gap-2" key={item.id}>
-            <TextInput
-              className={cn("flex-1", fieldInputClass({ surface: "muted" }))}
+            <TextField
+              className="flex-1"
               onChangeText={(name) => setItem(item.id, { name })}
               placeholder="Item, e.g. Macchiato"
-              placeholderTextColor={colors.muted}
+              surface="muted"
               value={item.name}
             />
-            <View
-              className={cn(
-                "w-28 flex-row items-center gap-1",
-                fieldInputClass({ surface: "muted" }),
-              )}
-            >
-              <TextInput
-                className="flex-1 py-0 font-outfit text-md text-foreground"
-                keyboardType="number-pad"
-                onChangeText={(price) =>
-                  setItem(item.id, { price: price.replace(/\D/g, "") })
-                }
-                placeholder="0"
-                placeholderTextColor={colors.muted}
-                value={item.price}
-              />
-              <ThemedText size="sm" tone="muted">
-                Br
-              </ThemedText>
-            </View>
+            <TextField
+              className="w-28"
+              keyboardType="number-pad"
+              onChangeText={(price) =>
+                setItem(item.id, { price: price.replace(/\D/g, "") })
+              }
+              placeholder="0"
+              suffix={
+                <ThemedText size="sm" tone="muted">
+                  Br
+                </ThemedText>
+              }
+              surface="muted"
+              value={item.price}
+            />
             {items.length > 1 ? (
               <Pressable hitSlop={6} onPress={() => removeItem(item.id)}>
                 <AppIcon color={colors.muted} icon={Cancel01Icon} size={18} />
