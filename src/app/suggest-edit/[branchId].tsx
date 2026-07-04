@@ -14,6 +14,7 @@ import {
   ControlledTextArea,
   ControlledTextInput,
 } from "@/components/ui/form-field";
+import { ControlledPhoneInput } from "@/components/ui/phone-input";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   useCreateBranchSubmission,
@@ -253,12 +254,20 @@ export default function SuggestEditScreen() {
               </View>
 
               {isValueCorrection ? (
-                <ControlledTextInput
-                  control={control}
-                  label="Correct value"
-                  name="suggestedValue"
-                  placeholder="What should it say?"
-                />
+                selectedField?.value === "Phone" ? (
+                  <ControlledPhoneInput
+                    control={control}
+                    label="Correct value"
+                    name="suggestedValue"
+                  />
+                ) : (
+                  <ControlledTextInput
+                    control={control}
+                    label="Correct value"
+                    name="suggestedValue"
+                    placeholder="What should it say?"
+                  />
+                )
               ) : null}
 
               {isNoteCorrection ? (

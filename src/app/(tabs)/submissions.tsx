@@ -1,3 +1,4 @@
+import { ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
 import { useAuth } from "@clerk/clerk-expo";
 import { zodFormResolver } from "@/lib/zod-resolver";
 import { useState } from "react";
@@ -14,9 +15,10 @@ import {
   ControlledTextArea,
   ControlledTextInput,
 } from "@/components/ui/form-field";
+import { AppIcon } from "@/components/ui/huge-icon";
 import { ControlledPhoneInput } from "@/components/ui/phone-input";
-import { OptionalDetailsPanel } from "@/components/ui/optional-details-panel";
 import { ThemedText } from "@/components/ui/themed-text";
+import { colors } from "@/lib/theme";
 import {
   HoursField,
   NeighborhoodField,
@@ -205,16 +207,31 @@ export default function SubmissionsScreen() {
             )}
           />
 
-          <OptionalDetailsPanel
-            expanded={helpMore}
-            onToggle={() => setHelpMore((value) => !value)}
-            subtitle="Add details only if they're handy."
-            title="Know a little more?"
-          >
-            <ControlledTextArea
-              control={control}
-              inputClassName="min-h-28"
-              label="What is it like?"
+          <View className="mt-2 border-t border-border pt-5">
+            <Pressable
+              className="flex-row items-center justify-between gap-3"
+              onPress={() => setHelpMore((value) => !value)}
+            >
+              <View className="flex-1">
+                <ThemedText weight="semibold">Know a little more?</ThemedText>
+                <ThemedText className="mt-0.5" size="sm" tone="muted">
+                  Add details only if they're handy.
+                </ThemedText>
+              </View>
+              <AppIcon
+                color={colors.muted}
+                icon={helpMore ? ArrowUp01Icon : ArrowDown01Icon}
+                size={20}
+              />
+            </Pressable>
+          </View>
+
+          {helpMore ? (
+            <View className="gap-4">
+              <ControlledTextArea
+                control={control}
+                inputClassName="min-h-28"
+                label="What is it like?"
               maxLength={500}
               name="description"
               placeholder="What kind of place is it? What's good there?"
@@ -288,7 +305,8 @@ export default function SubmissionsScreen() {
                 )}
               />
             </View>
-          </OptionalDetailsPanel>
+            </View>
+          ) : null}
 
           {formState.errors.root ? (
             <ThemedText size="sm" tone="danger">
