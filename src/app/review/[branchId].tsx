@@ -141,8 +141,8 @@ export default function WriteReviewScreen() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       Alert.alert(
-        "Permission needed",
-        "Allow photo access to add photos to your review.",
+        "Photo access needed",
+        "Turn it on to add snapshots to your review.",
       );
       return;
     }
@@ -188,7 +188,7 @@ export default function WriteReviewScreen() {
           branch_id: branchId,
           rating: values.rating,
         });
-        Alert.alert("All set!", "Your changes are saved.");
+        Alert.alert("All set!", "Your review got a fresh coat.");
         router.back();
         return;
       }
@@ -217,8 +217,8 @@ export default function WriteReviewScreen() {
       Alert.alert(
         "You're a star!",
         failed > 0
-          ? `Your review's in — but ${failed} photo(s) wouldn't upload.`
-          : "Your review's in! It'll show up once it's approved.",
+          ? `Your review is in. ${failed} photo(s) had a wobble and didn't upload.`
+          : "Your review is live.",
       );
       router.back();
     } catch (err) {
@@ -228,7 +228,7 @@ export default function WriteReviewScreen() {
         await routeToExistingReview();
         return;
       }
-      Alert.alert("Couldn't post your review", getErrorMessage(err));
+      Alert.alert("Review hit a snag", getErrorMessage(err));
     } finally {
       setUploading(false);
     }
@@ -243,7 +243,7 @@ export default function WriteReviewScreen() {
       if (existing) {
         Alert.alert(
           "You've already reviewed this place",
-          "Want to edit your existing review instead?",
+          "Want to freshen up your first take instead?",
           [
             { text: "Not now", style: "cancel" },
             {
@@ -260,7 +260,7 @@ export default function WriteReviewScreen() {
     }
     Alert.alert(
       "Already reviewed",
-      "You've already reviewed this place. You can edit it from your profile.",
+      "One review per spot keeps things tidy. You can edit yours from your profile.",
     );
   }
 

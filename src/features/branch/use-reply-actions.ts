@@ -36,12 +36,12 @@ export function useReplyActions(branchId: string) {
         Alert.alert("Reply posted", "Your reply is live.");
       }
     } catch (error) {
-      Alert.alert("Couldn't post reply", getErrorMessage(error));
+      Alert.alert("Reply hit a snag", getErrorMessage(error));
     }
   }
 
   function reportReply(reply: ReviewReply) {
-    Alert.alert("Report reply", "Report this reply for our team to review?", [
+    Alert.alert("Flag this reply?", "We'll give it a careful look.", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Report",
@@ -50,9 +50,10 @@ export function useReplyActions(branchId: string) {
           report.mutate(
             { replyId: reply.id },
             {
-              onSuccess: () => Alert.alert("Thanks", "We'll take a look."),
+              onSuccess: () =>
+                Alert.alert("Got it", "Thanks for keeping Bota helpful."),
               onError: (error) =>
-                Alert.alert("Couldn't report", getErrorMessage(error)),
+                Alert.alert("Couldn't send report", getErrorMessage(error)),
             },
           ),
       },

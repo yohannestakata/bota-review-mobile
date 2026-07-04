@@ -9,7 +9,7 @@ const STATUS_STYLES: Record<
   MyReview["moderationStatus"],
   { label: string; bg: string; text: string }
 > = {
-  pending: { label: "Pending", bg: "bg-warning-soft", text: "text-warning" },
+  pending: { label: "Posted", bg: "bg-warning-soft", text: "text-warning" },
   approved: { label: "Published", bg: "bg-success-soft", text: "text-success" },
   rejected: { label: "Rejected", bg: "bg-danger-soft", text: "text-danger" },
   archived: { label: "Archived", bg: "bg-surface-muted", text: "text-muted" },

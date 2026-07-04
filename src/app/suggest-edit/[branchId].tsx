@@ -265,7 +265,7 @@ export default function SuggestEditScreen() {
             branch_id: branchId,
             submission_type: body.type,
           });
-          Alert.alert("Good catch!", "Thanks — we'll review your suggestion.");
+          Alert.alert("Good catch!", "We'll check it and tidy up the listing.");
           router.back();
           resolve();
         },

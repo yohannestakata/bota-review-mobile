@@ -112,17 +112,17 @@ export default function ManageListingScreen() {
         phone: values.phone?.trim() || null,
         hours: fromHoursState(resolvedHours),
       });
-      Alert.alert("Saved", "Your listing has been updated.");
+      Alert.alert("Nice, saved", "Your listing is up to date.");
       router.back();
     } catch {
-      Alert.alert("Couldn't save", "Something went wrong. Please try again.");
+      Alert.alert("Save hit a snag", "Try again in a moment.");
     }
   });
 
   async function pickAndUploadPhoto() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert("Permission needed", "Allow photo access to add photos.");
+      Alert.alert("Photo access needed", "Turn it on to add listing photos.");
       return;
     }
 
@@ -149,9 +149,9 @@ export default function ManageListingScreen() {
     try {
       await uploadOwnerPhoto(id, photo, getToken);
       await branch.refetch();
-      Alert.alert("Photo added", "Your photo is now live on the listing.");
+      Alert.alert("Photo added", "Fresh shot, right on the listing.");
     } catch {
-      Alert.alert("Upload failed", "Couldn't upload the photo. Try again.");
+      Alert.alert("Upload hit a snag", "Give the photo another try.");
     } finally {
       setUploadingPhoto(false);
     }

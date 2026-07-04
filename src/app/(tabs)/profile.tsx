@@ -187,7 +187,7 @@ export default function ProfileScreen() {
   }
 
   function onDelete(review: MyReview) {
-    Alert.alert("Delete review?", "This will remove your review.", [
+    Alert.alert("Delete review?", "This take will disappear from Bota.", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",

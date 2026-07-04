@@ -157,8 +157,8 @@ export default function SubmissionsScreen() {
             reset(DEFAULT_VALUES);
             setHelpMore(false);
             Alert.alert(
-              "Thanks for the tip!",
-              "We'll take a look and get it added soon.",
+              "Tip received",
+              "We'll scout it out and add it if it checks out.",
             );
             resolve();
           },

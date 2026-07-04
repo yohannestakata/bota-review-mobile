@@ -104,8 +104,8 @@ export default function SearchScreen() {
 
     if (coords == null && !(await request())) {
       Alert.alert(
-        "Location is off",
-        "Turn on location access to find places near you.",
+        "Need your neighborhood radar",
+        "Turn on location access and we'll find nearby spots.",
       );
       return;
     }

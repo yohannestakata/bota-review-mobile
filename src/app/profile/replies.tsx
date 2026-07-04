@@ -18,7 +18,7 @@ import { getErrorMessage } from "@/lib/api";
 import { useState } from "react";
 
 function statusLabel(status: MyReply["moderationStatus"]): string | null {
-  if (status === "pending") return "Pending review";
+  if (status === "pending") return "Posted";
   if (status === "rejected") return "Rejected";
   return null;
 }
@@ -106,12 +106,12 @@ export default function MyRepliesScreen() {
       await update.mutateAsync({ replyId: editTarget.replyId, body });
       setEditTarget(null);
     } catch (error) {
-      Alert.alert("Couldn't save", getErrorMessage(error));
+      Alert.alert("Reply hit a snag", getErrorMessage(error));
     }
   }
 
   function onDelete(reply: MyReply) {
-    Alert.alert("Delete reply", "Remove this reply?", [
+    Alert.alert("Delete reply?", "This will tuck it away for good.", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
@@ -119,7 +119,7 @@ export default function MyRepliesScreen() {
         onPress: () =>
           remove.mutate(reply.id, {
             onError: (error) =>
-              Alert.alert("Couldn't delete", getErrorMessage(error)),
+              Alert.alert("Couldn't delete reply", getErrorMessage(error)),
           }),
       },
     ]);

@@ -99,7 +99,7 @@ function ReplyItem({
     : reply.user.displayName;
   const timestamp =
     isOwn && reply.moderationStatus === "pending"
-      ? `${formatRelativeDate(reply.createdAt)} · Pending`
+      ? `${formatRelativeDate(reply.createdAt)} · Posted`
       : formatRelativeDate(reply.createdAt);
 
   // Own replies are managed from the profile screen, so no inline actions there.

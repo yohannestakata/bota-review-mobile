@@ -165,27 +165,23 @@ export default function BranchDetailScreen() {
   const reportReview = useReportReview();
   function onReportReview(reviewId: string) {
     requireSignIn(() => {
-      Alert.alert(
-        "Report review",
-        "Report this review for our team to look into?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Report",
-            style: "destructive",
-            onPress: () =>
-              reportReview.mutate(
-                { reviewId },
-                {
-                  onSuccess: () =>
-                    Alert.alert("Thanks", "We'll take a look at this."),
-                  onError: (e) =>
-                    Alert.alert("Couldn't report", getErrorMessage(e)),
-                },
-              ),
-          },
-        ],
-      );
+      Alert.alert("Flag this review?", "We'll give it a careful look.", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Report",
+          style: "destructive",
+          onPress: () =>
+            reportReview.mutate(
+              { reviewId },
+              {
+                onSuccess: () =>
+                  Alert.alert("Got it", "Thanks for keeping Bota helpful."),
+                onError: (e) =>
+                  Alert.alert("Couldn't send report", getErrorMessage(e)),
+              },
+            ),
+        },
+      ]);
     });
   }
 

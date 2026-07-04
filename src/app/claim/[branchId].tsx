@@ -260,8 +260,8 @@ export default function ClaimBusinessScreen() {
         onSuccess: () => {
           analytics.track("claim_submitted", { branch_id: branchId });
           Alert.alert(
-            "Claim submitted",
-            "Thanks — we'll verify your ownership and get back to you.",
+            "Claim received",
+            "We'll check the details and get you set up.",
           );
           router.back();
           resolve();
