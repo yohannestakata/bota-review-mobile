@@ -17,6 +17,7 @@ import {
 import { OptionalDetailsPanel } from "@/components/ui/optional-details-panel";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
+  HoursField,
   NeighborhoodField,
   useReportMissingPlace,
   type PlaceMissingDetails,
@@ -258,13 +259,15 @@ export default function SubmissionsScreen() {
               />
             </View>
 
-            <ControlledTextArea
+            <Controller
               control={control}
-              inputClassName="min-h-20"
-              label="Hours"
               name="hours"
-              placeholder="e.g. Open late on weekends."
-              surface="muted"
+              render={({ field }) => (
+                <HoursField
+                  onChangeText={field.onChange}
+                  value={field.value ?? ""}
+                />
+              )}
             />
 
             <ControlledTextArea
