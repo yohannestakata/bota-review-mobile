@@ -173,9 +173,16 @@ export function ReviewRow({
   );
   const canReply = Boolean(onReply) && !isOwnReview && !alreadyReplied;
 
-  const visibleReplies = showAllReplies
-    ? replies
+  const ownReply = currentUserId
+    ? replies.find((reply) => reply.user.id === currentUserId)
+    : undefined;
+  const previewReplies = ownReply
+    ? [ownReply, ...replies.filter((reply) => reply.id !== ownReply.id)].slice(
+        0,
+        REPLY_PREVIEW_COUNT,
+      )
     : replies.slice(0, REPLY_PREVIEW_COUNT);
+  const visibleReplies = showAllReplies ? replies : previewReplies;
   const hiddenCount = replies.length - visibleReplies.length;
 
   return (

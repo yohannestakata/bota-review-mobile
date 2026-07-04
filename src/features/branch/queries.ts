@@ -1,4 +1,4 @@
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { profileKeys, type MyReview } from "@/features/profile";
@@ -21,6 +21,7 @@ import {
   type BranchReview,
   type CreateClaimBody,
   type CreateReviewBody,
+  type ReviewReply,
   type UpdateOwnerInfoBody,
   type UpdateReviewBody,
 } from "./api";
@@ -75,20 +76,124 @@ export function useUpdateOwnerInfo(branchId: string) {
 }
 
 export function useCreateReply(branchId: string) {
-  const { getToken } = useAuth();
+  const { getToken, userId } = useAuth();
+  const { user } = useUser();
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<
+    ReviewReply & { moderationStatus: string },
+    Error,
+    { reviewId: string; body: string },
+    {
+      optimisticReply: ReviewReply;
+      previousDetail?: BranchDetail;
+      previousReviews?: BranchReview[];
+    }
+  >({
     mutationFn: (vars: { reviewId: string; body: string }) =>
       createReviewReply(vars.reviewId, vars.body, getToken),
-    onSuccess: () => {
-      // Refresh both the branch detail (recentReviews) and the all-reviews list.
-      void queryClient.invalidateQueries({
-        queryKey: branchKeys.detail(branchId),
+    onMutate: async (vars) => {
+      const detailKey = branchKeys.detail(branchId);
+      const reviewsKey = branchKeys.reviews(branchId);
+
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: detailKey }),
+        queryClient.cancelQueries({ queryKey: reviewsKey }),
+      ]);
+
+      const previousDetail = queryClient.getQueryData<BranchDetail>(detailKey);
+      const previousReviews =
+        queryClient.getQueryData<BranchReview[]>(reviewsKey);
+      const now = new Date().toISOString();
+      const optimisticReply: ReviewReply = {
+        id: `optimistic:${vars.reviewId}:${Date.now()}`,
+        reviewId: vars.reviewId,
+        authorRole: "user",
+        body: vars.body,
+        createdAt: now,
+        updatedAt: now,
+        user: {
+          id: userId ?? "me",
+          displayName: user?.fullName ?? user?.firstName ?? "You",
+          avatarUrl: user?.imageUrl ?? null,
+          trustLevel: "pending",
+        },
+      };
+      const addReply = (review: BranchReview): BranchReview =>
+        review.id === vars.reviewId
+          ? {
+              ...review,
+              replies: [
+                optimisticReply,
+                ...(review.replies ?? []).filter(
+                  (reply) => reply.user.id !== optimisticReply.user.id,
+                ),
+              ],
+            }
+          : review;
+
+      queryClient.setQueryData<BranchDetail>(detailKey, (current) =>
+        current
+          ? { ...current, recentReviews: current.recentReviews.map(addReply) }
+          : current,
+      );
+      queryClient.setQueryData<BranchReview[]>(reviewsKey, (current) =>
+        current?.map(addReply),
+      );
+
+      return { optimisticReply, previousDetail, previousReviews };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previousDetail) {
+        queryClient.setQueryData(
+          branchKeys.detail(branchId),
+          context.previousDetail,
+        );
+      }
+      if (context?.previousReviews) {
+        queryClient.setQueryData(
+          branchKeys.reviews(branchId),
+          context.previousReviews,
+        );
+      }
+    },
+    onSuccess: (reply, _vars, context) => {
+      if (!context) return;
+
+      const replaceReply = (review: BranchReview): BranchReview => ({
+        ...review,
+        replies: (review.replies ?? []).map((current) =>
+          current.id === context.optimisticReply.id ? reply : current,
+        ),
       });
+
+      queryClient.setQueryData<BranchDetail>(
+        branchKeys.detail(branchId),
+        (current) =>
+          current
+            ? {
+                ...current,
+                recentReviews: current.recentReviews.map(replaceReply),
+              }
+            : current,
+      );
+      queryClient.setQueryData<BranchReview[]>(
+        branchKeys.reviews(branchId),
+        (current) => current?.map(replaceReply),
+      );
+
       void queryClient.invalidateQueries({
-        queryKey: branchKeys.reviews(branchId),
+        queryKey: profileKeys.replies(userId),
       });
+      if (reply.moderationStatus === "approved") {
+        // Refresh both the branch detail (recentReviews) and the all-reviews list.
+        void queryClient.invalidateQueries({
+          queryKey: branchKeys.detail(branchId),
+        });
+        void queryClient.invalidateQueries({
+          queryKey: branchKeys.reviews(branchId),
+        });
+      }
     },
   });
 }
