@@ -69,13 +69,40 @@ const submissionSchema = z.object({
   helpfulDetails: z.array(z.string()),
 });
 
-const PLACE_TYPES: { value: "restaurant" | "cafe" | "bakery" | "bar"; label: string }[] =
-  [
-    { value: "restaurant", label: "Restaurant" },
-    { value: "cafe", label: "Café" },
-    { value: "bakery", label: "Bakery" },
-    { value: "bar", label: "Bar" },
-  ];
+const PLACE_TYPES: {
+  value: "restaurant" | "cafe" | "bakery" | "bar";
+  label: string;
+}[] = [
+  { value: "restaurant", label: "Restaurant" },
+  { value: "cafe", label: "Café" },
+  { value: "bakery", label: "Bakery" },
+  { value: "bar", label: "Bar" },
+];
+
+const EXTRA_SECTIONS = [
+  {
+    key: "basics",
+    title: "Place basics",
+    description: "Add the vibe, place type, and cuisines.",
+  },
+  {
+    key: "hoursMenu",
+    title: "Hours and menu",
+    description: "Add opening times or a few menu prices.",
+  },
+  {
+    key: "locationContact",
+    title: "Location and contact",
+    description: "Add a map pin, phone number, or email.",
+  },
+  {
+    key: "features",
+    title: "Features and tags",
+    description: "Add amenities, tags, and useful details.",
+  },
+] as const;
+
+type ExtraSectionKey = (typeof EXTRA_SECTIONS)[number]["key"];
 
 type SubmissionValues = z.infer<typeof submissionSchema>;
 
@@ -129,6 +156,37 @@ function Pill({
   );
 }
 
+function SectionToggle({
+  description,
+  expanded,
+  onPress,
+  title,
+}: {
+  description: string;
+  expanded: boolean;
+  onPress: () => void;
+  title: string;
+}) {
+  return (
+    <Pressable
+      className="flex-row items-center justify-between gap-3 border-t border-border py-4"
+      onPress={onPress}
+    >
+      <View className="flex-1">
+        <ThemedText weight="semibold">{title}</ThemedText>
+        <ThemedText className="mt-0.5" size="sm" tone="muted">
+          {description}
+        </ThemedText>
+      </View>
+      <AppIcon
+        color={colors.muted}
+        icon={expanded ? ArrowUp01Icon : ArrowDown01Icon}
+        size={20}
+      />
+    </Pressable>
+  );
+}
+
 export default function SubmissionsScreen() {
   const { isSignedIn } = useAuth();
   const report = useReportMissingPlace();
@@ -136,7 +194,14 @@ export default function SubmissionsScreen() {
   const cuisines = useCuisines();
   const tags = useTags();
 
-  const [helpMore, setHelpMore] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<
+    Record<ExtraSectionKey, boolean>
+  >({
+    basics: false,
+    hoursMenu: false,
+    locationContact: false,
+    features: false,
+  });
 
   const { control, handleSubmit, reset, setError, setValue, formState } =
     useForm<SubmissionValues>({
@@ -173,7 +238,12 @@ export default function SubmissionsScreen() {
         {
           onSuccess: () => {
             reset(DEFAULT_VALUES);
-            setHelpMore(false);
+            setExpandedSections({
+              basics: false,
+              hoursMenu: false,
+              locationContact: false,
+              features: false,
+            });
             Alert.alert(
               "Tip received",
               "We'll scout it out and add it if it checks out.",
@@ -250,226 +320,245 @@ export default function SubmissionsScreen() {
             )}
           />
 
-          <View className="mt-2 border-t border-border pt-5">
-            <Pressable
-              className="flex-row items-center justify-between gap-3"
-              onPress={() => setHelpMore((value) => !value)}
-            >
-              <View className="flex-1">
-                <ThemedText weight="semibold">Know a little more?</ThemedText>
-                <ThemedText className="mt-0.5" size="sm" tone="muted">
-                  Add details only if they're handy.
-                </ThemedText>
-              </View>
-              <AppIcon
-                color={colors.muted}
-                icon={helpMore ? ArrowUp01Icon : ArrowDown01Icon}
-                size={20}
-              />
-            </Pressable>
+          <Controller
+            control={control}
+            name="photos"
+            render={({ field }) => (
+              <PhotoField onChange={field.onChange} value={field.value ?? []} />
+            )}
+          />
+
+          <View className="mt-2 gap-1">
+            <ThemedText weight="semibold">Know a little more?</ThemedText>
+            <ThemedText size="sm" tone="muted">
+              Add details only if they are handy.
+            </ThemedText>
           </View>
 
-          {helpMore ? (
-            <View className="gap-4">
-              <ControlledTextArea
-                control={control}
-                inputClassName="min-h-28"
-                label="What is it like?"
-                maxLength={500}
-                name="description"
-                placeholder="What kind of place is it? What's good there?"
-                surface="muted"
-              />
+          <View>
+            {EXTRA_SECTIONS.map((section) => (
+              <View key={section.key}>
+                <SectionToggle
+                  description={section.description}
+                  expanded={expandedSections[section.key]}
+                  onPress={() =>
+                    setExpandedSections((current) => ({
+                      ...current,
+                      [section.key]: !current[section.key],
+                    }))
+                  }
+                  title={section.title}
+                />
 
-              <View className="gap-2">
-                <ThemedText size="sm" weight="medium">
-                  What kind of place?
-                </ThemedText>
-                <Controller
-                  control={control}
-                  name="type"
-                  render={({ field }) => (
-                    <View className="flex-row flex-wrap gap-2">
-                      {PLACE_TYPES.map((option) => (
-                        <Pill
-                          key={option.value}
-                          label={option.label}
-                          onPress={() =>
-                            field.onChange(
-                              field.value === option.value
-                                ? undefined
-                                : option.value,
-                            )
-                          }
-                          selected={field.value === option.value}
-                          surface="muted"
-                        />
-                      ))}
+                {section.key === "basics" && expandedSections.basics ? (
+                  <View className="gap-4 pb-4">
+                    <ControlledTextArea
+                      control={control}
+                      inputClassName="min-h-28"
+                      label="What is it like?"
+                      maxLength={500}
+                      name="description"
+                      placeholder="What kind of place is it? What's good there?"
+                      surface="muted"
+                    />
+
+                    <View className="gap-2">
+                      <ThemedText size="sm" weight="medium">
+                        What kind of place?
+                      </ThemedText>
+                      <Controller
+                        control={control}
+                        name="type"
+                        render={({ field }) => (
+                          <View className="flex-row flex-wrap gap-2">
+                            {PLACE_TYPES.map((option) => (
+                              <Pill
+                                key={option.value}
+                                label={option.label}
+                                onPress={() =>
+                                  field.onChange(
+                                    field.value === option.value
+                                      ? undefined
+                                      : option.value,
+                                  )
+                                }
+                                selected={field.value === option.value}
+                                surface="muted"
+                              />
+                            ))}
+                          </View>
+                        )}
+                      />
                     </View>
-                  )}
-                />
+
+                    {cuisines.data && cuisines.data.length > 0 ? (
+                      <View className="gap-2">
+                        <ThemedText size="sm" weight="medium">
+                          Cuisines
+                        </ThemedText>
+                        <Controller
+                          control={control}
+                          name="cuisines"
+                          render={({ field }) => (
+                            <View className="flex-row flex-wrap gap-2">
+                              {cuisines.data.map((cuisine) => (
+                                <Pill
+                                  key={cuisine.slug}
+                                  label={cuisine.name}
+                                  onPress={() =>
+                                    field.onChange(
+                                      field.value.includes(cuisine.slug)
+                                        ? field.value.filter(
+                                            (item) => item !== cuisine.slug,
+                                          )
+                                        : [...field.value, cuisine.slug],
+                                    )
+                                  }
+                                  selected={field.value.includes(cuisine.slug)}
+                                  surface="muted"
+                                />
+                              ))}
+                            </View>
+                          )}
+                        />
+                      </View>
+                    ) : null}
+                  </View>
+                ) : null}
+
+                {section.key === "hoursMenu" && expandedSections.hoursMenu ? (
+                  <View className="gap-4 pb-4">
+                    <Controller
+                      control={control}
+                      name="hours"
+                      render={({ field }) => (
+                        <HoursField
+                          onChange={field.onChange}
+                          value={field.value ?? []}
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      control={control}
+                      name="menu"
+                      render={({ field }) => (
+                        <MenuField
+                          onChange={field.onChange}
+                          value={field.value ?? []}
+                        />
+                      )}
+                    />
+                  </View>
+                ) : null}
+
+                {section.key === "locationContact" &&
+                expandedSections.locationContact ? (
+                  <View className="gap-4 pb-4">
+                    <Controller
+                      control={control}
+                      name="coords"
+                      render={({ field }) => (
+                        <LocationPinField
+                          onChange={field.onChange}
+                          value={field.value}
+                        />
+                      )}
+                    />
+
+                    <View className="gap-3">
+                      <ControlledPhoneInput
+                        control={control}
+                        label="Contact phone"
+                        name="contactPhone"
+                        surface="muted"
+                      />
+                      <ControlledTextInput
+                        autoCapitalize="none"
+                        autoComplete="email"
+                        control={control}
+                        keyboardType="email-address"
+                        label="Contact email"
+                        name="contactEmail"
+                        placeholder="Their email, if you know it"
+                        surface="muted"
+                      />
+                    </View>
+                  </View>
+                ) : null}
+
+                {section.key === "features" && expandedSections.features ? (
+                  <View className="gap-4 pb-4">
+                    {tags.data && tags.data.length > 0 ? (
+                      <View className="gap-2">
+                        <ThemedText size="sm" weight="medium">
+                          Tags
+                        </ThemedText>
+                        <Controller
+                          control={control}
+                          name="tags"
+                          render={({ field }) => (
+                            <View className="flex-row flex-wrap gap-2">
+                              {tags.data.map((tag) => (
+                                <Pill
+                                  key={tag.slug}
+                                  label={tag.name}
+                                  onPress={() =>
+                                    field.onChange(
+                                      field.value.includes(tag.slug)
+                                        ? field.value.filter(
+                                            (item) => item !== tag.slug,
+                                          )
+                                        : [...field.value, tag.slug],
+                                    )
+                                  }
+                                  selected={field.value.includes(tag.slug)}
+                                  surface="muted"
+                                />
+                              ))}
+                            </View>
+                          )}
+                        />
+                      </View>
+                    ) : null}
+
+                    {amenities.data && amenities.data.length > 0 ? (
+                      <View className="gap-2">
+                        <ThemedText size="sm" weight="medium">
+                          Amenities
+                        </ThemedText>
+                        <Controller
+                          control={control}
+                          name="helpfulDetails"
+                          render={({ field }) => (
+                            <View className="flex-row flex-wrap gap-2">
+                              {amenities.data.map((amenity) => (
+                                <Pill
+                                  key={amenity.slug}
+                                  label={amenity.name}
+                                  onPress={() =>
+                                    field.onChange(
+                                      field.value.includes(amenity.slug)
+                                        ? field.value.filter(
+                                            (item) => item !== amenity.slug,
+                                          )
+                                        : [...field.value, amenity.slug],
+                                    )
+                                  }
+                                  selected={field.value.includes(amenity.slug)}
+                                  surface="muted"
+                                />
+                              ))}
+                            </View>
+                          )}
+                        />
+                      </View>
+                    ) : null}
+                  </View>
+                ) : null}
               </View>
-
-              {cuisines.data && cuisines.data.length > 0 ? (
-                <View className="gap-2">
-                  <ThemedText size="sm" weight="medium">
-                    Cuisines
-                  </ThemedText>
-                  <Controller
-                    control={control}
-                    name="cuisines"
-                    render={({ field }) => (
-                      <View className="flex-row flex-wrap gap-2">
-                        {cuisines.data.map((cuisine) => (
-                          <Pill
-                            key={cuisine.slug}
-                            label={cuisine.name}
-                            onPress={() =>
-                              field.onChange(
-                                field.value.includes(cuisine.slug)
-                                  ? field.value.filter(
-                                      (item) => item !== cuisine.slug,
-                                    )
-                                  : [...field.value, cuisine.slug],
-                              )
-                            }
-                            selected={field.value.includes(cuisine.slug)}
-                            surface="muted"
-                          />
-                        ))}
-                      </View>
-                    )}
-                  />
-                </View>
-              ) : null}
-
-              <Controller
-                control={control}
-                name="hours"
-                render={({ field }) => (
-                  <HoursField
-                    onChange={field.onChange}
-                    value={field.value ?? []}
-                  />
-                )}
-              />
-
-              <Controller
-                control={control}
-                name="menu"
-                render={({ field }) => (
-                  <MenuField onChange={field.onChange} value={field.value ?? []} />
-                )}
-              />
-
-              <Controller
-                control={control}
-                name="coords"
-                render={({ field }) => (
-                  <LocationPinField
-                    onChange={field.onChange}
-                    value={field.value}
-                  />
-                )}
-              />
-
-              <Controller
-                control={control}
-                name="photos"
-                render={({ field }) => (
-                  <PhotoField
-                    onChange={field.onChange}
-                    value={field.value ?? []}
-                  />
-                )}
-              />
-
-              <View className="gap-3">
-                <ControlledPhoneInput
-                  control={control}
-                  label="Contact phone"
-                  name="contactPhone"
-                  surface="muted"
-                />
-                <ControlledTextInput
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  control={control}
-                  keyboardType="email-address"
-                  label="Contact email"
-                  name="contactEmail"
-                  placeholder="Their email, if you know it"
-                  surface="muted"
-                />
-              </View>
-
-              {tags.data && tags.data.length > 0 ? (
-                <View className="gap-2">
-                  <ThemedText size="sm" weight="medium">
-                    Tags
-                  </ThemedText>
-                  <Controller
-                    control={control}
-                    name="tags"
-                    render={({ field }) => (
-                      <View className="flex-row flex-wrap gap-2">
-                        {tags.data.map((tag) => (
-                          <Pill
-                            key={tag.slug}
-                            label={tag.name}
-                            onPress={() =>
-                              field.onChange(
-                                field.value.includes(tag.slug)
-                                  ? field.value.filter(
-                                      (item) => item !== tag.slug,
-                                    )
-                                  : [...field.value, tag.slug],
-                              )
-                            }
-                            selected={field.value.includes(tag.slug)}
-                            surface="muted"
-                          />
-                        ))}
-                      </View>
-                    )}
-                  />
-                </View>
-              ) : null}
-
-              {amenities.data && amenities.data.length > 0 ? (
-                <View className="gap-2">
-                  <ThemedText size="sm" weight="medium">
-                    Amenities
-                  </ThemedText>
-                  <Controller
-                    control={control}
-                    name="helpfulDetails"
-                    render={({ field }) => (
-                      <View className="flex-row flex-wrap gap-2">
-                        {amenities.data.map((amenity) => (
-                          <Pill
-                            key={amenity.slug}
-                            label={amenity.name}
-                            onPress={() =>
-                              field.onChange(
-                                field.value.includes(amenity.slug)
-                                  ? field.value.filter(
-                                      (item) => item !== amenity.slug,
-                                    )
-                                  : [...field.value, amenity.slug],
-                              )
-                            }
-                            selected={field.value.includes(amenity.slug)}
-                            surface="muted"
-                          />
-                        ))}
-                      </View>
-                    )}
-                  />
-                </View>
-              ) : null}
-            </View>
-          ) : null}
+            ))}
+          </View>
 
           {formState.errors.root ? (
             <ThemedText size="sm" tone="danger">

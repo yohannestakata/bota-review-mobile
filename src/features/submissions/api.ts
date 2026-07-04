@@ -19,6 +19,9 @@ export type SubmissionMenuItem = { name: string; price?: number };
 export type SubmissionStructuredDetails = {
   hours?: SubmissionHoursEntry[];
   menu?: SubmissionMenuItem[];
+  cuisines?: string[];
+  tags?: string[];
+  amenities?: string[];
 };
 
 export type PlaceMissingDetails = {

@@ -19,9 +19,12 @@ import { ThemedText } from "@/components/ui/themed-text";
 import {
   HoursField,
   MenuField,
+  useAmenities,
   useCreateBranchSubmission,
+  useTags,
   type BranchSubmissionBody,
 } from "@/features/submissions";
+import { useBranch } from "@/features/branch/queries";
 import { analytics } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
@@ -66,6 +69,8 @@ const suggestEditObject = z.object({
     }),
   ),
   menu: z.array(z.object({ name: z.string(), price: z.number().optional() })),
+  tags: z.array(z.string()),
+  amenities: z.array(z.string()),
 });
 
 type SuggestEditValues = z.infer<typeof suggestEditObject>;
@@ -77,6 +82,8 @@ const DEFAULT_VALUES: SuggestEditValues = {
   note: "",
   hours: [],
   menu: [],
+  tags: [],
+  amenities: [],
 };
 
 function submissionNote(values: SuggestEditValues) {
@@ -136,6 +143,9 @@ export default function SuggestEditScreen() {
     name?: string;
   }>();
   const submit = useCreateBranchSubmission(branchId);
+  const branch = useBranch(branchId);
+  const tagsQuery = useTags();
+  const amenitiesQuery = useAmenities();
 
   const { control, handleSubmit, setError, setValue, formState } =
     useForm<SuggestEditValues>({
@@ -155,6 +165,7 @@ export default function SuggestEditScreen() {
   const isNoteCorrection = isCorrection && selectedField?.mode === "note";
   const isHoursField = selectedField?.value === "Hours";
   const isMenuField = selectedField?.value === "Menu/prices";
+  const isTagsField = selectedField?.value === "Tags/amenities";
 
   const hasPrimaryCorrection = isValueCorrection
     ? values.suggestedValue.trim().length > 0
@@ -162,7 +173,9 @@ export default function SuggestEditScreen() {
       ? values.hours.length > 0
       : isMenuField
         ? values.menu.length > 0
-        : values.note.trim().length > 0;
+        : isTagsField
+          ? values.tags.length > 0 || values.amenities.length > 0
+          : values.note.trim().length > 0;
   const canSubmit =
     !submit.isPending &&
     (!isCorrection || (Boolean(values.fieldName) && hasPrimaryCorrection));
@@ -172,6 +185,8 @@ export default function SuggestEditScreen() {
     setValue("note", "");
     setValue("hours", []);
     setValue("menu", []);
+    setValue("tags", []);
+    setValue("amenities", []);
   }
 
   function resetContributionFields() {
@@ -189,7 +204,9 @@ export default function SuggestEditScreen() {
         ? { hours: formValues.hours }
         : formValues.fieldName === "Menu/prices" && formValues.menu.length
           ? { menu: formValues.menu }
-          : undefined;
+          : formValues.fieldName === "Tags/amenities"
+            ? { tags: formValues.tags, amenities: formValues.amenities }
+            : undefined;
 
     const body: BranchSubmissionBody =
       formValues.kind === "field_correction"
@@ -274,6 +291,22 @@ export default function SuggestEditScreen() {
                           shouldValidate: true,
                         });
                         resetPrimaryFields();
+                        // Seed the pickers with the branch's current set so a
+                        // correction edits reality (approve replaces the set).
+                        if (field.value === "Tags/amenities") {
+                          setValue(
+                            "tags",
+                            (branch.data?.tags ?? []).map((tag) => tag.slug),
+                            { shouldValidate: true },
+                          );
+                          setValue(
+                            "amenities",
+                            (branch.data?.amenities ?? []).map(
+                              (amenity) => amenity.slug,
+                            ),
+                            { shouldValidate: true },
+                          );
+                        }
                       }}
                       selected={values.fieldName === field.value}
                     />
@@ -321,6 +354,71 @@ export default function SuggestEditScreen() {
                       />
                     )}
                   />
+                ) : selectedField?.value === "Tags/amenities" ? (
+                  <View className="gap-4">
+                    {tagsQuery.data && tagsQuery.data.length > 0 ? (
+                      <View className="gap-2">
+                        <ThemedText size="sm" weight="medium">
+                          Tags
+                        </ThemedText>
+                        <Controller
+                          control={control}
+                          name="tags"
+                          render={({ field }) => (
+                            <View className="flex-row flex-wrap gap-2">
+                              {tagsQuery.data.map((tag) => (
+                                <Pill
+                                  key={tag.slug}
+                                  label={tag.name}
+                                  onPress={() =>
+                                    field.onChange(
+                                      field.value.includes(tag.slug)
+                                        ? field.value.filter(
+                                            (item) => item !== tag.slug,
+                                          )
+                                        : [...field.value, tag.slug],
+                                    )
+                                  }
+                                  selected={field.value.includes(tag.slug)}
+                                />
+                              ))}
+                            </View>
+                          )}
+                        />
+                      </View>
+                    ) : null}
+                    {amenitiesQuery.data && amenitiesQuery.data.length > 0 ? (
+                      <View className="gap-2">
+                        <ThemedText size="sm" weight="medium">
+                          Amenities
+                        </ThemedText>
+                        <Controller
+                          control={control}
+                          name="amenities"
+                          render={({ field }) => (
+                            <View className="flex-row flex-wrap gap-2">
+                              {amenitiesQuery.data.map((amenity) => (
+                                <Pill
+                                  key={amenity.slug}
+                                  label={amenity.name}
+                                  onPress={() =>
+                                    field.onChange(
+                                      field.value.includes(amenity.slug)
+                                        ? field.value.filter(
+                                            (item) => item !== amenity.slug,
+                                          )
+                                        : [...field.value, amenity.slug],
+                                    )
+                                  }
+                                  selected={field.value.includes(amenity.slug)}
+                                />
+                              ))}
+                            </View>
+                          )}
+                        />
+                      </View>
+                    ) : null}
+                  </View>
                 ) : (
                   <ControlledTextArea
                     control={control}

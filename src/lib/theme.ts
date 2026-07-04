@@ -41,10 +41,10 @@ export const shadows = {
     boxShadow: [
       {
         offsetX: 0,
-        offsetY: 7,
-        blurRadius: 22,
+        offsetY: 5.5,
+        blurRadius: 18,
         spreadDistance: 0,
-        color: "rgba(31, 36, 31, 0.12)",
+        color: "rgba(31, 36, 31, 0.10)",
       },
     ],
   } satisfies ViewStyle,

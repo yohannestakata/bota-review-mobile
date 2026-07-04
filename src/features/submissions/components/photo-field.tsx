@@ -35,8 +35,7 @@ export function PhotoField({
 
   async function add() {
     setError(null);
-    const permission =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       setError("Photo access is off. Turn it on in Settings to add one.");
       return;
@@ -92,11 +91,11 @@ export function PhotoField({
         onRemove={remove}
         photos={gridPhotos}
       />
-      <ThemedText size="xs" tone="muted">
-        {busy
-          ? "Uploading…"
-          : "A storefront or interior shot helps it get published faster."}
-      </ThemedText>
+      {busy ? (
+        <ThemedText size="xs" tone="muted">
+          Uploading...
+        </ThemedText>
+      ) : null}
       {error ? (
         <ThemedText size="sm" tone="danger">
           {error}
