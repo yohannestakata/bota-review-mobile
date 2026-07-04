@@ -14,6 +14,7 @@ import {
   ControlledTextArea,
   ControlledTextInput,
 } from "@/components/ui/form-field";
+import { ControlledPhoneInput } from "@/components/ui/phone-input";
 import { OptionalDetailsPanel } from "@/components/ui/optional-details-panel";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
@@ -241,13 +242,10 @@ export default function SubmissionsScreen() {
             />
 
             <View className="gap-3">
-              <ControlledTextInput
+              <ControlledPhoneInput
                 control={control}
-                keyboardType="number-pad"
                 label="Contact phone"
-                maxLength={60}
                 name="contactPhone"
-                placeholder="Their phone, if you know it"
                 surface="muted"
               />
               <ControlledTextInput

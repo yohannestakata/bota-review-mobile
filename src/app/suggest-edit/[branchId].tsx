@@ -14,6 +14,7 @@ import {
   ControlledTextArea,
   ControlledTextInput,
 } from "@/components/ui/form-field";
+import { ControlledPhoneInput } from "@/components/ui/phone-input";
 import { OptionalDetailsPanel } from "@/components/ui/optional-details-panel";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
@@ -373,12 +374,10 @@ export default function SuggestEditScreen() {
                 placeholder="Only if you know it"
                 surface="muted"
               />
-              <ControlledTextInput
+              <ControlledPhoneInput
                 control={control}
                 label="Phone"
-                maxLength={40}
                 name="extraPhone"
-                placeholder="Only if you know it"
                 surface="muted"
               />
             </View>

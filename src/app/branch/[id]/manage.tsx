@@ -18,7 +18,7 @@ import { z } from "zod";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CloseButton } from "@/components/ui/close-button";
-import { ControlledTextInput } from "@/components/ui/form-field";
+import { ControlledPhoneInput } from "@/components/ui/phone-input";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { Switch } from "@/components/ui/switch";
 import { ThemedText } from "@/components/ui/themed-text";
@@ -193,12 +193,10 @@ export default function ManageListingScreen() {
           {/* Contact */}
           <View className="gap-3">
             <SectionTitle title="Contact" />
-            <ControlledTextInput
+            <ControlledPhoneInput
               control={control}
-              keyboardType="phone-pad"
               label="Phone number"
               name="phone"
-              placeholder="+251 911 000 000"
             />
           </View>
 

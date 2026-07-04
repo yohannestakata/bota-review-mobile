@@ -14,6 +14,7 @@ import {
   ControlledTextArea,
   ControlledTextInput,
 } from "@/components/ui/form-field";
+import { ControlledPhoneInput } from "@/components/ui/phone-input";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
@@ -345,12 +346,10 @@ export default function ClaimBusinessScreen() {
             />
           </View>
 
-          <ControlledTextInput
+          <ControlledPhoneInput
             control={control}
-            keyboardType="phone-pad"
             label="Phone"
             name="contactPhone"
-            placeholder="Where we can reach you"
           />
 
           <ControlledTextInput
