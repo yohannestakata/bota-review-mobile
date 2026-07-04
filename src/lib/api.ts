@@ -122,6 +122,7 @@ export function getCurrentUser(getToken: TokenGetter) {
 
 export type Neighborhood = { id: string; name: string; slug: string };
 export type Cuisine = { id: string; name: string; slug: string };
+export type Amenity = { id: string; name: string; slug: string };
 export type Tag = {
   id: string;
   name: string;
@@ -154,4 +155,8 @@ export type BranchCard = {
 
 export function getNeighborhoods(getToken: TokenGetter) {
   return apiFetch<Neighborhood[]>("/neighborhoods", getToken);
+}
+
+export function getAmenities(getToken: TokenGetter) {
+  return apiFetch<Amenity[]>("/amenities", getToken);
 }

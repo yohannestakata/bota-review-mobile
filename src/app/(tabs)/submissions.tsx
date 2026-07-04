@@ -23,6 +23,7 @@ import {
   HoursField,
   MenuField,
   NeighborhoodField,
+  useAmenities,
   useReportMissingPlace,
   type PlaceMissingDetails,
 } from "@/features/submissions";
@@ -32,15 +33,6 @@ import { optionalEmailField } from "@/lib/validation";
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Something went wrong";
 }
-
-const HELPFUL_DETAILS = [
-  "Wi-Fi",
-  "Parking",
-  "Outdoor seating",
-  "Good for work",
-  "Good for groups",
-  "Fasting options",
-] as const;
 
 const submissionSchema = z.object({
   placeName: z.string().trim().min(1, "Place name is required"),
@@ -108,6 +100,7 @@ function Pill({
 export default function SubmissionsScreen() {
   const { isSignedIn } = useAuth();
   const report = useReportMissingPlace();
+  const amenities = useAmenities();
 
   const [helpMore, setHelpMore] = useState(false);
 
@@ -263,34 +256,38 @@ export default function SubmissionsScreen() {
                 />
               </View>
 
-              <View className="gap-2">
-                <ThemedText size="sm" weight="medium">
-                  Helpful details
-                </ThemedText>
-                <Controller
-                  control={control}
-                  name="helpfulDetails"
-                  render={({ field }) => (
-                    <View className="flex-row flex-wrap gap-2">
-                      {HELPFUL_DETAILS.map((detail) => (
-                        <Pill
-                          key={detail}
-                          label={detail}
-                          onPress={() =>
-                            field.onChange(
-                              field.value.includes(detail)
-                                ? field.value.filter((item) => item !== detail)
-                                : [...field.value, detail],
-                            )
-                          }
-                          selected={field.value.includes(detail)}
-                          surface="muted"
-                        />
-                      ))}
-                    </View>
-                  )}
-                />
-              </View>
+              {amenities.data && amenities.data.length > 0 ? (
+                <View className="gap-2">
+                  <ThemedText size="sm" weight="medium">
+                    Amenities
+                  </ThemedText>
+                  <Controller
+                    control={control}
+                    name="helpfulDetails"
+                    render={({ field }) => (
+                      <View className="flex-row flex-wrap gap-2">
+                        {amenities.data.map((amenity) => (
+                          <Pill
+                            key={amenity.slug}
+                            label={amenity.name}
+                            onPress={() =>
+                              field.onChange(
+                                field.value.includes(amenity.slug)
+                                  ? field.value.filter(
+                                      (item) => item !== amenity.slug,
+                                    )
+                                  : [...field.value, amenity.slug],
+                              )
+                            }
+                            selected={field.value.includes(amenity.slug)}
+                            surface="muted"
+                          />
+                        ))}
+                      </View>
+                    )}
+                  />
+                </View>
+              ) : null}
             </View>
           ) : null}
 

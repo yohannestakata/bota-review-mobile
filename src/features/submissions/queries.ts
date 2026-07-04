@@ -1,7 +1,7 @@
 import { useAuth } from "@clerk/clerk-expo";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-import { getNeighborhoods } from "@/lib/api";
+import { getAmenities, getNeighborhoods } from "@/lib/api";
 
 import {
   createBranchSubmission,
@@ -21,6 +21,16 @@ export function useNeighborhoods() {
   return useQuery({
     queryKey: ["neighborhoods"],
     queryFn: () => getNeighborhoods(getToken),
+    staleTime: 30 * 60 * 1000,
+  });
+}
+
+export function useAmenities() {
+  const { getToken } = useAuth();
+
+  return useQuery({
+    queryKey: ["amenities"],
+    queryFn: () => getAmenities(getToken),
     staleTime: 30 * 60 * 1000,
   });
 }
