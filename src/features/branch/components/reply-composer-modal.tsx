@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 import { colors } from "@/lib/theme";
 
-import { REPLY_AVATAR_SIZE, REPLY_NAME_SIZE } from "./review-row";
+import { REPLY_AVATAR_SIZE } from "./review-row";
 
 export type ReplyTarget = {
   reviewId: string;
@@ -102,14 +102,10 @@ function ReplyComposerContent({
                   <View className="mt-2 w-px flex-1 bg-placeholder" />
                 </View>
                 <View className="flex-1 gap-1 pb-1">
-                  <ThemedText
-                    className="leading-5"
-                    size={REPLY_NAME_SIZE}
-                    weight="medium"
-                  >
+                  <ThemedText className="leading-5" size="md" weight="medium">
                     {target.reviewAuthorName ?? "Original review"}
                   </ThemedText>
-                  <ThemedText numberOfLines={3} size="sm" tone="muted">
+                  <ThemedText numberOfLines={3} size="md" tone="muted">
                     {target.reviewText}
                   </ThemedText>
                 </View>
@@ -124,11 +120,7 @@ function ReplyComposerContent({
                 uri={user?.imageUrl}
               />
               <View className="flex-1">
-                <ThemedText
-                  className="leading-5"
-                  size={REPLY_NAME_SIZE}
-                  weight="medium"
-                >
+                <ThemedText className="leading-5" size="md" weight="medium">
                   {meName}
                 </ThemedText>
               </View>
