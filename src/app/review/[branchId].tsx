@@ -32,7 +32,7 @@ import { getErrorCode } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 
-const MIN_CHARS = 3;
+const MIN_CHARS = 20;
 const MAX_CHARS = 2000;
 const MAX_PHOTOS = 3;
 const REVIEW_ALREADY_EXISTS = "REVIEW_ALREADY_EXISTS";
