@@ -26,7 +26,12 @@ import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useOwnClaims } from "@/features/branch";
 import { useSavedBranchIds } from "@/features/home";
-import { useMe, useMyReplies, useMyReviews } from "@/features/profile";
+import {
+  ProfileCompletionCard,
+  useMe,
+  useMyReplies,
+  useMyReviews,
+} from "@/features/profile";
 import { colors } from "@/lib/theme";
 
 type IconType = ComponentProps<typeof AppIcon>["icon"];
@@ -186,6 +191,8 @@ export default function ProfileScreen() {
               </ThemedText>
             </Pressable>
           </View>
+
+          <ProfileCompletionCard />
         </View>
 
         {/* Menu */}

@@ -136,6 +136,7 @@ export type BranchCard = {
   slug: string;
   placeId: string;
   placeName: string;
+  placeAvatarUrl?: string | null;
   label: string | null;
   neighborhood: Neighborhood | null;
   coverPhotoUrl: string | null;

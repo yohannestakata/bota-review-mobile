@@ -572,6 +572,7 @@ export default function BranchDetailScreen() {
                       <View className="my-5 h-px bg-border" />
                     ) : null}
                     <ReviewRow
+                      businessAvatarUrl={data.place.avatarUrl ?? undefined}
                       businessName={data.place.name}
                       currentUserId={me.data?.id}
                       onReply={isSignedIn ? replyActions.startReply : undefined}

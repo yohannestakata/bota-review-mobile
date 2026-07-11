@@ -84,11 +84,13 @@ function ActionLink({
 function ReplyItem({
   reply,
   businessName,
+  businessAvatarUrl,
   isOwn,
   onReport,
 }: {
   reply: ReviewReply;
   businessName?: string;
+  businessAvatarUrl?: string;
   isOwn: boolean;
   onReport?: () => void;
 }) {
@@ -112,7 +114,7 @@ function ReplyItem({
         <Avatar
           name={isOwner ? businessName : reply.user.displayName}
           size={REPLY_AVATAR_SIZE}
-          uri={isOwner ? undefined : reply.user.avatarUrl}
+          uri={isOwner ? businessAvatarUrl : reply.user.avatarUrl}
         />
         <View className="flex-1">
           <ThemedText
@@ -149,6 +151,7 @@ function ReplyItem({
 export function ReviewRow({
   review,
   businessName,
+  businessAvatarUrl,
   currentUserId,
   onReport,
   onUserPress,
@@ -157,6 +160,7 @@ export function ReviewRow({
 }: {
   review: BranchReview;
   businessName?: string;
+  businessAvatarUrl?: string;
   currentUserId?: string;
   onReport?: (reviewId: string) => void;
   onUserPress?: (userId: string) => void;
@@ -275,6 +279,7 @@ export function ReviewRow({
             return (
               <ReplyItem
                 key={reply.id}
+                businessAvatarUrl={businessAvatarUrl}
                 businessName={businessName}
                 isOwn={isOwn}
                 onReport={

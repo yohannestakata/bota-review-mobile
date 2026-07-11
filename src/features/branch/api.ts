@@ -84,6 +84,7 @@ export type BranchDetail = {
     type: string;
     name: string;
     description: string | null;
+    avatarUrl: string | null;
   };
   neighborhood: Neighborhood | null;
   cuisines: Cuisine[];
@@ -236,6 +237,9 @@ export type UpdateOwnerInfoBody = {
   tagIds?: string[];
   amenityIds?: string[];
   menu?: SubmissionMenuItem[];
+  // Business logo (place-level). null clears it.
+  avatarUrl?: string | null;
+  avatarPublicId?: string | null;
 };
 
 export function updateOwnerInfo(
@@ -325,6 +329,53 @@ export async function uploadOwnerPhoto(
         category: "food",
       }),
     });
+  } catch (error) {
+    void deleteCloudinaryPhoto(uploaded.public_id, getToken).catch(() => {});
+    throw error;
+  }
+}
+
+// Uploads a business logo to Cloudinary and saves it as the place avatar via
+// owner-info (place-level). Returns the refreshed branch detail.
+export async function uploadOwnerAvatar(
+  branchId: string,
+  photo: PickedPhoto,
+  getToken: TokenGetter,
+): Promise<BranchDetail> {
+  const sig = await apiFetch<PhotoSignature>("/photos/sign", getToken, {
+    method: "POST",
+  });
+
+  if (!photo.base64) throw new Error("Image is missing base64 data");
+  const dataUri = `data:${photo.mimeType ?? "image/jpeg"};base64,${photo.base64}`;
+
+  const form = new FormData();
+  form.append("file", dataUri);
+  form.append("api_key", sig.apiKey);
+  form.append("timestamp", String(sig.timestamp));
+  form.append("signature", sig.signature);
+  form.append("folder", sig.folder);
+  if (sig.uploadPreset) form.append("upload_preset", sig.uploadPreset);
+
+  const uploadResponse = await fetch(
+    `https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`,
+    { method: "POST", body: form },
+  );
+  if (!uploadResponse.ok) {
+    throw new Error(`Cloudinary upload failed: status ${uploadResponse.status}`);
+  }
+
+  const uploaded = (await uploadResponse.json()) as {
+    public_id: string;
+    secure_url: string;
+  };
+
+  try {
+    return await updateOwnerInfo(
+      branchId,
+      { avatarUrl: uploaded.secure_url, avatarPublicId: uploaded.public_id },
+      getToken,
+    );
   } catch (error) {
     void deleteCloudinaryPhoto(uploaded.public_id, getToken).catch(() => {});
     throw error;

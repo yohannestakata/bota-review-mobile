@@ -20,6 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { ThemedText } from "@/components/ui/themed-text";
 import { TimeField } from "@/components/ui/time-field";
 import {
+  uploadOwnerAvatar,
   uploadOwnerPhoto,
   removeOwnerPhoto,
   setOwnerPhotoCover,
@@ -140,6 +141,7 @@ export default function ManageListingScreen() {
   const [amenityIds, setAmenityIds] = useState<string[] | null>(null);
   const [menu, setMenu] = useState<SubmissionMenuItem[] | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   // Measured width of the photo grid row → square cells at 3 per row, full width.
   const [photoRowWidth, setPhotoRowWidth] = useState(0);
   const photoCell =
@@ -266,6 +268,55 @@ export default function ManageListingScreen() {
     }
   }
 
+  async function pickAndUploadAvatar() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Photo access needed", "Turn it on to add a logo.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsMultipleSelection: false,
+      base64: true,
+      mediaTypes: ["images"],
+      quality: 0.8,
+    });
+    if (result.canceled) return;
+    const asset = result.assets[0];
+    setUploadingAvatar(true);
+    try {
+      await uploadOwnerAvatar(
+        id,
+        {
+          uri: asset.uri,
+          width: asset.width,
+          height: asset.height,
+          fileName: asset.fileName,
+          mimeType: asset.mimeType,
+          base64: asset.base64,
+        },
+        getToken,
+      );
+      await branch.refetch();
+      Alert.alert("Logo updated", "It shows when you reply to reviews.");
+    } catch {
+      Alert.alert("Upload hit a snag", "Give it another try.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
+
+  async function removeAvatar() {
+    setUploadingAvatar(true);
+    try {
+      await update.mutateAsync({ avatarUrl: null, avatarPublicId: null });
+      await branch.refetch();
+    } catch {
+      Alert.alert("Couldn't remove", "Try again in a moment.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
+
   async function makeCover(photoId: string) {
     try {
       await setOwnerPhotoCover(id, photoId, getToken);
@@ -315,6 +366,50 @@ export default function ManageListingScreen() {
           contentContainerClassName="gap-7 px-6 pb-10 pt-2"
           keyboardShouldPersistTaps="handled"
         >
+          <View className="gap-3">
+            <SectionTitle>Business logo</SectionTitle>
+            <View className="flex-row items-center gap-4">
+              <View className="size-20 items-center justify-center overflow-hidden rounded-full border border-placeholder bg-surface">
+                {uploadingAvatar ? (
+                  <ActivityIndicator color={colors.primary} />
+                ) : data?.place.avatarUrl ? (
+                  <Image
+                    contentFit="cover"
+                    source={{ uri: data.place.avatarUrl }}
+                    style={{ width: "100%", height: "100%" }}
+                  />
+                ) : (
+                  <AppIcon color={colors.muted} icon={Add01Icon} size={24} />
+                )}
+              </View>
+              <View className="flex-1 items-start gap-2">
+                <Pressable
+                  className="rounded-full border border-primary px-4 py-2"
+                  disabled={uploadingAvatar}
+                  onPress={pickAndUploadAvatar}
+                >
+                  <ThemedText size="sm" tone="brand" weight="medium">
+                    {data?.place.avatarUrl ? "Change logo" : "Upload logo"}
+                  </ThemedText>
+                </Pressable>
+                {data?.place.avatarUrl ? (
+                  <Pressable
+                    disabled={uploadingAvatar}
+                    hitSlop={6}
+                    onPress={removeAvatar}
+                  >
+                    <ThemedText size="sm" tone="muted">
+                      Remove
+                    </ThemedText>
+                  </Pressable>
+                ) : null}
+              </View>
+            </View>
+            <ThemedText size="xs" tone="muted">
+              Shown when you reply to reviews. Applies to all your locations.
+            </ThemedText>
+          </View>
+
           <View className="gap-3">
             <SectionTitle>Listing details</SectionTitle>
             <ControlledTextInput
