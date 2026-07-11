@@ -155,6 +155,9 @@ export function useUpdateOwnerInfo(branchId: string) {
       void queryClient.invalidateQueries({
         queryKey: branchKeys.detail(branchId),
       });
+      void queryClient.invalidateQueries({
+        queryKey: branchKeys.menus(branchId),
+      });
     },
   });
 }

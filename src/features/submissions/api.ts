@@ -16,6 +16,7 @@ export type SubmissionHoursEntry = {
 
 export type SubmissionMenuItem = {
   name: string;
+  category?: string;
   price?: number;
   // A photo the submitter uploaded for this item (Cloudinary ref), attached to
   // the menu item on approve.
@@ -29,6 +30,9 @@ export type SubmissionStructuredDetails = {
   cuisines?: string[];
   tags?: string[];
   amenities?: string[];
+  photos?: SubmissionPhoto[];
+  reportedPhotoId?: string;
+  reportedPhotoUrl?: string;
 };
 
 export type PlaceMissingDetails = {

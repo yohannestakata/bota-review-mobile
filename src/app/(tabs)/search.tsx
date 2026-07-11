@@ -16,12 +16,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
+import { ChipButton } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { FlashList, ListGapLg } from "@/components/ui/flash-list";
 import { BranchCard, useSavedBranchIds, useToggleSave } from "@/features/home";
 import {
-  FilterChip,
   FilterSheet,
   type FilterSheetRef,
   SearchResultsSkeleton,
@@ -271,9 +271,9 @@ export default function SearchScreen() {
             </ThemedText>
           </Pressable>
 
-          <FilterChip label="Nearby" onPress={toggleNearby} selected={nearby} />
+          <ChipButton label="Nearby" onPress={toggleNearby} selected={nearby} />
 
-          <FilterChip
+          <ChipButton
             label="Open now"
             onPress={() => setOpenNow((v) => !v)}
             selected={openNow}
@@ -289,7 +289,7 @@ export default function SearchScreen() {
           >
             {activeChips.map((chip) => (
               <Pressable
-                className="flex-row items-center gap-1.5 rounded-full bg-surface-muted px-3 py-1.5"
+                className="flex-row items-center gap-1.5 rounded-full border border-placeholder bg-surface px-3 py-1.5"
                 hitSlop={4}
                 key={chip.key}
                 onPress={chip.onRemove}

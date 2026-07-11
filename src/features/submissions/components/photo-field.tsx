@@ -86,16 +86,12 @@ export function PhotoField({
         Photos
       </ThemedText>
       <PhotoGrid
+        adding={busy}
         canAdd={value.length < MAX_PHOTOS && !busy}
         onAdd={add}
         onRemove={remove}
         photos={gridPhotos}
       />
-      {busy ? (
-        <ThemedText size="xs" tone="muted">
-          Uploading...
-        </ThemedText>
-      ) : null}
       {error ? (
         <ThemedText size="sm" tone="danger">
           {error}

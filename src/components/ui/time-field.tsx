@@ -26,6 +26,15 @@ function formatTime(date: Date): string {
   return `${h}:${m}`;
 }
 
+function formatDisplayTime(value: string): string {
+  const date = parseTime(value);
+  const hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const period = hours >= 12 ? "PM" : "AM";
+  const displayHours = hours % 12 || 12;
+  return `${displayHours}:${minutes} ${period}`;
+}
+
 // A "HH:MM" time value edited via the native time picker. Android pops the
 // native dialog; iOS presents the wheel in a bottom sheet whose overlay fades
 // while the sheet slides (driven by Reanimated, not the Modal's slide anim).
@@ -43,7 +52,7 @@ export function TimeField({
 
   const field = (
     <Pressable
-      className="h-10 justify-center rounded-xl border border-placeholder bg-surface px-4"
+      className="h-9 justify-center rounded-lg border border-placeholder bg-surface px-3"
       onPress={() => {
         setDraft(parseTime(value));
         if (Platform.OS === "ios") {
@@ -54,7 +63,7 @@ export function TimeField({
         }
       }}
     >
-      <ThemedText size="sm">{value}</ThemedText>
+      <ThemedText size="sm">{formatDisplayTime(value)}</ThemedText>
     </Pressable>
   );
 
@@ -91,6 +100,7 @@ export function TimeField({
                   <View className="items-center">
                     <DateTimePicker
                       display="spinner"
+                      is24Hour={false}
                       mode="time"
                       onChange={(_event, date) => {
                         if (date) setDraft(date);
@@ -120,6 +130,7 @@ export function TimeField({
       {field}
       {androidShow ? (
         <DateTimePicker
+          is24Hour={false}
           mode="time"
           onChange={(event, date) => {
             setAndroidShow(false);

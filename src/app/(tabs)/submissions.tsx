@@ -11,7 +11,7 @@ import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
 import { AuthRequiredScreen } from "@/components/auth/auth-required-screen";
-import { Button } from "@/components/ui/button";
+import { Button, ChipButton } from "@/components/ui/button";
 import {
   ControlledTextArea,
   ControlledTextInput,
@@ -33,7 +33,6 @@ import {
   useTags,
   type PlaceMissingDetails,
 } from "@/features/submissions";
-import { cn } from "@/lib/cn";
 import { optionalEmailField } from "@/lib/validation";
 
 function getErrorMessage(error: unknown) {
@@ -123,39 +122,6 @@ const DEFAULT_VALUES: SubmissionValues = {
   photos: [],
   helpfulDetails: [],
 };
-
-function Pill({
-  label,
-  selected,
-  onPress,
-  surface = "default",
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-  surface?: "default" | "muted";
-}) {
-  return (
-    <Pressable
-      className={cn(
-        "rounded-full px-4 py-2",
-        surface === "muted" && "border",
-        selected && "bg-primary",
-        !selected && surface === "default" && "bg-surface",
-        !selected && surface === "muted" && "border-placeholder bg-background",
-      )}
-      onPress={onPress}
-    >
-      <ThemedText
-        size="sm"
-        tone={selected ? "inverse" : "default"}
-        weight="medium"
-      >
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
-}
 
 function SectionToggle({
   description,
@@ -389,7 +355,7 @@ export default function SubmissionsScreen() {
                         render={({ field }) => (
                           <View className="flex-row flex-wrap gap-2">
                             {PLACE_TYPES.map((option) => (
-                              <Pill
+                              <ChipButton
                                 key={option.value}
                                 label={option.label}
                                 onPress={() =>
@@ -400,7 +366,6 @@ export default function SubmissionsScreen() {
                                   )
                                 }
                                 selected={field.value === option.value}
-                                surface="muted"
                               />
                             ))}
                           </View>
@@ -419,7 +384,7 @@ export default function SubmissionsScreen() {
                           render={({ field }) => (
                             <View className="flex-row flex-wrap gap-2">
                               {cuisines.data.map((cuisine) => (
-                                <Pill
+                                <ChipButton
                                   key={cuisine.slug}
                                   label={cuisine.name}
                                   onPress={() =>
@@ -432,7 +397,6 @@ export default function SubmissionsScreen() {
                                     )
                                   }
                                   selected={field.value.includes(cuisine.slug)}
-                                  surface="muted"
                                 />
                               ))}
                             </View>
@@ -517,7 +481,7 @@ export default function SubmissionsScreen() {
                           render={({ field }) => (
                             <View className="flex-row flex-wrap gap-2">
                               {tags.data.map((tag) => (
-                                <Pill
+                                <ChipButton
                                   key={tag.slug}
                                   label={tag.name}
                                   onPress={() =>
@@ -530,7 +494,6 @@ export default function SubmissionsScreen() {
                                     )
                                   }
                                   selected={field.value.includes(tag.slug)}
-                                  surface="muted"
                                 />
                               ))}
                             </View>
@@ -550,7 +513,7 @@ export default function SubmissionsScreen() {
                           render={({ field }) => (
                             <View className="flex-row flex-wrap gap-2">
                               {amenities.data.map((amenity) => (
-                                <Pill
+                                <ChipButton
                                   key={amenity.slug}
                                   label={amenity.name}
                                   onPress={() =>
@@ -563,7 +526,6 @@ export default function SubmissionsScreen() {
                                     )
                                   }
                                   selected={field.value.includes(amenity.slug)}
-                                  surface="muted"
                                 />
                               ))}
                             </View>

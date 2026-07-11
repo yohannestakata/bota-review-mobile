@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
 
 import { Switch } from "@/components/ui/switch";
@@ -28,6 +28,18 @@ function emptyState(): HoursState {
   }, {} as HoursState);
 }
 
+function stateFromEntries(value: SubmissionHoursEntry[]): HoursState {
+  const state = emptyState();
+  for (const entry of value) {
+    state[entry.day] = {
+      open: true,
+      from: entry.open,
+      to: entry.close,
+    };
+  }
+  return state;
+}
+
 // Structured open-day entries for the submission (only the open days).
 function toEntries(state: HoursState): SubmissionHoursEntry[] {
   return DAYS.filter((day) => state[day.key].open).map((day) => ({
@@ -46,12 +58,7 @@ export function HoursField({
   value: SubmissionHoursEntry[];
   onChange: (value: SubmissionHoursEntry[]) => void;
 }) {
-  const [state, setState] = useState<HoursState>(emptyState);
-
-  // Reset internal state when the form clears the field (e.g. after submit).
-  useEffect(() => {
-    if (value.length === 0) setState(emptyState());
-  }, [value]);
+  const [state, setState] = useState<HoursState>(() => stateFromEntries(value));
 
   function update(key: DayKey, patch: Partial<DayState>) {
     setState((prev) => {
@@ -76,13 +83,20 @@ export function HoursField({
             >
               <View className="flex-row items-center justify-between">
                 <ThemedText weight="medium">{day.label}</ThemedText>
-                <Switch
-                  onValueChange={(open) => update(day.key, { open })}
-                  value={state_.open}
-                />
+                <View className="flex-row items-center gap-2">
+                  {!state_.open ? (
+                    <ThemedText size="sm" tone="muted">
+                      Closed
+                    </ThemedText>
+                  ) : null}
+                  <Switch
+                    onValueChange={(open) => update(day.key, { open })}
+                    value={state_.open}
+                  />
+                </View>
               </View>
               {state_.open ? (
-                <View className="mt-3 flex-row items-center gap-2">
+                <View className="mt-2 flex-row items-center gap-2">
                   <TimeField
                     onChange={(from) => update(day.key, { from })}
                     value={state_.from}
@@ -93,11 +107,7 @@ export function HoursField({
                     value={state_.to}
                   />
                 </View>
-              ) : (
-                <ThemedText className="mt-1" size="sm" tone="muted">
-                  Closed
-                </ThemedText>
-              )}
+              ) : null}
             </View>
           );
         })}

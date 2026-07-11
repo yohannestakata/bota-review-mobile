@@ -1,14 +1,14 @@
 import { zodFormResolver } from "@/lib/zod-resolver";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, ChipButton } from "@/components/ui/button";
 import { CloseButton } from "@/components/ui/close-button";
 import {
   ControlledTextArea,
@@ -19,6 +19,7 @@ import { ThemedText } from "@/components/ui/themed-text";
 import {
   HoursField,
   MenuField,
+  PhotoField,
   useAmenities,
   useCreateBranchSubmission,
   useTags,
@@ -26,7 +27,6 @@ import {
 } from "@/features/submissions";
 import { useBranch } from "@/features/branch/queries";
 import { analytics } from "@/lib/analytics";
-import { cn } from "@/lib/cn";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 
 type Kind = "field_correction" | "temporarily_closed" | "permanently_closed";
@@ -71,6 +71,15 @@ const suggestEditObject = z.object({
   menu: z.array(z.object({ name: z.string(), price: z.number().optional() })),
   tags: z.array(z.string()),
   amenities: z.array(z.string()),
+  photos: z.array(
+    z.object({
+      publicId: z.string(),
+      url: z.string(),
+      width: z.number(),
+      height: z.number(),
+    }),
+  ),
+  reportedPhotoId: z.string(),
 });
 
 type SuggestEditValues = z.infer<typeof suggestEditObject>;
@@ -84,6 +93,8 @@ const DEFAULT_VALUES: SuggestEditValues = {
   menu: [],
   tags: [],
   amenities: [],
+  photos: [],
+  reportedPhotoId: "",
 };
 
 function submissionNote(values: SuggestEditValues) {
@@ -104,43 +115,12 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Something went wrong";
 }
 
-function Pill({
-  label,
-  selected,
-  onPress,
-  surface = "default",
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-  surface?: "default" | "muted";
-}) {
-  return (
-    <Pressable
-      className={cn(
-        "rounded-full px-4 py-2",
-        surface === "muted" && "border",
-        selected && "bg-primary",
-        !selected && surface === "default" && "bg-surface",
-        !selected && surface === "muted" && "border-placeholder bg-background",
-      )}
-      onPress={onPress}
-    >
-      <ThemedText
-        size="sm"
-        tone={selected ? "inverse" : "default"}
-        weight="medium"
-      >
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
-}
-
 export default function SuggestEditScreen() {
-  const { branchId, name } = useLocalSearchParams<{
+  const { branchId, name, photoId, photoUrl } = useLocalSearchParams<{
     branchId: string;
     name?: string;
+    photoId?: string;
+    photoUrl?: string;
   }>();
   const submit = useCreateBranchSubmission(branchId);
   const branch = useBranch(branchId);
@@ -151,7 +131,11 @@ export default function SuggestEditScreen() {
     useForm<SuggestEditValues>({
       resolver: zodFormResolver(suggestEditSchema),
       mode: "onChange",
-      defaultValues: DEFAULT_VALUES,
+      defaultValues: {
+        ...DEFAULT_VALUES,
+        fieldName: photoId ? "Photos" : "",
+        reportedPhotoId: photoId ?? "",
+      },
     });
 
   const attemptClose = useDiscardConfirm(formState.isDirty);
@@ -166,6 +150,8 @@ export default function SuggestEditScreen() {
   const isHoursField = selectedField?.value === "Hours";
   const isMenuField = selectedField?.value === "Menu/prices";
   const isTagsField = selectedField?.value === "Tags/amenities";
+  const isPhotosField = selectedField?.value === "Photos";
+  const isPhotoReport = isPhotosField && Boolean(values.reportedPhotoId);
 
   const hasPrimaryCorrection = isValueCorrection
     ? values.suggestedValue.trim().length > 0
@@ -175,7 +161,11 @@ export default function SuggestEditScreen() {
         ? values.menu.length > 0
         : isTagsField
           ? values.tags.length > 0 || values.amenities.length > 0
-          : values.note.trim().length > 0;
+          : isPhotosField
+            ? isPhotoReport
+              ? values.note.trim().length > 0
+              : values.photos.length > 0
+            : values.note.trim().length > 0;
   const canSubmit =
     !submit.isPending &&
     (!isCorrection || (Boolean(values.fieldName) && hasPrimaryCorrection));
@@ -187,6 +177,8 @@ export default function SuggestEditScreen() {
     setValue("menu", []);
     setValue("tags", []);
     setValue("amenities", []);
+    setValue("photos", []);
+    setValue("reportedPhotoId", "");
   }
 
   function resetContributionFields() {
@@ -206,7 +198,14 @@ export default function SuggestEditScreen() {
           ? { menu: formValues.menu }
           : formValues.fieldName === "Tags/amenities"
             ? { tags: formValues.tags, amenities: formValues.amenities }
-            : undefined;
+            : formValues.fieldName === "Photos" && formValues.reportedPhotoId
+              ? {
+                  reportedPhotoId: formValues.reportedPhotoId,
+                  ...(photoUrl ? { reportedPhotoUrl: photoUrl } : {}),
+                }
+              : formValues.fieldName === "Photos" && formValues.photos.length
+                ? { photos: formValues.photos }
+                : undefined;
 
     const body: BranchSubmissionBody =
       formValues.kind === "field_correction"
@@ -262,7 +261,7 @@ export default function SuggestEditScreen() {
 
           <View className="flex-row flex-wrap gap-2">
             {KINDS.map((option) => (
-              <Pill
+              <ChipButton
                 key={option.value}
                 label={option.label}
                 onPress={() => {
@@ -283,7 +282,7 @@ export default function SuggestEditScreen() {
                 </ThemedText>
                 <View className="flex-row flex-wrap gap-2">
                   {FIELDS.map((field) => (
-                    <Pill
+                    <ChipButton
                       key={field.value}
                       label={field.label}
                       onPress={() => {
@@ -367,7 +366,7 @@ export default function SuggestEditScreen() {
                           render={({ field }) => (
                             <View className="flex-row flex-wrap gap-2">
                               {tagsQuery.data.map((tag) => (
-                                <Pill
+                                <ChipButton
                                   key={tag.slug}
                                   label={tag.name}
                                   onPress={() =>
@@ -398,7 +397,7 @@ export default function SuggestEditScreen() {
                           render={({ field }) => (
                             <View className="flex-row flex-wrap gap-2">
                               {amenitiesQuery.data.map((amenity) => (
-                                <Pill
+                                <ChipButton
                                   key={amenity.slug}
                                   label={amenity.name}
                                   onPress={() =>
@@ -419,6 +418,49 @@ export default function SuggestEditScreen() {
                       </View>
                     ) : null}
                   </View>
+                ) : selectedField?.value === "Photos" ? (
+                  isPhotoReport ? (
+                    <View className="gap-4">
+                      {photoUrl ? (
+                        <Image
+                          contentFit="cover"
+                          source={photoUrl}
+                          style={{
+                            width: "100%",
+                            aspectRatio: 1,
+                            borderRadius: 16,
+                          }}
+                          transition={150}
+                        />
+                      ) : null}
+                      <ControlledTextArea
+                        control={control}
+                        inputClassName="min-h-28"
+                        label="What's wrong with this photo?"
+                        name="note"
+                        placeholder="Tell us why it should come down."
+                      />
+                    </View>
+                  ) : (
+                    <View className="gap-4">
+                      <Controller
+                        control={control}
+                        name="photos"
+                        render={({ field }) => (
+                          <PhotoField
+                            onChange={field.onChange}
+                            value={field.value ?? []}
+                          />
+                        )}
+                      />
+                      <ControlledTextArea
+                        control={control}
+                        label="A quick note (optional)"
+                        name="note"
+                        placeholder="What do these photos show?"
+                      />
+                    </View>
+                  )
                 ) : (
                   <ControlledTextArea
                     control={control}

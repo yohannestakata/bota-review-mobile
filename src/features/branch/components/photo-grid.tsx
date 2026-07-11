@@ -2,7 +2,12 @@ import { Add01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { colors } from "@/lib/theme";
 import { Image } from "expo-image";
 import { useState } from "react";
-import { type LayoutChangeEvent, Pressable, View } from "react-native";
+import {
+  ActivityIndicator,
+  type LayoutChangeEvent,
+  Pressable,
+  View,
+} from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 
@@ -14,13 +19,20 @@ const GAP = 8;
 type PhotoGridProps = {
   photos: PickedPhoto[];
   canAdd: boolean;
+  adding?: boolean;
   onAdd: () => void;
   onRemove: (uri: string) => void;
 };
 
 // A 3-column grid of square cells. Cell size is derived from the measured row
 // width so the columns always fill the available space with even gaps.
-export function PhotoGrid({ photos, canAdd, onAdd, onRemove }: PhotoGridProps) {
+export function PhotoGrid({
+  photos,
+  canAdd,
+  adding = false,
+  onAdd,
+  onRemove,
+}: PhotoGridProps) {
   const [rowWidth, setRowWidth] = useState(0);
   const cell = rowWidth > 0 ? (rowWidth - GAP * (COLUMNS - 1)) / COLUMNS : 0;
 
@@ -57,13 +69,18 @@ export function PhotoGrid({ photos, canAdd, onAdd, onRemove }: PhotoGridProps) {
           ))
         : null}
 
-      {cell > 0 && canAdd ? (
+      {cell > 0 && (canAdd || adding) ? (
         <Pressable
           className="items-center justify-center rounded-xl border border-dashed border-subtle"
+          disabled={adding}
           onPress={onAdd}
           style={{ width: cell, height: cell }}
         >
-          <AppIcon color={colors.muted} icon={Add01Icon} size={26} />
+          {adding ? (
+            <ActivityIndicator color={colors.primary} />
+          ) : (
+            <AppIcon color={colors.muted} icon={Add01Icon} size={26} />
+          )}
         </Pressable>
       ) : null}
     </View>

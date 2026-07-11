@@ -1,81 +1,120 @@
-import { zodFormResolver } from "@/lib/zod-resolver";
-import { Add01Icon } from "@hugeicons/core-free-icons";
-import * as ImagePicker from "expo-image-picker";
+import { useAuth } from "@clerk/clerk-expo";
+import { Add01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, ChipButton } from "@/components/ui/button";
 import { CloseButton } from "@/components/ui/close-button";
-import { ControlledPhoneInput } from "@/components/ui/phone-input";
+import { ControlledTextInput } from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
+import { ControlledPhoneInput } from "@/components/ui/phone-input";
 import { Switch } from "@/components/ui/switch";
 import { ThemedText } from "@/components/ui/themed-text";
 import { TimeField } from "@/components/ui/time-field";
 import {
   uploadOwnerPhoto,
+  removeOwnerPhoto,
+  setOwnerPhotoCover,
   useBranch,
+  useBranchMenus,
   useUpdateOwnerInfo,
   type BranchHours,
   type PickedPhoto,
 } from "@/features/branch";
+import {
+  LocationPinField,
+  MenuField,
+  useAmenities,
+  useCuisines,
+  useNeighborhoods,
+  useTags,
+  type PinCoords,
+  type SubmissionMenuItem,
+} from "@/features/submissions";
+import { zodFormResolver } from "@/lib/zod-resolver";
 import { colors } from "@/lib/theme";
-import { useAuth } from "@clerk/clerk-expo";
 
-const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
-type DayKey = (typeof DAY_KEYS)[number];
-const DAY_LABELS: Record<DayKey, string> = {
-  mon: "Monday",
-  tue: "Tuesday",
-  wed: "Wednesday",
-  thu: "Thursday",
-  fri: "Friday",
-  sat: "Saturday",
-  sun: "Sunday",
-};
-
+const DAYS = [
+  ["mon", "Monday"],
+  ["tue", "Tuesday"],
+  ["wed", "Wednesday"],
+  ["thu", "Thursday"],
+  ["fri", "Friday"],
+  ["sat", "Saturday"],
+  ["sun", "Sunday"],
+] as const;
+type DayKey = (typeof DAYS)[number][0];
 type DayState = { isOpen: boolean; from: string; to: string };
 type HoursState = Record<DayKey, DayState>;
 
-function toHoursState(hours: BranchHours | null | undefined): HoursState {
-  return DAY_KEYS.reduce((acc, day) => {
-    const slots = hours?.[day] as [string, string][] | undefined;
-    acc[day] = slots?.length
-      ? { isOpen: true, from: slots[0][0], to: slots[0][1] }
-      : { isOpen: false, from: "09:00", to: "22:00" };
-    return acc;
-  }, {} as HoursState);
+function toHoursState(hours?: BranchHours | null): HoursState {
+  return Object.fromEntries(
+    DAYS.map(([day]) => {
+      const slot = hours?.[day]?.[0];
+      return [
+        day,
+        slot
+          ? { isOpen: true, from: slot[0], to: slot[1] }
+          : { isOpen: false, from: "09:00", to: "18:00" },
+      ];
+    }),
+  ) as HoursState;
 }
 
 function fromHoursState(state: HoursState): BranchHours {
   return Object.fromEntries(
-    Object.entries(state)
-      .filter(([, { isOpen }]) => isOpen)
-      .map(([day, { from, to }]) => [day, [[from, to]] as [string, string][]]),
+    DAYS.filter(([day]) => state[day].isOpen).map(([day]) => [
+      day,
+      [[state[day].from, state[day].to]],
+    ]),
   );
 }
 
 const schema = z.object({
+  label: z.string().trim().min(1, "Location name is required").max(120),
+  addressText: z.string().trim().min(1, "Address is required").max(240),
   phone: z.string().trim().max(60).optional(),
 });
 type FormValues = z.infer<typeof schema>;
 
-function SectionTitle({ title }: { title: string }) {
+const PHOTO_GRID_GAP = 8;
+
+function SectionTitle({ children }: { children: string }) {
   return (
     <ThemedText size="xl" weight="bold">
-      {title}
+      {children}
     </ThemedText>
+  );
+}
+
+function Choices({
+  items,
+  selected,
+  onToggle,
+}: {
+  items: { id: string; name: string }[];
+  selected: string[];
+  onToggle: (id: string) => void;
+}) {
+  return (
+    <View className="flex-row flex-wrap gap-2">
+      {items.map((item) => (
+        <ChipButton
+          key={item.id}
+          label={item.name}
+          onPress={() => onToggle(item.id)}
+          selected={selected.includes(item.id)}
+        />
+      ))}
+    </View>
   );
 }
 
@@ -83,25 +122,90 @@ export default function ManageListingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getToken } = useAuth();
   const branch = useBranch(id);
+  const menus = useBranchMenus(id);
+  const neighborhoods = useNeighborhoods();
+  const cuisines = useCuisines();
+  const tags = useTags();
+  const amenities = useAmenities();
   const update = useUpdateOwnerInfo(id);
-
-  const [hoursState, setHoursState] = useState<HoursState | null>(null);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-
   const data = branch.data;
 
-  // Lazily initialise hours state from the fetched branch (only once).
-  const resolvedHours: HoursState =
-    hoursState ?? (data ? toHoursState(data.hours) : toHoursState(null));
+  const [hours, setHours] = useState<HoursState | null>(null);
+  const [coords, setCoords] = useState<PinCoords | null | undefined>(undefined);
+  const [neighborhoodId, setNeighborhoodId] = useState<
+    string | null | undefined
+  >(undefined);
+  const [cuisineIds, setCuisineIds] = useState<string[] | null>(null);
+  const [tagIds, setTagIds] = useState<string[] | null>(null);
+  const [amenityIds, setAmenityIds] = useState<string[] | null>(null);
+  const [menu, setMenu] = useState<SubmissionMenuItem[] | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  // Measured width of the photo grid row → square cells at 3 per row, full width.
+  const [photoRowWidth, setPhotoRowWidth] = useState(0);
+  const photoCell =
+    photoRowWidth > 0 ? (photoRowWidth - PHOTO_GRID_GAP * 2) / 3 : 0;
 
-  const { control, handleSubmit } = useForm<FormValues>({
+  const resolvedHours = hours ?? toHoursState(data?.hours);
+  const resolvedCoords =
+    coords !== undefined
+      ? coords
+      : data?.latitude && data.longitude
+        ? { lat: Number(data.latitude), lng: Number(data.longitude) }
+        : null;
+  const resolvedNeighborhood =
+    neighborhoodId !== undefined
+      ? neighborhoodId
+      : (data?.neighborhood?.id ?? null);
+  const resolvedCuisines =
+    cuisineIds ?? data?.cuisines.map((item) => item.id) ?? [];
+  const resolvedTags = tagIds ?? data?.tags.map((item) => item.id) ?? [];
+  const resolvedAmenities =
+    amenityIds ?? data?.amenities.map((item) => item.id) ?? [];
+  const existingMenu: SubmissionMenuItem[] = (menus.data ?? []).flatMap(
+    (group) =>
+      group.items.map((item) => ({
+        name: item.name,
+        price: Number(item.price),
+        ...(item.category ? { category: item.category } : {}),
+        ...(item.imageUrl ? { imageUrl: item.imageUrl } : {}),
+        ...(item.cloudinaryPublicId
+          ? { publicId: item.cloudinaryPublicId }
+          : {}),
+      })),
+  );
+  const officialPhotos = data?.photos.filter((photo) => !photo.reviewId) ?? [];
+
+  const initialized = useRef(false);
+  const { control, handleSubmit, reset } = useForm<FormValues>({
     resolver: zodFormResolver(schema),
-    values: { phone: data?.phone ?? "" },
+    defaultValues: { label: "", addressText: "", phone: "" },
   });
 
+  useEffect(() => {
+    if (!data || initialized.current) return;
+    initialized.current = true;
+    reset({
+      label: data.label ?? "",
+      addressText: data.addressText ?? "",
+      phone: data.phone ?? "",
+    });
+  }, [data, reset]);
+
+  function toggle(
+    current: string[],
+    set: (value: string[]) => void,
+    value: string,
+  ) {
+    set(
+      current.includes(value)
+        ? current.filter((id_) => id_ !== value)
+        : [...current, value],
+    );
+  }
+
   function setDay(day: DayKey, patch: Partial<DayState>) {
-    setHoursState((prev) => {
-      const base = prev ?? toHoursState(data?.hours);
+    setHours((current) => {
+      const base = current ?? toHoursState(data?.hours);
       return { ...base, [day]: { ...base[day], ...patch } };
     });
   }
@@ -109,8 +213,17 @@ export default function ManageListingScreen() {
   const onSubmit = handleSubmit(async (values) => {
     try {
       await update.mutateAsync({
+        label: values.label.trim(),
+        addressText: values.addressText.trim(),
         phone: values.phone?.trim() || null,
         hours: fromHoursState(resolvedHours),
+        latitude: resolvedCoords ? String(resolvedCoords.lat) : null,
+        longitude: resolvedCoords ? String(resolvedCoords.lng) : null,
+        neighborhoodId: resolvedNeighborhood,
+        cuisineIds: resolvedCuisines,
+        tagIds: resolvedTags,
+        amenityIds: resolvedAmenities,
+        ...(menu !== null ? { menu } : {}),
       });
       Alert.alert("Nice, saved", "Your listing is up to date.");
       router.back();
@@ -125,16 +238,13 @@ export default function ManageListingScreen() {
       Alert.alert("Photo access needed", "Turn it on to add listing photos.");
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsMultipleSelection: false,
       base64: true,
       mediaTypes: ["images"],
       quality: 0.8,
     });
-
     if (result.canceled) return;
-
     const asset = result.assets[0];
     const photo: PickedPhoto = {
       uri: asset.uri,
@@ -144,7 +254,6 @@ export default function ManageListingScreen() {
       mimeType: asset.mimeType,
       base64: asset.base64,
     };
-
     setUploadingPhoto(true);
     try {
       await uploadOwnerPhoto(id, photo, getToken);
@@ -157,19 +266,36 @@ export default function ManageListingScreen() {
     }
   }
 
-  if (branch.isPending) {
+  async function makeCover(photoId: string) {
+    try {
+      await setOwnerPhotoCover(id, photoId, getToken);
+      await branch.refetch();
+    } catch {
+      Alert.alert("Couldn't update cover", "Try again in a moment.");
+    }
+  }
+
+  function confirmRemovePhoto(photoId: string) {
+    Alert.alert("Remove this photo?", "It will leave the listing.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Remove",
+        style: "destructive",
+        onPress: () => {
+          void removeOwnerPhoto(id, photoId, getToken)
+            .then(() => branch.refetch())
+            .catch(() =>
+              Alert.alert("Couldn't remove photo", "Try again in a moment."),
+            );
+        },
+      },
+    ]);
+  }
+
+  if (branch.isPending || !data) {
     return (
-      <SafeAreaView className="flex-1 bg-background">
-        <View className="flex-row items-center justify-between px-4 py-3">
-          <CloseButton onPress={() => router.back()} />
-          <ThemedText size="xl" weight="bold">
-            Manage listing
-          </ThemedText>
-          <View className="w-6" />
-        </View>
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color={colors.foreground} />
-        </View>
+      <SafeAreaView className="flex-1 items-center justify-center bg-background">
+        <ActivityIndicator color={colors.foreground} />
       </SafeAreaView>
     );
   }
@@ -183,16 +309,47 @@ export default function ManageListingScreen() {
         </ThemedText>
         <View className="w-6" />
       </View>
-
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
           className="flex-1"
-          contentContainerClassName="gap-6 px-6 pt-2 pb-10"
+          contentContainerClassName="gap-7 px-6 pb-10 pt-2"
           keyboardShouldPersistTaps="handled"
         >
-          {/* Contact */}
           <View className="gap-3">
-            <SectionTitle title="Contact" />
+            <SectionTitle>Listing details</SectionTitle>
+            <ControlledTextInput
+              control={control}
+              label="Location name"
+              name="label"
+              placeholder="e.g. Bole"
+            />
+            <ControlledTextInput
+              control={control}
+              label="Address"
+              name="addressText"
+              placeholder="Street and nearby landmark"
+            />
+            <LocationPinField onChange={setCoords} value={resolvedCoords} />
+          </View>
+
+          {neighborhoods.data?.length ? (
+            <View className="gap-3">
+              <SectionTitle>Neighborhood</SectionTitle>
+              <View className="flex-row flex-wrap gap-2">
+                {neighborhoods.data.map((item) => (
+                  <ChipButton
+                    key={item.id}
+                    label={item.name}
+                    onPress={() => setNeighborhoodId(item.id)}
+                    selected={resolvedNeighborhood === item.id}
+                  />
+                ))}
+              </View>
+            </View>
+          ) : null}
+
+          <View className="gap-3">
+            <SectionTitle>Contact</SectionTitle>
             <ControlledPhoneInput
               control={control}
               label="Phone number"
@@ -200,83 +357,151 @@ export default function ManageListingScreen() {
             />
           </View>
 
-          {/* Hours */}
           <View className="gap-3">
-            <SectionTitle title="Opening hours" />
+            <SectionTitle>Opening hours</SectionTitle>
             <View className="gap-2">
-              {DAY_KEYS.map((day) => {
+              {DAYS.map(([day, label]) => {
                 const state = resolvedHours[day];
                 return (
                   <View
                     key={day}
-                    className="rounded-2xl border border-placeholder bg-surface p-4"
+                    className="rounded-2xl border border-placeholder bg-surface p-3"
                   >
                     <View className="flex-row items-center justify-between">
-                      <ThemedText weight="medium">{DAY_LABELS[day]}</ThemedText>
-                      <Switch
-                        onValueChange={(value) =>
-                          setDay(day, { isOpen: value })
-                        }
-                        value={state.isOpen}
-                      />
+                      <ThemedText weight="medium">{label}</ThemedText>
+                      <View className="flex-row items-center gap-2">
+                        {!state.isOpen ? (
+                          <ThemedText size="sm" tone="muted">
+                            Closed
+                          </ThemedText>
+                        ) : null}
+                        <Switch
+                          onValueChange={(isOpen) => setDay(day, { isOpen })}
+                          value={state.isOpen}
+                        />
+                      </View>
                     </View>
                     {state.isOpen ? (
-                      <View className="mt-3 flex-row items-center gap-3">
-                        <View className="flex-1 gap-1">
-                          <ThemedText size="xs" tone="muted">
-                            Opens
-                          </ThemedText>
-                          <TimeField
-                            onChange={(v) => setDay(day, { from: v })}
-                            value={state.from}
-                          />
-                        </View>
-                        <View className="flex-1 gap-1">
-                          <ThemedText size="xs" tone="muted">
-                            Closes
-                          </ThemedText>
-                          <TimeField
-                            onChange={(v) => setDay(day, { to: v })}
-                            value={state.to}
-                          />
-                        </View>
+                      <View className="mt-2 flex-row items-center gap-2">
+                        <TimeField
+                          onChange={(from) => setDay(day, { from })}
+                          value={state.from}
+                        />
+                        <ThemedText tone="muted">to</ThemedText>
+                        <TimeField
+                          onChange={(to) => setDay(day, { to })}
+                          value={state.to}
+                        />
                       </View>
-                    ) : (
-                      <ThemedText className="mt-1" size="sm" tone="muted">
-                        Closed
-                      </ThemedText>
-                    )}
+                    ) : null}
                   </View>
                 );
               })}
             </View>
           </View>
 
-          {/* Official photos */}
           <View className="gap-3">
-            <SectionTitle title="Official photos" />
-            <View className="flex-row flex-wrap gap-2">
-              {data?.photos.map((photo) => (
+            <SectionTitle>Menu</SectionTitle>
+            {menus.isPending ? (
+              <ActivityIndicator color={colors.muted} />
+            ) : (
+              <MenuField onChange={setMenu} value={menu ?? existingMenu} />
+            )}
+          </View>
+
+          {cuisines.data?.length ? (
+            <View className="gap-3">
+              <SectionTitle>Cuisines</SectionTitle>
+              <Choices
+                items={cuisines.data}
+                selected={resolvedCuisines}
+                onToggle={(value) =>
+                  toggle(resolvedCuisines, setCuisineIds, value)
+                }
+              />
+            </View>
+          ) : null}
+          {tags.data?.length ? (
+            <View className="gap-3">
+              <SectionTitle>Good for and tags</SectionTitle>
+              <Choices
+                items={tags.data}
+                selected={resolvedTags}
+                onToggle={(value) => toggle(resolvedTags, setTagIds, value)}
+              />
+            </View>
+          ) : null}
+          {amenities.data?.length ? (
+            <View className="gap-3">
+              <SectionTitle>Amenities</SectionTitle>
+              <Choices
+                items={amenities.data}
+                selected={resolvedAmenities}
+                onToggle={(value) =>
+                  toggle(resolvedAmenities, setAmenityIds, value)
+                }
+              />
+            </View>
+          ) : null}
+
+          <View className="gap-3">
+            <SectionTitle>Listing photos</SectionTitle>
+            <View
+              className="flex-row flex-wrap"
+              onLayout={(event) =>
+                setPhotoRowWidth(event.nativeEvent.layout.width)
+              }
+              style={{ gap: PHOTO_GRID_GAP }}
+            >
+              {photoCell > 0 &&
+                officialPhotos.map((photo) => (
                 <View
                   key={photo.id}
                   className="overflow-hidden rounded-xl"
-                  style={{ width: 100, height: 100 }}
+                  style={{ width: photoCell, height: photoCell }}
                 >
                   <Image
                     contentFit="cover"
-                    source={{ uri: photo.url }}
-                    style={{ width: 100, height: 100 }}
+                    source={photo.url}
+                    style={{ width: "100%", height: "100%" }}
                   />
+                  {photo.isCover ? (
+                    <View className="absolute bottom-1 left-1 rounded-full bg-surface px-2 py-0.5">
+                      <ThemedText size="xs" weight="medium">
+                        Cover
+                      </ThemedText>
+                    </View>
+                  ) : (
+                    <Pressable
+                      className="absolute bottom-1 left-1 rounded-full bg-surface px-2 py-0.5"
+                      onPress={() => void makeCover(photo.id)}
+                    >
+                      <ThemedText size="xs" weight="medium">
+                        Set cover
+                      </ThemedText>
+                    </Pressable>
+                  )}
+                  <Pressable
+                    className="absolute right-1 top-1 size-6 items-center justify-center rounded-full bg-black/60"
+                    hitSlop={4}
+                    onPress={() => confirmRemovePhoto(photo.id)}
+                  >
+                    <AppIcon
+                      color={colors.inverse}
+                      icon={Cancel01Icon}
+                      size={12}
+                    />
+                  </Pressable>
                 </View>
               ))}
               <Pressable
                 className="items-center justify-center rounded-xl border border-placeholder bg-surface"
                 disabled={uploadingPhoto}
                 onPress={pickAndUploadPhoto}
-                style={{ width: 100, height: 100 }}
+                style={{ width: photoCell, height: photoCell }}
               >
                 {uploadingPhoto ? (
-                  <ActivityIndicator color={colors.muted} />
+                  <ActivityIndicator color={colors.primary} />
                 ) : (
                   <View className="items-center gap-1">
                     <AppIcon color={colors.muted} icon={Add01Icon} size={22} />
@@ -289,10 +514,8 @@ export default function ManageListingScreen() {
             </View>
           </View>
         </ScrollView>
-
         <View className="px-6 pb-2 pt-2">
           <Button
-            disabled={update.isPending}
             label="Save changes"
             loading={update.isPending}
             onPress={onSubmit}

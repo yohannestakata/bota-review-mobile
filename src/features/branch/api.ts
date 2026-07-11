@@ -7,9 +7,11 @@ import {
   type TokenGetter,
 } from "@/lib/api";
 import type { MenuPriceRange } from "@/lib/price";
+import type { SubmissionMenuItem } from "@/features/submissions/api";
 
 export type BranchPhoto = {
   id: string;
+  reviewId: string | null;
   url: string;
   width: number;
   height: number;
@@ -109,6 +111,7 @@ export type MenuItem = {
   price: string;
   category: string | null;
   imageUrl: string | null;
+  cloudinaryPublicId: string | null;
   isAvailable: boolean;
   displayOrder: number;
 };
@@ -222,8 +225,17 @@ export function reportReviewReply(
 }
 
 export type UpdateOwnerInfoBody = {
+  label?: string;
+  addressText?: string;
+  latitude?: string | null;
+  longitude?: string | null;
+  neighborhoodId?: string | null;
   phone?: string | null;
   hours?: BranchHours;
+  cuisineIds?: string[];
+  tagIds?: string[];
+  amenityIds?: string[];
+  menu?: SubmissionMenuItem[];
 };
 
 export function updateOwnerInfo(
@@ -234,6 +246,26 @@ export function updateOwnerInfo(
   return apiFetch<BranchDetail>(`/branches/${branchId}/owner-info`, getToken, {
     method: "PATCH",
     body: JSON.stringify(body),
+  });
+}
+
+export function setOwnerPhotoCover(
+  branchId: string,
+  photoId: string,
+  getToken: TokenGetter,
+) {
+  return apiFetch(`/branches/${branchId}/photos/${photoId}/cover`, getToken, {
+    method: "PATCH",
+  });
+}
+
+export function removeOwnerPhoto(
+  branchId: string,
+  photoId: string,
+  getToken: TokenGetter,
+) {
+  return apiFetch<void>(`/branches/${branchId}/photos/${photoId}`, getToken, {
+    method: "DELETE",
   });
 }
 

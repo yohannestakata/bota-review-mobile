@@ -8,9 +8,9 @@ import Animated, {
 
 import { colors } from "@/lib/theme";
 
-const TRACK_WIDTH = 54;
-const TRACK_HEIGHT = 30;
-const THUMB_SIZE = 24;
+const TRACK_WIDTH = 44;
+const TRACK_HEIGHT = 24;
+const THUMB_SIZE = 18;
 const PADDING = 3;
 const TRAVEL = TRACK_WIDTH - THUMB_SIZE - PADDING * 2;
 
@@ -47,7 +47,7 @@ export function Switch({
       accessibilityRole="switch"
       accessibilityState={{ checked: value, disabled }}
       disabled={disabled}
-      hitSlop={6}
+      hitSlop={10}
       onPress={() => onValueChange(!value)}
       style={{ opacity: disabled ? 0.5 : 1 }}
     >

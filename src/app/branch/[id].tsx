@@ -1,4 +1,5 @@
 import {
+  Add01Icon,
   ArrowRight01Icon,
   Location01Icon,
   PencilEdit02Icon,
@@ -495,6 +496,40 @@ export default function BranchDetailScreen() {
                     />
                   ))}
                 </ScrollView>
+              </View>
+            </>
+          ) : siblings.isSuccess ? (
+            <>
+              <View className="mt-7">
+                <Divider />
+              </View>
+              <View className="mt-6 px-6">
+                <Pressable
+                  className="flex-row items-center gap-3 rounded-2xl border border-placeholder p-4"
+                  onPress={() =>
+                    router.push({
+                      pathname: "/submissions",
+                      params: {
+                        placeId: data.place.id,
+                        placeName: data.place.name,
+                      },
+                    })
+                  }
+                >
+                  <AppIcon
+                    color={colors.foreground}
+                    icon={Add01Icon}
+                    size={20}
+                  />
+                  <View className="flex-1">
+                    <ThemedText weight="medium">
+                      Add another location
+                    </ThemedText>
+                    <ThemedText size="sm" tone="muted">
+                      Know another {data.place.name} spot? Put it on Bota.
+                    </ThemedText>
+                  </View>
+                </Pressable>
               </View>
             </>
           ) : null}

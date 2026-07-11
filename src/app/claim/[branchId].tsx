@@ -8,7 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, ChipButton } from "@/components/ui/button";
 import { CloseButton } from "@/components/ui/close-button";
 import {
   ControlledTextArea,
@@ -126,34 +126,6 @@ type ClaimValues = z.infer<typeof claimSchema>;
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Something went wrong";
-}
-
-function Pill({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      className={cn(
-        "rounded-full px-4 py-2",
-        selected ? "bg-primary" : "border border-placeholder bg-surface",
-      )}
-      onPress={onPress}
-    >
-      <ThemedText
-        size="sm"
-        tone={selected ? "inverse" : "default"}
-        weight="medium"
-      >
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
 }
 
 function ScreenHeader({
@@ -334,7 +306,7 @@ export default function ClaimBusinessScreen() {
               render={({ field }) => (
                 <View className="flex-row flex-wrap gap-2">
                   {ROLES.map((role) => (
-                    <Pill
+                    <ChipButton
                       key={role.value}
                       label={role.label}
                       onPress={() => field.onChange(role.value)}
@@ -407,7 +379,7 @@ export default function ClaimBusinessScreen() {
                   <View className="gap-2">
                     <View className="flex-row flex-wrap gap-2">
                       {SOCIAL_PLATFORMS.map((platform) => (
-                        <Pill
+                        <ChipButton
                           key={platform.value}
                           label={platform.label}
                           onPress={() => field.onChange(platform.value)}
