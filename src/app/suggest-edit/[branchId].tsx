@@ -17,15 +17,15 @@ import {
 import { ControlledPhoneInput } from "@/components/ui/phone-input";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
-  HoursField,
-  MenuField,
+  HoursSuggestionField,
+  MenuSuggestionField,
   PhotoField,
   useAmenities,
   useCreateBranchSubmission,
   useTags,
   type BranchSubmissionBody,
 } from "@/features/submissions";
-import { useBranch } from "@/features/branch/queries";
+import { useBranch, useBranchMenus } from "@/features/branch/queries";
 import { analytics } from "@/lib/analytics";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 
@@ -61,14 +61,52 @@ const suggestEditObject = z.object({
   fieldName: z.string(),
   suggestedValue: z.string(),
   note: z.string(),
-  hours: z.array(
-    z.object({
-      day: z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
-      open: z.string(),
-      close: z.string(),
-    }),
+  hourChanges: z.array(
+    z.discriminatedUnion("operation", [
+      z.object({
+        operation: z.literal("set"),
+        day: z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
+        open: z.string(),
+        close: z.string(),
+      }),
+      z.object({
+        operation: z.literal("close"),
+        day: z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
+      }),
+    ]),
   ),
-  menu: z.array(z.object({ name: z.string(), price: z.number().optional() })),
+  menuChanges: z.array(
+    z.discriminatedUnion("operation", [
+      z.object({
+        operation: z.literal("add"),
+        item: z.object({
+          name: z.string(),
+          category: z.string().optional(),
+          price: z.number().optional(),
+          imageUrl: z.string().optional(),
+          publicId: z.string().optional(),
+          photoIsNew: z.boolean().optional(),
+        }),
+      }),
+      z.object({
+        operation: z.literal("update"),
+        itemId: z.string(),
+        item: z.object({
+          name: z.string(),
+          category: z.string().optional(),
+          price: z.number().optional(),
+          imageUrl: z.string().optional(),
+          publicId: z.string().optional(),
+          photoIsNew: z.boolean().optional(),
+        }),
+      }),
+      z.object({
+        operation: z.literal("remove"),
+        itemId: z.string(),
+        itemName: z.string(),
+      }),
+    ]),
+  ),
   tags: z.array(z.string()),
   amenities: z.array(z.string()),
   photos: z.array(
@@ -89,8 +127,8 @@ const DEFAULT_VALUES: SuggestEditValues = {
   fieldName: "",
   suggestedValue: "",
   note: "",
-  hours: [],
-  menu: [],
+  hourChanges: [],
+  menuChanges: [],
   tags: [],
   amenities: [],
   photos: [],
@@ -99,6 +137,13 @@ const DEFAULT_VALUES: SuggestEditValues = {
 
 function submissionNote(values: SuggestEditValues) {
   return values.note.trim();
+}
+
+function taxonomyChanges(selected: string[], current: string[]) {
+  return {
+    add: selected.filter((slug) => !current.includes(slug)),
+    remove: current.filter((slug) => !selected.includes(slug)),
+  };
 }
 
 const suggestEditSchema = suggestEditObject.superRefine((values, ctx) => {
@@ -124,6 +169,7 @@ export default function SuggestEditScreen() {
   }>();
   const submit = useCreateBranchSubmission(branchId);
   const branch = useBranch(branchId);
+  const menus = useBranchMenus(branchId);
   const tagsQuery = useTags();
   const amenitiesQuery = useAmenities();
 
@@ -152,15 +198,25 @@ export default function SuggestEditScreen() {
   const isTagsField = selectedField?.value === "Tags/amenities";
   const isPhotosField = selectedField?.value === "Photos";
   const isPhotoReport = isPhotosField && Boolean(values.reportedPhotoId);
+  const currentTags = branch.data?.tags.map((item) => item.slug) ?? [];
+  const currentAmenities =
+    branch.data?.amenities.map((item) => item.slug) ?? [];
+  const tagChanges = taxonomyChanges(values.tags, currentTags);
+  const amenityChanges = taxonomyChanges(values.amenities, currentAmenities);
+  const hasTaxonomyChanges =
+    tagChanges.add.length > 0 ||
+    tagChanges.remove.length > 0 ||
+    amenityChanges.add.length > 0 ||
+    amenityChanges.remove.length > 0;
 
   const hasPrimaryCorrection = isValueCorrection
     ? values.suggestedValue.trim().length > 0
     : isHoursField
-      ? values.hours.length > 0
+      ? values.hourChanges.length > 0
       : isMenuField
-        ? values.menu.length > 0
+        ? values.menuChanges.length > 0
         : isTagsField
-          ? values.tags.length > 0 || values.amenities.length > 0
+          ? hasTaxonomyChanges
           : isPhotosField
             ? isPhotoReport
               ? values.note.trim().length > 0
@@ -173,8 +229,8 @@ export default function SuggestEditScreen() {
   function resetPrimaryFields() {
     setValue("suggestedValue", "");
     setValue("note", "");
-    setValue("hours", []);
-    setValue("menu", []);
+    setValue("hourChanges", []);
+    setValue("menuChanges", []);
     setValue("tags", []);
     setValue("amenities", []);
     setValue("photos", []);
@@ -192,12 +248,20 @@ export default function SuggestEditScreen() {
     const noteValue = submissionNote(formValues);
 
     const structuredDetails =
-      formValues.fieldName === "Hours" && formValues.hours.length
-        ? { hours: formValues.hours }
-        : formValues.fieldName === "Menu/prices" && formValues.menu.length
-          ? { menu: formValues.menu }
+      formValues.fieldName === "Hours" && formValues.hourChanges.length
+        ? { hourChanges: formValues.hourChanges }
+        : formValues.fieldName === "Menu/prices" &&
+            formValues.menuChanges.length
+          ? { menuChanges: formValues.menuChanges }
           : formValues.fieldName === "Tags/amenities"
-            ? { tags: formValues.tags, amenities: formValues.amenities }
+            ? {
+                ...(tagChanges.add.length || tagChanges.remove.length
+                  ? { tagChanges }
+                  : {}),
+                ...(amenityChanges.add.length || amenityChanges.remove.length
+                  ? { amenityChanges }
+                  : {}),
+              }
             : formValues.fieldName === "Photos" && formValues.reportedPhotoId
               ? {
                   reportedPhotoId: formValues.reportedPhotoId,
@@ -334,22 +398,22 @@ export default function SuggestEditScreen() {
                 selectedField?.value === "Hours" ? (
                   <Controller
                     control={control}
-                    name="hours"
+                    name="hourChanges"
                     render={({ field }) => (
-                      <HoursField
+                      <HoursSuggestionField
+                        current={branch.data?.hours ?? null}
                         onChange={field.onChange}
-                        value={field.value ?? []}
                       />
                     )}
                   />
                 ) : selectedField?.value === "Menu/prices" ? (
                   <Controller
                     control={control}
-                    name="menu"
+                    name="menuChanges"
                     render={({ field }) => (
-                      <MenuField
+                      <MenuSuggestionField
+                        menus={menus.data ?? []}
                         onChange={field.onChange}
-                        value={field.value ?? []}
                       />
                     )}
                   />

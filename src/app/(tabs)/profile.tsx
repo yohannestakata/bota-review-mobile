@@ -4,6 +4,7 @@ import {
   Building01Icon,
   Comment01Icon,
   Logout01Icon,
+  Notification01Icon,
   Share08Icon,
   StarIcon,
   UserEdit01Icon,
@@ -78,7 +79,11 @@ function MenuRow({
         icon={icon}
         size={20}
       />
-      <ThemedText className="flex-1" tone={muted ? "muted" : "default"} weight="medium">
+      <ThemedText
+        className="flex-1"
+        tone={muted ? "muted" : "default"}
+        weight="medium"
+      >
         {label}
       </ThemedText>
       {loading ? (
@@ -216,6 +221,12 @@ export default function ProfileScreen() {
             icon={Building01Icon}
             label="My business"
             onPress={() => router.push("/profile/claims")}
+          />
+          <RowDivider />
+          <MenuRow
+            icon={Notification01Icon}
+            label="Meal reminders"
+            onPress={() => router.push("/profile/notifications")}
           />
           <RowDivider />
           <MenuRow

@@ -230,6 +230,7 @@ export default function BranchDetailScreen() {
 
   const data = branch.data;
   const cover = data.photos[0]?.url ?? null;
+  const detailPhotos = data.photos.filter((photo) => !photo.isCover);
   const price = formatMenuPriceRange(data.menuPriceRange);
   const hasRating = data.reviewCount > 0;
   const ratingValue = Number(data.rating);
@@ -431,7 +432,7 @@ export default function BranchDetailScreen() {
           ) : null}
 
           {/* Photos */}
-          {data.photos.length > 0 ? (
+          {detailPhotos.length > 0 ? (
             <>
               <View className="mt-7">
                 <Divider />
@@ -443,21 +444,28 @@ export default function BranchDetailScreen() {
                   horizontal
                   showsHorizontalScrollIndicator={false}
                 >
-                  {data.photos.map((photo, index) => (
-                    <Pressable
-                      key={photo.id}
-                      onPress={() =>
-                        router.push(`/branch/${data.id}/photos?index=${index}`)
-                      }
-                    >
-                      <Image
-                        contentFit="cover"
-                        source={photo.url}
-                        style={{ width: 220, height: 150, borderRadius: 16 }}
-                        transition={150}
-                      />
-                    </Pressable>
-                  ))}
+                  {detailPhotos.map((photo) => {
+                    const galleryIndex = data.photos.findIndex(
+                      (item) => item.id === photo.id,
+                    );
+                    return (
+                      <Pressable
+                        key={photo.id}
+                        onPress={() =>
+                          router.push(
+                            `/branch/${data.id}/photos?index=${galleryIndex}`,
+                          )
+                        }
+                      >
+                        <Image
+                          contentFit="cover"
+                          source={photo.url}
+                          style={{ width: 220, height: 150, borderRadius: 16 }}
+                          transition={150}
+                        />
+                      </Pressable>
+                    );
+                  })}
                 </ScrollView>
               </View>
             </>
@@ -609,22 +617,24 @@ export default function BranchDetailScreen() {
             ) : null}
           </View>
 
-          <View className="mt-8 px-6">
-            <Button
-              label="Suggest an edit or report closed"
-              onPress={() =>
-                requireSignIn(() =>
-                  router.push({
-                    pathname: "/suggest-edit/[branchId]",
-                    params: { branchId: data.id, name: data.place.name },
-                  }),
-                )
-              }
-              size="sm"
-              tone="muted"
-              variant="outline"
-            />
-          </View>
+          {!isOwnBranch ? (
+            <View className="mt-8 px-6">
+              <Button
+                label="Suggest an edit or report closed"
+                onPress={() =>
+                  requireSignIn(() =>
+                    router.push({
+                      pathname: "/suggest-edit/[branchId]",
+                      params: { branchId: data.id, name: data.place.name },
+                    }),
+                  )
+                }
+                size="sm"
+                tone="muted"
+                variant="outline"
+              />
+            </View>
+          ) : null}
 
           {isOwnBranch ? (
             <View className="mt-4 px-6">
@@ -640,7 +650,7 @@ export default function BranchDetailScreen() {
                 <View className="flex-1">
                   <ThemedText weight="medium">Manage your listing</ThemedText>
                   <ThemedText size="sm" tone="muted">
-                    Update hours, contact info, and photos.
+                    Update details, menu, hours, and photos.
                   </ThemedText>
                 </View>
                 <AppIcon

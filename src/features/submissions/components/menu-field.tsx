@@ -25,6 +25,7 @@ type Item = {
   customCategory: boolean;
   imageUrl?: string;
   publicId?: string;
+  photoIsNew?: boolean;
   uploading?: boolean;
 };
 
@@ -48,6 +49,7 @@ function toItems(items: Item[]): SubmissionMenuItem[] {
       if (item.imageUrl && item.publicId) {
         next.imageUrl = item.imageUrl;
         next.publicId = item.publicId;
+        if (item.photoIsNew) next.photoIsNew = true;
       }
       return next;
     });
@@ -58,9 +60,13 @@ function toItems(items: Item[]): SubmissionMenuItem[] {
 export function MenuField({
   value,
   onChange,
+  label = "Menu or prices",
+  singleItem = false,
 }: {
   value: SubmissionMenuItem[];
   onChange: (value: SubmissionMenuItem[]) => void;
+  label?: string;
+  singleItem?: boolean;
 }) {
   const { getToken } = useAuth();
   const makeItem = (): Item => ({
@@ -82,6 +88,7 @@ export function MenuField({
           ),
           imageUrl: item.imageUrl,
           publicId: item.publicId,
+          photoIsNew: item.photoIsNew,
         }))
       : [makeItem()],
   );
@@ -151,6 +158,7 @@ export function MenuField({
       setItem(id, {
         imageUrl: uploaded.url,
         publicId: uploaded.publicId,
+        photoIsNew: true,
         uploading: false,
       });
     } catch {
@@ -161,7 +169,7 @@ export function MenuField({
   return (
     <View className="gap-2">
       <ThemedText size="sm" weight="medium">
-        Menu or prices
+        {label}
       </ThemedText>
 
       <View className="gap-2">
@@ -214,7 +222,7 @@ export function MenuField({
                 surface="muted"
                 value={item.price}
               />
-              {items.length > 1 ? (
+              {!singleItem && items.length > 1 ? (
                 <Pressable hitSlop={6} onPress={() => removeItem(item.id)}>
                   <AppIcon color={colors.muted} icon={Cancel01Icon} size={18} />
                 </Pressable>
@@ -261,16 +269,18 @@ export function MenuField({
         ))}
       </View>
 
-      <Pressable
-        className="flex-row items-center gap-1.5 self-start"
-        hitSlop={6}
-        onPress={() => apply([...items, makeItem()])}
-      >
-        <AppIcon color={colors.foreground} icon={Add01Icon} size={16} />
-        <ThemedText size="sm" weight="medium">
-          Add item
-        </ThemedText>
-      </Pressable>
+      {!singleItem ? (
+        <Pressable
+          className="flex-row items-center gap-1.5 self-start"
+          hitSlop={6}
+          onPress={() => apply([...items, makeItem()])}
+        >
+          <AppIcon color={colors.foreground} icon={Add01Icon} size={16} />
+          <ThemedText size="sm" weight="medium">
+            Add item
+          </ThemedText>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
