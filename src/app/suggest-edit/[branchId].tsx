@@ -20,11 +20,10 @@ import {
   HoursSuggestionField,
   MenuSuggestionField,
   PhotoField,
-  useAmenities,
   useCreateBranchSubmission,
-  useTags,
   type BranchSubmissionBody,
 } from "@/features/submissions";
+import { useAmenities, useTags } from "@/features/taxonomy";
 import { useBranch, useBranchMenus } from "@/features/branch/queries";
 import { analytics } from "@/lib/analytics";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";

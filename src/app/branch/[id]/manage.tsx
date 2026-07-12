@@ -33,13 +33,15 @@ import {
 import {
   LocationPinField,
   MenuField,
+  type PinCoords,
+  type SubmissionMenuItem,
+} from "@/features/submissions";
+import {
   useAmenities,
   useCuisines,
   useNeighborhoods,
   useTags,
-  type PinCoords,
-  type SubmissionMenuItem,
-} from "@/features/submissions";
+} from "@/features/taxonomy";
 import { zodFormResolver } from "@/lib/zod-resolver";
 import { colors } from "@/lib/theme";
 

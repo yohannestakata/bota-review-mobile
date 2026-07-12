@@ -27,12 +27,10 @@ import {
   NeighborhoodField,
   PhotoField,
   PlaceNameField,
-  useAmenities,
-  useCuisines,
   useReportMissingPlace,
-  useTags,
   type PlaceMissingDetails,
 } from "@/features/submissions";
+import { useAmenities, useCuisines, useTags } from "@/features/taxonomy";
 import { optionalEmailField } from "@/lib/validation";
 
 function getErrorMessage(error: unknown) {

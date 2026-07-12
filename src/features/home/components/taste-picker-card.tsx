@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { ThemedText } from "@/components/ui/themed-text";
-import { useCuisines } from "@/features/search";
+import { useCuisines } from "@/features/taxonomy";
 import { cn } from "@/lib/cn";
 
 // First-run taste capture: pick a few cuisines and the feed bumps them up. Only

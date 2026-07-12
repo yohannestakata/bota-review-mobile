@@ -25,12 +25,10 @@ import {
   FilterSheet,
   type FilterSheetRef,
   SearchResultsSkeleton,
-  useCuisines,
-  useNeighborhoods,
   useSearch,
-  useTags,
   type SearchSort,
 } from "@/features/search";
+import { useCuisines, useNeighborhoods, useTags } from "@/features/taxonomy";
 import { analytics } from "@/lib/analytics";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 import { colors } from "@/lib/theme";
