@@ -55,6 +55,13 @@ export default function CollectionScreen() {
           data={collection.data.branches}
           ItemSeparatorComponent={ListGapLg}
           keyExtractor={(item) => item.id}
+          ListEmptyComponent={
+            <View className="mt-24 items-center px-6">
+              <ThemedText className="text-center" tone="muted">
+                Nothing in this collection yet — check back soon.
+              </ThemedText>
+            </View>
+          }
           ListHeaderComponent={
             collection.data.description ? (
               <ThemedText className="mb-5 leading-6" tone="muted">

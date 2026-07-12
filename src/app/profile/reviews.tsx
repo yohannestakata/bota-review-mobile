@@ -38,10 +38,19 @@ export default function MyReviewsScreen() {
         text: "Delete",
         style: "destructive",
         onPress: () =>
-          deleteReview.mutate({
-            reviewId: review.id,
-            branchId: review.branchId,
-          }),
+          deleteReview.mutate(
+            {
+              reviewId: review.id,
+              branchId: review.branchId,
+            },
+            {
+              onError: () =>
+                Alert.alert(
+                  "Couldn't delete",
+                  "That didn't go through. Try again in a moment.",
+                ),
+            },
+          ),
       },
     ]);
   }
