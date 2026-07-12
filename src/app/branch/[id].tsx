@@ -229,8 +229,13 @@ export default function BranchDetailScreen() {
   }
 
   const data = branch.data;
-  const cover = data.photos[0]?.url ?? null;
-  const detailPhotos = data.photos.filter((photo) => !photo.isCover);
+  // Hero + rail must agree on which photo is the cover: prefer the flagged one,
+  // fall back to the first, and keep exactly that photo out of the rail.
+  const coverPhoto = data.photos.find((photo) => photo.isCover) ?? data.photos[0];
+  const cover = coverPhoto?.url ?? null;
+  const detailPhotos = data.photos.filter(
+    (photo) => photo.id !== coverPhoto?.id,
+  );
   const price = formatMenuPriceRange(data.menuPriceRange);
   const hasRating = data.reviewCount > 0;
   const ratingValue = Number(data.rating);
