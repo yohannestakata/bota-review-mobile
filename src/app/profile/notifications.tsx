@@ -4,7 +4,8 @@ import { ActivityIndicator, Linking, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
-import { CloseButton } from "@/components/ui/close-button";
+import { Button } from "@/components/ui/button";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import { Switch } from "@/components/ui/switch";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
@@ -12,6 +13,7 @@ import {
   getMealReminderPreferences,
   MEAL_REMINDERS,
   saveMealReminderPreferences,
+  sendTestMealReminder,
   type MealReminder,
   type MealReminderPreferences,
 } from "@/lib/meal-notifications";
@@ -23,6 +25,7 @@ export default function NotificationPreferencesScreen() {
   );
   const [ready, setReady] = useState(false);
   const [saving, setSaving] = useState<MealReminder | null>(null);
+  const [testing, setTesting] = useState(false);
 
   useEffect(() => {
     void getMealReminderPreferences().then((stored) => {
@@ -52,15 +55,28 @@ export default function NotificationPreferencesScreen() {
     }
   }
 
+  async function testNotification() {
+    setTesting(true);
+    try {
+      await sendTestMealReminder();
+      Alert.alert("Test scheduled", "It should arrive in about five seconds.");
+    } catch {
+      Alert.alert(
+        "Notifications are off",
+        "Turn them on in Settings, then try again.",
+        [
+          { text: "Not now", style: "cancel" },
+          { text: "Open Settings", onPress: () => void Linking.openSettings() },
+        ],
+      );
+    } finally {
+      setTesting(false);
+    }
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <CloseButton onPress={() => router.back()} />
-        <ThemedText size="xl" weight="bold">
-          Meal reminders
-        </ThemedText>
-        <View className="w-6" />
-      </View>
+      <ScreenHeader title="Meal reminders" />
 
       <View className="px-6 pt-3">
         <ThemedText tone="muted">
@@ -94,6 +110,14 @@ export default function NotificationPreferencesScreen() {
                 )}
               </View>
             ))}
+            <Button
+              className="mt-5"
+              label="Send test notification"
+              loading={testing}
+              onPress={() => void testNotification()}
+              size="sm"
+              variant="outline"
+            />
           </View>
         )}
       </View>

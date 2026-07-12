@@ -9,7 +9,7 @@ import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
 import { Button, ChipButton } from "@/components/ui/button";
-import { CloseButton } from "@/components/ui/close-button";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import {
   ControlledTextArea,
   ControlledTextInput,
@@ -299,13 +299,7 @@ export default function SuggestEditScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <CloseButton onPress={attemptClose} />
-        <ThemedText size="xl" weight="bold">
-          Suggest an edit
-        </ThemedText>
-        <View className="w-6" />
-      </View>
+      <ScreenHeader onClose={attemptClose} title="Suggest an edit" />
 
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView

@@ -11,7 +11,7 @@ import { z } from "zod";
 import { Alert } from "@/components/ui/alert";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { CloseButton } from "@/components/ui/close-button";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import { ControlledTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { getAuthMessage } from "@/lib/auth";
@@ -110,13 +110,7 @@ export default function EditProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <CloseButton onPress={() => router.back()} />
-        <ThemedText size="xl" weight="bold">
-          Edit profile
-        </ThemedText>
-        <View className="w-6" />
-      </View>
+      <ScreenHeader title="Edit profile" />
 
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView

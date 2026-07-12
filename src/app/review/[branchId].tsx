@@ -12,7 +12,7 @@ import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { CloseButton } from "@/components/ui/close-button";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import { ControlledTextArea } from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
@@ -251,13 +251,10 @@ export default function WriteReviewScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <CloseButton onPress={attemptClose} />
-        <ThemedText size="xl" weight="bold">
-          {isEdit ? "Edit review" : "Write a review"}
-        </ThemedText>
-        <View className="w-6" />
-      </View>
+      <ScreenHeader
+        onClose={attemptClose}
+        title={isEdit ? "Edit review" : "Write a review"}
+      />
 
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView

@@ -11,7 +11,7 @@ import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
 import { Button, ChipButton } from "@/components/ui/button";
-import { CloseButton } from "@/components/ui/close-button";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import { ControlledTextInput } from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ControlledPhoneInput } from "@/components/ui/phone-input";
@@ -328,13 +328,7 @@ export default function ManageListingScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <CloseButton onPress={() => router.back()} />
-        <ThemedText size="xl" weight="bold">
-          Manage listing
-        </ThemedText>
-        <View className="w-6" />
-      </View>
+      <ScreenHeader title="Manage listing" />
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
           className="flex-1"

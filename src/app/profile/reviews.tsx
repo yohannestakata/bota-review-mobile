@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
-import { CloseButton } from "@/components/ui/close-button";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
 import { ListStatePlaceholder } from "@/components/ui/list-state-placeholder";
 import { ThemedText } from "@/components/ui/themed-text";
@@ -50,13 +50,7 @@ export default function MyReviewsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <CloseButton onPress={() => router.back()} />
-        <ThemedText size="xl" weight="bold">
-          Your reviews
-        </ThemedText>
-        <View className="w-6" />
-      </View>
+      <ScreenHeader title="Your reviews" />
 
       <FlashList
         contentContainerClassName="px-6 pb-10 pt-2"

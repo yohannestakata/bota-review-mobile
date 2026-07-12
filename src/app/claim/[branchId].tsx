@@ -9,7 +9,7 @@ import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
 import { Button, ChipButton } from "@/components/ui/button";
-import { CloseButton } from "@/components/ui/close-button";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import {
   ControlledTextArea,
   ControlledTextInput,
@@ -123,24 +123,6 @@ const claimSchema = z
   });
 
 type ClaimValues = z.infer<typeof claimSchema>;
-
-function ScreenHeader({
-  title,
-  onClose,
-}: {
-  title: string;
-  onClose?: () => void;
-}) {
-  return (
-    <View className="flex-row items-center justify-between px-4 py-3">
-      <CloseButton onPress={onClose ?? (() => router.back())} />
-      <ThemedText size="xl" weight="bold">
-        {title}
-      </ThemedText>
-      <View className="w-6" />
-    </View>
-  );
-}
 
 function ClaimStatusScreen({ verified }: { verified: boolean }) {
   return (
