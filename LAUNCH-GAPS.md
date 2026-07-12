@@ -36,14 +36,14 @@ ae7a998, a85e3fd, f3bf604._
 
 ## B. Screen gaps — missing states / dead ends / correctness
 
-- [ ] `collection/[slug].tsx:76` — zero-branch collection renders a blank list (dead end). Add empty state. · SHOULD
-- [ ] `branch/[id]/photos.tsx:35` — no loading/error/empty; deep-link → black void. Add all three. · SHOULD
-- [ ] `(tabs)/submissions.tsx:457` — invalid `contactEmail` (in a collapsed section) silently disables submit. Surface the error / auto-expand. · SHOULD
-- [ ] `suggest-edit/[branchId].tsx:171` — branch/taxonomy queries have no load-error state; pickers render empty with no explanation. · SHOULD
-- [ ] `branch/[id].tsx:232` — hero uses `photos[0]` but rail filters on `isCover`; non-cover first photo desyncs hero/rail. Derive cover from `find(isCover) ?? [0]`. · SHOULD
-- [ ] `(tabs)/index.tsx:91` — collection nav falls back to `title` when `slug` missing → `/collection/<Title>` 404s. Drop slugless collections. · SHOULD
-- [ ] `review/[branchId].tsx:119` — edit: `useReview` error unsurfaced; `reset()` on slow fetch can clobber typing; save can overwrite with stale text. Guard hydrate + show error. · SHOULD
-- [ ] `profile/reviews.tsx:38` — `deleteReview` has no `onError`; failed delete is silent. Add Alert. · SHOULD
+- [x] `collection/[slug].tsx:76` — zero-branch collection renders a blank list (dead end). Add empty state. · SHOULD → `c32f520`
+- [x] `branch/[id]/photos.tsx:35` — no loading/error/empty; deep-link → black void. Add all three. · SHOULD → `bdbafb3`
+- [x] `(tabs)/submissions.tsx:457` — invalid `contactEmail` (in a collapsed section) silently disables submit. Surface the error / auto-expand. · SHOULD → `e4b0bdb`
+- [x] `suggest-edit/[branchId].tsx:171` — branch/taxonomy queries have no load-error state; pickers render empty with no explanation. · SHOULD → `f27c671`
+- [x] `branch/[id].tsx:232` — hero uses `photos[0]` but rail filters on `isCover`; non-cover first photo desyncs hero/rail. Derive cover from `find(isCover) ?? [0]`. · SHOULD → `366b3e7`
+- [ ] `(tabs)/index.tsx:91` — collection nav falls back to `title` when `slug` missing → `/collection/<Title>` 404s. Drop slugless collections. · SHOULD — DEFERRED (index.tsx is active taste work)
+- [x] `review/[branchId].tsx:119` — edit: `useReview` error unsurfaced; `reset()` on slow fetch can clobber typing; save can overwrite with stale text. Guard hydrate + show error. · SHOULD → `28f7b04`
+- [x] `profile/reviews.tsx:38` — `deleteReview` has no `onError`; failed delete is silent. Add Alert. · SHOULD → `c32f520`
 - [ ] `(tabs)/index.tsx:187` / `search.tsx:322` — failed refetch with stale cache shows old data, no error banner. · NICE
 - [ ] `(tabs)/profile.tsx:119` — counts flash `0` while `useMe`/reviews/claims load. · NICE
 - [ ] `search.tsx:96` — `nearby` chip can stay active after location revoked while sort silently falls back. · NICE
