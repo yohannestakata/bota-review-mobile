@@ -18,19 +18,15 @@ import {
   rankByTaste,
   TastePickerCard,
   useHomeFeed,
-  useSavedBranchIds,
+  useSaveHandler,
   useTastePreferences,
-  useToggleSave,
 } from "@/features/home";
 import { Avatar } from "@/components/ui/avatar";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
-import { analytics } from "@/lib/analytics";
-import type { BranchCard as BranchCardData } from "@/lib/api";
 import { debugLog } from "@/lib/debug";
 import { useLocation } from "@/lib/use-location";
 
-const EMPTY_SAVED = new Set<string>();
 const GREETING_SEED = Math.random();
 
 export default function Index() {
@@ -39,9 +35,7 @@ export default function Index() {
   const location = useLocation();
   const home = useHomeFeed(location.coords);
   const taste = useTastePreferences();
-  const saved = useSavedBranchIds();
-  const savedIds = saved.data;
-  const toggleSave = useToggleSave();
+  const { saved, savedIds, onToggleSave } = useSaveHandler();
 
   useEffect(() => {
     if (home.data) {
@@ -61,22 +55,6 @@ export default function Index() {
       void saved.refetch();
     }
   }, [home, isSignedIn, saved]);
-
-  const onToggleSave = useCallback(
-    (branch: BranchCardData) => {
-      if (!isSignedIn) {
-        router.push("/login");
-        return;
-      }
-
-      const wasSaved = (savedIds ?? EMPTY_SAVED).has(branch.id);
-      analytics.track(wasSaved ? "branch_unsaved" : "branch_saved", {
-        branch_id: branch.id,
-      });
-      toggleSave.mutate({ branchId: branch.id, isSaved: wasSaved });
-    },
-    [isSignedIn, savedIds, toggleSave],
-  );
 
   const firstName = user?.firstName ?? "there";
   // Picked once per app launch — varies across opens, stable within a session.
@@ -224,7 +202,7 @@ export default function Index() {
               router.push(`/branch/${branch.id}?source=home`)
             }
             onToggleSave={onToggleSave}
-            savedIds={savedIds ?? EMPTY_SAVED}
+            savedIds={savedIds}
             section={section}
           />
         ))}
@@ -237,7 +215,7 @@ export default function Index() {
             {highlyRatedItems.map((branch) => (
               <BranchCard
                 branch={branch}
-                isSaved={(savedIds ?? EMPTY_SAVED).has(branch.id)}
+                isSaved={savedIds.has(branch.id)}
                 key={branch.id}
                 onPress={(b) => router.push(`/branch/${b.id}?source=home`)}
                 onToggleSave={onToggleSave}

@@ -1,6 +1,5 @@
-import { useAuth } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -11,42 +10,20 @@ import {
   BranchCard,
   BranchListSkeleton,
   useCollection,
-  useSavedBranchIds,
-  useToggleSave,
+  useSaveHandler,
 } from "@/features/home";
 import { analytics } from "@/lib/analytics";
-import type { BranchCard as BranchCardData } from "@/lib/api";
-
-const EMPTY_SAVED = new Set<string>();
 
 export default function CollectionScreen() {
-  const { isSignedIn } = useAuth();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const collection = useCollection(slug);
-  const { data: savedIds } = useSavedBranchIds();
-  const toggleSave = useToggleSave();
+  const { savedIds, onToggleSave } = useSaveHandler();
 
   useEffect(() => {
     if (slug) {
       analytics.track("collection_viewed", { collection_slug: slug });
     }
   }, [slug]);
-
-  const onToggleSave = useCallback(
-    (branch: BranchCardData) => {
-      if (!isSignedIn) {
-        router.push("/login");
-        return;
-      }
-
-      const wasSaved = (savedIds ?? EMPTY_SAVED).has(branch.id);
-      analytics.track(wasSaved ? "branch_unsaved" : "branch_saved", {
-        branch_id: branch.id,
-      });
-      toggleSave.mutate({ branchId: branch.id, isSaved: wasSaved });
-    },
-    [isSignedIn, savedIds, toggleSave],
-  );
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
@@ -90,7 +67,7 @@ export default function CollectionScreen() {
           renderItem={({ item }) => (
             <BranchCard
               branch={item}
-              isSaved={(savedIds ?? EMPTY_SAVED).has(item.id)}
+              isSaved={savedIds.has(item.id)}
               onPress={(branch) =>
                 router.push(`/branch/${branch.id}?source=collection`)
               }

@@ -3,9 +3,8 @@ import {
   FilterHorizontalIcon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
-import { useAuth } from "@clerk/clerk-expo";
 import { router } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -20,7 +19,7 @@ import { ChipButton } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { FlashList, ListGapLg } from "@/components/ui/flash-list";
-import { BranchCard, useSavedBranchIds, useToggleSave } from "@/features/home";
+import { BranchCard, useSaveHandler } from "@/features/home";
 import {
   FilterSheet,
   type FilterSheetRef,
@@ -35,8 +34,6 @@ import { colors } from "@/lib/theme";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useLocation } from "@/lib/use-location";
 
-const EMPTY_SAVED = new Set<string>();
-
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value)
     ? list.filter((x) => x !== value)
@@ -44,7 +41,6 @@ function toggle<T>(list: T[], value: T): T[] {
 }
 
 export default function SearchScreen() {
-  const { isSignedIn } = useAuth();
   const [text, setText] = useState("");
   const [neighborhoodId, setNeighborhoodId] = useState<string>();
   const [cuisineIds, setCuisineIds] = useState<string[]>([]);
@@ -59,8 +55,7 @@ export default function SearchScreen() {
   const cuisines = useCuisines();
   const tags = useTags();
   const { coords, status, request } = useLocation();
-  const { data: savedIds } = useSavedBranchIds();
-  const toggleSave = useToggleSave();
+  const { savedIds, onToggleSave } = useSaveHandler();
 
   // "Nearby" only sorts by distance once we actually have coordinates.
   const sortByDistance = nearby && coords != null;
@@ -170,21 +165,6 @@ export default function SearchScreen() {
     sort,
   ]);
 
-  const onToggleSave = useCallback(
-    (branch: BranchCardData) => {
-      if (!isSignedIn) {
-        router.push("/login");
-        return;
-      }
-
-      const wasSaved = (savedIds ?? EMPTY_SAVED).has(branch.id);
-      analytics.track(wasSaved ? "branch_unsaved" : "branch_saved", {
-        branch_id: branch.id,
-      });
-      toggleSave.mutate({ branchId: branch.id, isSaved: wasSaved });
-    },
-    [isSignedIn, savedIds, toggleSave],
-  );
 
   function clearFilters() {
     setNeighborhoodId(undefined);
@@ -382,7 +362,7 @@ export default function SearchScreen() {
         renderItem={({ item }) => (
           <BranchCard
             branch={item}
-            isSaved={(savedIds ?? EMPTY_SAVED).has(item.id)}
+            isSaved={savedIds.has(item.id)}
             onPress={(branch) =>
               router.push(`/branch/${branch.id}?source=search`)
             }
