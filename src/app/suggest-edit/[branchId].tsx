@@ -471,6 +471,13 @@ export default function SuggestEditScreen() {
                         />
                       </View>
                     ) : null}
+                    {!tagsQuery.data?.length && !amenitiesQuery.data?.length ? (
+                      <ThemedText size="sm" tone="muted">
+                        {tagsQuery.isError || amenitiesQuery.isError
+                          ? "Couldn't load tags and amenities. Please try again in a moment."
+                          : "Loading tags and amenities…"}
+                      </ThemedText>
+                    ) : null}
                   </View>
                 ) : selectedField?.value === "Photos" ? (
                   isPhotoReport ? (
