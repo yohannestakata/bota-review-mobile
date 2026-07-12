@@ -3,6 +3,7 @@ import {
   ArrowRight01Icon,
   Building01Icon,
   Comment01Icon,
+  FavouriteIcon,
   Logout01Icon,
   Notification01Icon,
   Share08Icon,
@@ -227,6 +228,12 @@ export default function ProfileScreen() {
             icon={Notification01Icon}
             label="Meal reminders"
             onPress={() => router.push("/profile/notifications")}
+          />
+          <RowDivider />
+          <MenuRow
+            icon={FavouriteIcon}
+            label="Your tastes"
+            onPress={() => router.push("/profile/tastes")}
           />
           <RowDivider />
           <MenuRow

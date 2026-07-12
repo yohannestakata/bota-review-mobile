@@ -1,9 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { ThemedText } from "@/components/ui/themed-text";
-import { useCuisines } from "@/features/taxonomy";
 import { cn } from "@/lib/cn";
+import { useTasteOptionsQuery } from "../queries";
+
+const GROUP_LABELS = {
+  food: "What sounds good?",
+  mood: "What is the mood?",
+  time: "When do you usually look?",
+} as const;
 
 // First-run taste capture: pick a few cuisines and the feed bumps them up. Only
 // auto-shows when the user hasn't set any yet; picks apply live to the feed
@@ -17,26 +23,26 @@ export function TastePickerCard({
   onToggle: (slug: string) => void;
   ready: boolean;
 }) {
-  const cuisines = useCuisines();
-  const [show, setShow] = useState<boolean | null>(null);
+  const options = useTasteOptionsQuery();
+  const [dismissed, setDismissed] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const show = ready && !dismissed && (picks.length === 0 || hasInteracted);
 
-  useEffect(() => {
-    if (ready && show === null) setShow(picks.length === 0);
-  }, [ready, picks.length, show]);
-
-  if (!show || !cuisines.data || cuisines.data.length === 0) return null;
+  if (!show || !options.data || options.data.length === 0) return null;
 
   return (
-    <View className="mt-6 px-6">
-      <View className="gap-3 rounded-2xl border border-placeholder bg-surface p-4">
+    <View className="mt-6 bg-personalized px-6 py-6">
+      <View className="gap-4">
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1">
-            <ThemedText weight="semibold">What are you into?</ThemedText>
+            <ThemedText tone="brand" weight="bold">
+              What are you into?
+            </ThemedText>
             <ThemedText className="mt-0.5" size="sm" tone="muted">
               Pick a few and we&apos;ll bump them up your feed.
             </ThemedText>
           </View>
-          <Pressable hitSlop={8} onPress={() => setShow(false)}>
+          <Pressable hitSlop={8} onPress={() => setDismissed(true)}>
             <ThemedText
               size="sm"
               tone={picks.length ? "brand" : "muted"}
@@ -47,31 +53,43 @@ export function TastePickerCard({
           </Pressable>
         </View>
 
-        <View className="flex-row flex-wrap gap-2">
-          {cuisines.data.map((cuisine) => {
-            const selected = picks.includes(cuisine.slug);
-            return (
-              <Pressable
-                className={cn(
-                  "rounded-full px-4 py-2",
-                  selected
-                    ? "bg-primary"
-                    : "border border-placeholder bg-background",
-                )}
-                key={cuisine.slug}
-                onPress={() => onToggle(cuisine.slug)}
-              >
-                <ThemedText
-                  size="sm"
-                  tone={selected ? "inverse" : "default"}
-                  weight="medium"
-                >
-                  {cuisine.name}
-                </ThemedText>
-              </Pressable>
-            );
-          })}
-        </View>
+        {(["food", "mood", "time"] as const).map((group) => (
+          <View className="gap-2" key={group}>
+            <ThemedText size="sm" tone="muted" weight="medium">
+              {GROUP_LABELS[group]}
+            </ThemedText>
+            <View className="flex-row flex-wrap gap-2">
+              {options.data
+                .filter((option) => option.group === group)
+                .map((option) => {
+                  const selected = picks.includes(option.id);
+                  return (
+                    <Pressable
+                      className={cn(
+                        "rounded-full border px-4 py-2",
+                        selected
+                          ? "border-primary bg-primary"
+                          : "border-border bg-surface",
+                      )}
+                      key={option.id}
+                      onPress={() => {
+                        setHasInteracted(true);
+                        onToggle(option.id);
+                      }}
+                    >
+                      <ThemedText
+                        size="sm"
+                        tone={selected ? "inverse" : "default"}
+                        weight="medium"
+                      >
+                        {option.name}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+            </View>
+          </View>
+        ))}
       </View>
     </View>
   );

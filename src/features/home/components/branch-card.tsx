@@ -49,8 +49,8 @@ export function BranchCard({
 
   const imageClass =
     layout === "portrait"
-      ? "aspect-[4/5] rounded-[22px]"
-      : "aspect-[4/3] rounded-[20px]";
+      ? "aspect-[4/5] rounded-2xl"
+      : "aspect-[4/3] rounded-2xl";
   const textInset = layout === "portrait" ? 4 : 3;
 
   return (
@@ -141,7 +141,12 @@ export function BranchCard({
             </ThemedText>
           )}
           {price ? (
-            <ThemedText className="flex-1" numberOfLines={1} size="sm" tone="muted">
+            <ThemedText
+              className="flex-1"
+              numberOfLines={1}
+              size="sm"
+              tone="muted"
+            >
               {`· ${price}`}
             </ThemedText>
           ) : null}

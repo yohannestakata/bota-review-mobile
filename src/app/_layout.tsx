@@ -17,6 +17,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { AnalyticsProvider } from "@/components/analytics-provider";
 import { AlertProvider } from "@/components/ui/alert";
 import { debugLog } from "@/lib/debug";
+import { reconcileMealReminderSchedule } from "@/lib/meal-notifications";
 import { queryClient } from "@/lib/query-client";
 import { colors } from "@/lib/theme";
 
@@ -73,6 +74,14 @@ function RootLayout() {
     return () => {
       subscription.remove();
     };
+  }, []);
+
+  useEffect(() => {
+    void reconcileMealReminderSchedule().catch((error: unknown) => {
+      debugLog("notifications", "failed to reconcile meal reminders", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    });
   }, []);
 
   useEffect(() => {

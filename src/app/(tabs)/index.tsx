@@ -15,9 +15,9 @@ import {
   HomeSection,
   homeGreeting,
   LocationPill,
-  rankByTaste,
   TastePickerCard,
   useHomeFeed,
+  useForYou,
   useSaveHandler,
   useTastePreferences,
 } from "@/features/home";
@@ -34,6 +34,7 @@ export default function Index() {
   const { user } = useUser();
   const location = useLocation();
   const home = useHomeFeed(location.coords);
+  const forYou = useForYou();
   const taste = useTastePreferences();
   const { saved, savedIds, onToggleSave } = useSaveHandler();
 
@@ -51,10 +52,11 @@ export default function Index() {
 
   const onRefresh = useCallback(() => {
     void home.refetch();
+    if (isSignedIn) void forYou.refetch();
     if (isSignedIn) {
       void saved.refetch();
     }
-  }, [home, isSignedIn, saved]);
+  }, [forYou, home, isSignedIn, saved]);
 
   const firstName = user?.firstName ?? "there";
   // Picked once per app launch — varies across opens, stable within a session.
@@ -79,10 +81,7 @@ export default function Index() {
   );
   // Gently boost the user's picked cuisines up the main feed (client-side, so
   // the shared home cache stays intact).
-  const highlyRatedItems = useMemo(
-    () => rankByTaste(highlyRated?.items ?? [], taste.cuisines),
-    [highlyRated, taste.cuisines],
-  );
+  const highlyRatedItems = highlyRated?.items ?? [];
   const railSections = branchSections.filter(
     (section) => section.type !== "highly_rated" && section.items.length > 0,
   );
@@ -143,7 +142,7 @@ export default function Index() {
               status={location.status}
             />
           </View>
-          <ThemedText className="mt-5" size="3xl" weight="bold">
+          <ThemedText className="mt-5" size="3xl" tone="heading" weight="bold">
             {greeting}
           </ThemedText>
         </View>
@@ -152,10 +151,10 @@ export default function Index() {
           <HomeSearchBar onPress={() => router.push("/search")} />
         </View>
 
-        {home.isSuccess && !isEmpty ? (
+        {home.isSuccess && !isEmpty && isSignedIn ? (
           <TastePickerCard
             onToggle={taste.toggle}
-            picks={taste.cuisines}
+            picks={taste.tasteOptionIds}
             ready={taste.ready}
           />
         ) : null}
@@ -164,7 +163,7 @@ export default function Index() {
 
         {home.isError && !home.data ? (
           <View className="mt-24 items-center gap-3 px-6">
-            <ThemedText size="xl" weight="bold">
+            <ThemedText size="xl" tone="heading" weight="bold">
               Well, this is awkward
             </ThemedText>
             <ThemedText className="text-center" tone="muted">
@@ -195,6 +194,17 @@ export default function Index() {
           </View>
         ) : null}
 
+        {forYou.data && forYou.data.items.length > 0 ? (
+          <HomeSection
+            onPressBranch={(branch) =>
+              router.push(`/branch/${branch.id}?source=home`)
+            }
+            onToggleSave={onToggleSave}
+            savedIds={savedIds}
+            section={forYou.data}
+          />
+        ) : null}
+
         {railSections.map((section) => (
           <HomeSection
             key={section.type}
@@ -208,10 +218,15 @@ export default function Index() {
         ))}
 
         {home.isSuccess && highlyRatedItems.length > 0 ? (
-          <View className="mt-12 gap-4 px-6">
-            <ThemedText size="xl" weight="bold">
-              Highly rated
-            </ThemedText>
+          <View className="mt-10 gap-4 px-6">
+            <View className="gap-1">
+              <ThemedText size="xl" tone="heading" weight="bold">
+                Highly rated
+              </ThemedText>
+              <ThemedText tone="muted">
+                Well-loved spots with the reviews to back it up.
+              </ThemedText>
+            </View>
             {highlyRatedItems.map((branch) => (
               <BranchCard
                 branch={branch}

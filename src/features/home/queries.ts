@@ -9,12 +9,16 @@ import {
 import { debugLog } from "@/lib/debug";
 import {
   getCollection,
+  getForYou,
   getHome,
   getPlace,
   getSavedBranchIds,
   getSaves,
+  getTastePreferences,
+  getTasteOptions,
   saveBranch,
   unsaveBranch,
+  replaceTastePreferences,
 } from "./api";
 
 export const homeKeys = {
@@ -26,6 +30,11 @@ export const homeKeys = {
   saves: (userId: string | null | undefined) =>
     [...homeKeys.all, "saves", userId ?? "anonymous"] as const,
   place: (id: string) => [...homeKeys.all, "place", id] as const,
+  forYou: (userId: string | null | undefined) =>
+    [...homeKeys.all, "for-you", userId ?? "anonymous"] as const,
+  tastes: (userId: string | null | undefined) =>
+    [...homeKeys.all, "tastes", userId ?? "anonymous"] as const,
+  tasteOptions: () => [...homeKeys.all, "taste-options"] as const,
 };
 
 export function useSaves() {
@@ -35,6 +44,48 @@ export function useSaves() {
     queryKey: homeKeys.saves(userId),
     queryFn: () => getSaves(getToken),
     enabled: isSignedIn === true,
+  });
+}
+
+export function useForYou() {
+  const { getToken, isSignedIn, userId } = useAuth();
+  return useQuery({
+    queryKey: homeKeys.forYou(userId),
+    queryFn: () => getForYou(getToken),
+    enabled: isSignedIn === true,
+  });
+}
+
+export function useTastePreferencesQuery() {
+  const { getToken, isSignedIn, userId } = useAuth();
+  return useQuery({
+    queryKey: homeKeys.tastes(userId),
+    queryFn: () => getTastePreferences(getToken),
+    enabled: isSignedIn === true,
+  });
+}
+
+export function useTasteOptionsQuery() {
+  const { getToken, isSignedIn } = useAuth();
+  return useQuery({
+    queryKey: homeKeys.tasteOptions(),
+    queryFn: () => getTasteOptions(getToken),
+    enabled: isSignedIn === true,
+    staleTime: 30 * 60 * 1000,
+  });
+}
+
+export function useReplaceTastePreferences() {
+  const { getToken, userId } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    scope: { id: "taste-preferences" },
+    mutationFn: (tasteOptionIds: string[]) =>
+      replaceTastePreferences(tasteOptionIds, getToken),
+    onSuccess: (preferences) => {
+      queryClient.setQueryData(homeKeys.tastes(userId), preferences);
+      void queryClient.invalidateQueries({ queryKey: homeKeys.forYou(userId) });
+    },
   });
 }
 

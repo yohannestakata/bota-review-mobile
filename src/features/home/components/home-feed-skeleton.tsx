@@ -22,7 +22,7 @@ function RailSkeleton() {
   const cardWidth = Math.floor((width - RAIL_SIDE_PADDING * 2 - RAIL_GAP) / 2);
 
   return (
-    <View className="mt-12 gap-3">
+    <View className="mt-10 gap-3">
       <Skeleton className="ml-6 h-7 w-48 rounded-full" />
       <View className="flex-row gap-4 overflow-hidden pl-6">
         <View style={{ width: cardWidth }}>
@@ -53,8 +53,11 @@ export function HomeFeedSkeleton() {
       <RailSkeleton />
 
       {/* "Highly rated" — a titled vertical list of full-width cards. */}
-      <View className="mt-12 gap-4 px-6">
-        <Skeleton className="h-6 w-32 rounded-full" />
+      <View className="mt-10 gap-4 px-6">
+        <View className="gap-2">
+          <Skeleton className="h-6 w-32 rounded-full" />
+          <Skeleton className="h-4 w-64 rounded-full" />
+        </View>
         <BranchCardSkeleton />
         <BranchCardSkeleton />
       </View>

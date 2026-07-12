@@ -1,44 +1,39 @@
-import * as SecureStore from "expo-secure-store";
-import { useCallback, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@clerk/clerk-expo";
 
-const KEY = "taste_cuisines_v1";
+import type { TasteOption } from "./api";
+import {
+  homeKeys,
+  useReplaceTastePreferences,
+  useTastePreferencesQuery,
+} from "./queries";
 
-// Locally-persisted taste preferences (cuisine slugs). Used to gently boost
-// matching spots up the home feed — no backend, no server-side per-user cache.
 export function useTastePreferences() {
-  const [cuisines, setCuisines] = useState<string[]>([]);
-  const [ready, setReady] = useState(false);
+  const { userId } = useAuth();
+  const query = useTastePreferencesQuery();
+  const replace = useReplaceTastePreferences();
+  const queryClient = useQueryClient();
+  const tasteOptionIds = (query.data ?? []).map((option) => option.id);
 
-  useEffect(() => {
-    let active = true;
-    void SecureStore.getItemAsync(KEY).then((raw) => {
-      if (!active) return;
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw) as unknown;
-          if (Array.isArray(parsed)) {
-            setCuisines(parsed.filter((v): v is string => typeof v === "string"));
-          }
-        } catch {
-          // ignore a corrupt value
-        }
-      }
-      setReady(true);
+  function toggle(tasteOptionId: string) {
+    const previous = query.data ?? [];
+    const nextIds = tasteOptionIds.includes(tasteOptionId)
+      ? tasteOptionIds.filter((id) => id !== tasteOptionId)
+      : [...tasteOptionIds, tasteOptionId];
+    const next = tasteOptionIds.includes(tasteOptionId)
+      ? previous.filter((option) => option.id !== tasteOptionId)
+      : [...previous, { id: tasteOptionId } as TasteOption];
+    queryClient.setQueryData(homeKeys.tastes(userId), next);
+    replace.mutate(nextIds, {
+      onError: () =>
+        queryClient.setQueryData(homeKeys.tastes(userId), previous),
     });
-    return () => {
-      active = false;
-    };
-  }, []);
+  }
 
-  const toggle = useCallback((slug: string) => {
-    setCuisines((current) => {
-      const next = current.includes(slug)
-        ? current.filter((item) => item !== slug)
-        : [...current, slug];
-      void SecureStore.setItemAsync(KEY, JSON.stringify(next)).catch(() => {});
-      return next;
-    });
-  }, []);
-
-  return { cuisines, toggle, ready };
+  return {
+    tasteOptionIds,
+    toggle,
+    ready: query.isSuccess,
+    saving: replace.isPending,
+  };
 }

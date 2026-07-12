@@ -1,7 +1,13 @@
 import { useAuth } from "@clerk/clerk-expo";
 import { useQuery } from "@tanstack/react-query";
 
-import { getAmenities, getCuisines, getNeighborhoods, getTags } from "@/lib/api";
+import {
+  getAmenities,
+  getCuisines,
+  getFoodCategories,
+  getNeighborhoods,
+  getTags,
+} from "@/lib/api";
 
 // Shared taxonomy (cuisines, neighborhoods, tags, amenities). Used by search,
 // submissions, manage-listing and home — one module, one set of cache keys, so
@@ -11,6 +17,7 @@ const STALE_TIME = 30 * 60 * 1000;
 export const taxonomyKeys = {
   all: ["taxonomy"] as const,
   cuisines: () => [...taxonomyKeys.all, "cuisines"] as const,
+  foodCategories: () => [...taxonomyKeys.all, "food-categories"] as const,
   neighborhoods: () => [...taxonomyKeys.all, "neighborhoods"] as const,
   tags: () => [...taxonomyKeys.all, "tags"] as const,
   amenities: () => [...taxonomyKeys.all, "amenities"] as const,
@@ -21,6 +28,15 @@ export function useCuisines() {
   return useQuery({
     queryKey: taxonomyKeys.cuisines(),
     queryFn: () => getCuisines(getToken),
+    staleTime: STALE_TIME,
+  });
+}
+
+export function useFoodCategories() {
+  const { getToken } = useAuth();
+  return useQuery({
+    queryKey: taxonomyKeys.foodCategories(),
+    queryFn: () => getFoodCategories(getToken),
     staleTime: STALE_TIME,
   });
 }

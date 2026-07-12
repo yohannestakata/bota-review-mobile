@@ -86,30 +86,41 @@ async function cancelScheduledMealReminders() {
   }
 }
 
-export async function saveMealReminderPreferences(
+async function ensureNotificationChannel() {
+  if (Platform.OS !== "android") return;
+  await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
+    name: "Meal reminders",
+    importance: Notifications.AndroidImportance.DEFAULT,
+  });
+}
+
+function permissionAllowsNotifications(
+  permission: Notifications.NotificationPermissionsStatus,
+) {
+  return (
+    permission.granted ||
+    permission.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL
+  );
+}
+
+async function requestNotificationPermission() {
+  await ensureNotificationChannel();
+  let permission = await Notifications.getPermissionsAsync();
+  if (!permissionAllowsNotifications(permission)) {
+    permission = await Notifications.requestPermissionsAsync();
+  }
+  if (!permissionAllowsNotifications(permission)) {
+    throw new Error("NOTIFICATION_PERMISSION_DENIED");
+  }
+}
+
+async function scheduleEnabledMealReminders(
   preferences: MealReminderPreferences,
 ) {
-  const enabled = MEAL_REMINDERS.filter((meal) => preferences[meal.key]);
-  if (enabled.length > 0) {
-    let permission = await Notifications.getPermissionsAsync();
-    if (!permission.granted) {
-      permission = await Notifications.requestPermissionsAsync();
-    }
-    if (!permission.granted) {
-      throw new Error("NOTIFICATION_PERMISSION_DENIED");
-    }
-  }
-
-  if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
-      name: "Meal reminders",
-      importance: Notifications.AndroidImportance.DEFAULT,
-    });
-  }
-
-  await cancelScheduledMealReminders();
   const identifiers: string[] = [];
-  for (const meal of enabled) {
+  for (const meal of MEAL_REMINDERS.filter(
+    (candidate) => preferences[candidate.key],
+  )) {
     identifiers.push(
       await Notifications.scheduleNotificationAsync({
         content: {
@@ -127,9 +138,61 @@ export async function saveMealReminderPreferences(
       }),
     );
   }
+  await SecureStore.setItemAsync(IDENTIFIERS_KEY, JSON.stringify(identifiers));
+}
 
-  await Promise.all([
-    SecureStore.setItemAsync(PREFERENCES_KEY, JSON.stringify(preferences)),
-    SecureStore.setItemAsync(IDENTIFIERS_KEY, JSON.stringify(identifiers)),
-  ]);
+export async function saveMealReminderPreferences(
+  preferences: MealReminderPreferences,
+) {
+  const enabled = MEAL_REMINDERS.filter((meal) => preferences[meal.key]);
+  if (enabled.length > 0) {
+    await requestNotificationPermission();
+  }
+
+  await cancelScheduledMealReminders();
+  await scheduleEnabledMealReminders(preferences);
+  await SecureStore.setItemAsync(PREFERENCES_KEY, JSON.stringify(preferences));
+}
+
+export async function reconcileMealReminderSchedule() {
+  const preferences = await getMealReminderPreferences();
+  const enabledCount = MEAL_REMINDERS.filter(
+    (meal) => preferences[meal.key],
+  ).length;
+  if (enabledCount === 0) return;
+
+  const permission = await Notifications.getPermissionsAsync();
+  if (!permissionAllowsNotifications(permission)) return;
+
+  const stored = await SecureStore.getItemAsync(IDENTIFIERS_KEY);
+  const identifiers = stored ? (JSON.parse(stored) as string[]) : [];
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  const scheduledIdentifiers = new Set(
+    scheduled.map((notification) => notification.identifier),
+  );
+  const scheduleIsComplete =
+    identifiers.length === enabledCount &&
+    identifiers.every((identifier) => scheduledIdentifiers.has(identifier));
+  if (scheduleIsComplete) return;
+
+  await ensureNotificationChannel();
+  await cancelScheduledMealReminders();
+  await scheduleEnabledMealReminders(preferences);
+}
+
+export async function sendTestMealReminder() {
+  await requestNotificationPermission();
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: "Bota reminders are on",
+      body: "We'll be here when hunger shows up.",
+      data: { destination: "explore", meal: "test" },
+      sound: "default",
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds: 5,
+      channelId: Platform.OS === "android" ? CHANNEL_ID : undefined,
+    },
+  });
 }

@@ -14,13 +14,20 @@ export type CuratedCollectionSection = {
 };
 
 export type HomeBranchSection = {
-  type: "meal_time" | "nearby" | "highly_rated";
+  type: "meal_time" | "nearby" | "highly_rated" | "for_you";
   title: string;
+  description?: string;
   items: BranchCard[];
 };
 
 export type HomeSectionData = CuratedCollectionSection | HomeBranchSection;
 export type HomeResponse = { sections: HomeSectionData[] };
+export type TasteOption = {
+  id: string;
+  name: string;
+  slug: string;
+  group: "food" | "mood" | "time";
+};
 
 export function getHome(
   coords: { lat: number; lng: number } | null,
@@ -28,6 +35,28 @@ export function getHome(
 ) {
   const query = coords ? `?lat=${coords.lat}&lng=${coords.lng}` : "";
   return apiFetch<HomeResponse>(`/discovery/home${query}`, getToken);
+}
+
+export function getForYou(getToken: TokenGetter) {
+  return apiFetch<HomeBranchSection>("/discovery/for-you", getToken);
+}
+
+export function getTastePreferences(getToken: TokenGetter) {
+  return apiFetch<TasteOption[]>("/me/taste-preferences", getToken);
+}
+
+export function replaceTastePreferences(
+  tasteOptionIds: string[],
+  getToken: TokenGetter,
+) {
+  return apiFetch<TasteOption[]>("/me/taste-preferences", getToken, {
+    method: "PUT",
+    body: JSON.stringify({ tasteOptionIds }),
+  });
+}
+
+export function getTasteOptions(getToken: TokenGetter) {
+  return apiFetch<TasteOption[]>("/me/taste-options", getToken);
 }
 
 export type CollectionDetail = {
