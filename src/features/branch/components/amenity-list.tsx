@@ -13,10 +13,10 @@ import { View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
+import type { Amenity } from "@/lib/api";
 import { colors } from "@/lib/theme";
 
 type IconType = ComponentProps<typeof AppIcon>["icon"];
-type Amenity = { id: string; name: string; slug?: string };
 
 // Per-amenity icons keyed by slug. Amenities are a small, controlled taxonomy,
 // so a static map gives full design control; anything unmapped falls back to a
