@@ -51,19 +51,19 @@ ae7a998, a85e3fd, f3bf604._
 
 ## C. Dead code / hygiene
 
-- [ ] **Delete `(tabs)/test.tsx`** (typography scratch screen) + its `Tabs.Screen` line in `(tabs)/_layout.tsx:202`. Still route-reachable. · SHOULD
-- [ ] Extract a `ChipGroup` wrapper (`flex-row flex-wrap gap-2` + map of `ChipButton`) — re-invented in manage/filter-sheet/suggest-edit/submissions. · NICE
-- [ ] One shared `SectionTitle` (defined twice, different prop shapes: `branch/[id].tsx:66` vs `manage.tsx:91`). · NICE
-- [ ] `amenity-list.tsx:19` — import canonical `Amenity` from `lib/api` instead of a local type. · NICE
-- [ ] Prune unused deps (verify first): `@expo/ui`, `expo-glass-effect`, `expo-symbols`, `react-native-shadow-2`, `expo-file-system` (+ maybe `expo-device`/`expo-application`). · NICE
+- [x] **Delete `(tabs)/test.tsx`** (typography scratch screen) + its `Tabs.Screen` line in `(tabs)/_layout.tsx:202`. Still route-reachable. · SHOULD → `ae7a998`
+- [ ] Extract a `ChipGroup` wrapper (`flex-row flex-wrap gap-2` + map of `ChipButton`) — re-invented in manage/filter-sheet/suggest-edit/submissions. · NICE — DEFERRED (call sites are heterogeneous — single/multi-select, slug/id/label, RHF Controllers — and several live in active taste files; revisit after taste lands)
+- [x] One shared `SectionTitle` (defined twice, different prop shapes: `branch/[id].tsx:66` vs `manage.tsx:91`). · NICE → `d2e30c0`
+- [x] `amenity-list.tsx:19` — import canonical `Amenity` from `lib/api` instead of a local type. · NICE → `bc7f4e0`
+- [x] Prune unused deps (verify first): `@expo/ui`, `expo-glass-effect`, `expo-symbols`, `react-native-shadow-2`, `expo-file-system`. · NICE → `58c0132` (kept `expo-device`/`expo-application` — notifications WIP)
 
 ## D. Polish (decide in/out for v1)
 
-- [ ] `AuthRequiredScreen` — add a "Create account" path (CTA is bare "Sign in"). · NICE
-- [ ] `profile/edit.tsx` — disable Save during account deletion; add discard-confirm on close; avatar permission message. · NICE
-- [ ] `profile/replies.tsx:20` — label pending replies "Under review", not "Posted". · NICE
-- [ ] `quick-actions.tsx:44` / share — include a branch deep-link in the share message. · NICE
-- [ ] `search.tsx:339` — no-results copy assumes filters even for plain text queries. · NICE
+- [ ] `AuthRequiredScreen` — add a "Create account" path (CTA is bare "Sign in"). · NICE — PARKED (post-launch)
+- [x] `profile/edit.tsx` — disable Save during account deletion; add discard-confirm on close; avatar permission message. · NICE → `e36820c`
+- [x] `profile/replies.tsx:20` — label pending replies "Under review", not "Posted". · NICE → `42a9d08`
+- [ ] `quick-actions.tsx:44` / share — include a branch deep-link in the share message. · NICE — PARKED (post-launch)
+- [ ] `search.tsx:339` — no-results copy assumes filters even for plain text queries. · NICE — PARKED (post-launch)
 
 ---
 
