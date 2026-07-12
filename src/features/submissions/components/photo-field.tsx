@@ -1,11 +1,11 @@
 import { useAuth } from "@clerk/clerk-expo";
 import { useState } from "react";
-import * as ImagePicker from "expo-image-picker";
 import { View } from "react-native";
 
 import { ThemedText } from "@/components/ui/themed-text";
 import { PhotoGrid } from "@/features/branch";
 import type { PickedPhoto } from "@/features/branch/api";
+import { usePickImage } from "@/lib/use-pick-image";
 
 import { uploadSubmissionPhoto, type SubmissionPhoto } from "../api";
 
@@ -22,6 +22,7 @@ export function PhotoField({
   onChange: (value: SubmissionPhoto[]) => void;
 }) {
   const { getToken } = useAuth();
+  const pickImage = usePickImage();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,38 +36,22 @@ export function PhotoField({
 
   async function add() {
     setError(null);
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
+    const result = await pickImage({
+      multiple: true,
+      base64: true,
+      selectionLimit: MAX_PHOTOS - value.length,
+    });
+    if (result.status === "denied") {
       setError("Photo access is off. Turn it on in Settings to add one.");
       return;
     }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsMultipleSelection: true,
-      base64: true,
-      mediaTypes: ["images"],
-      quality: 0.8,
-      selectionLimit: MAX_PHOTOS - value.length,
-    });
-    if (result.canceled) return;
+    if (result.status !== "picked") return;
 
     setBusy(true);
     try {
       const uploaded: SubmissionPhoto[] = [];
-      for (const asset of result.assets) {
-        uploaded.push(
-          await uploadSubmissionPhoto(
-            {
-              uri: asset.uri,
-              width: asset.width,
-              height: asset.height,
-              fileName: asset.fileName,
-              mimeType: asset.mimeType,
-              base64: asset.base64,
-            },
-            getToken,
-          ),
-        );
+      for (const image of result.images) {
+        uploaded.push(await uploadSubmissionPhoto(image, getToken));
       }
       onChange([...value, ...uploaded].slice(0, MAX_PHOTOS));
     } catch {

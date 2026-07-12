@@ -1,6 +1,5 @@
 import { useClerk, useUser } from "@clerk/clerk-expo";
 import { zodFormResolver } from "@/lib/zod-resolver";
-import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -17,6 +16,7 @@ import { ControlledTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { getAuthMessage } from "@/lib/auth";
 import { openLegal, PRIVACY_POLICY_URL, TERMS_URL } from "@/lib/legal";
+import { usePickImage } from "@/lib/use-pick-image";
 
 const editProfileSchema = z.object({
   firstName: z.string().trim().optional(),
@@ -29,6 +29,7 @@ type EditProfileValues = z.infer<typeof editProfileSchema>;
 export default function EditProfileScreen() {
   const { user } = useUser();
   const { signOut } = useClerk();
+  const pickImage = usePickImage();
 
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [avatarData, setAvatarData] = useState<string | null>(null);
@@ -69,27 +70,21 @@ export default function EditProfileScreen() {
     });
 
   async function pickAvatar() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const result = await pickImage({
       allowsEditing: true,
       aspect: [1, 1],
       base64: true,
-      mediaTypes: ["images"],
       quality: 0.7,
     });
+    if (result.status !== "picked") return;
+    const image = result.images[0];
+    if (!image) return;
 
-    if (!result.canceled) {
-      const asset = result.assets[0];
-      setAvatarUri(asset.uri);
-      if (asset.base64) {
-        setAvatarData(
-          `data:${asset.mimeType ?? "image/jpeg"};base64,${asset.base64}`,
-        );
-      }
+    setAvatarUri(image.uri);
+    if (image.base64) {
+      setAvatarData(
+        `data:${image.mimeType ?? "image/jpeg"};base64,${image.base64}`,
+      );
     }
   }
 

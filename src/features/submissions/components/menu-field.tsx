@@ -5,7 +5,6 @@ import {
   ImageAdd01Icon,
 } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 
@@ -14,6 +13,7 @@ import { AppIcon } from "@/components/ui/huge-icon";
 import { TextField } from "@/components/ui/text-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { colors } from "@/lib/theme";
+import { usePickImage } from "@/lib/use-pick-image";
 
 import { uploadSubmissionPhoto, type SubmissionMenuItem } from "../api";
 
@@ -69,6 +69,7 @@ export function MenuField({
   singleItem?: boolean;
 }) {
   const { getToken } = useAuth();
+  const pick = usePickImage();
   const makeItem = (): Item => ({
     id: itemId(),
     name: "",
@@ -131,30 +132,14 @@ export function MenuField({
   }
 
   async function pickImage(id: string) {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return;
+    const result = await pick({ base64: true });
+    if (result.status !== "picked") return;
+    const image = result.images[0];
+    if (!image) return;
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      base64: true,
-      mediaTypes: ["images"],
-      quality: 0.8,
-    });
-    if (result.canceled) return;
-
-    const asset = result.assets[0];
     setItem(id, { uploading: true });
     try {
-      const uploaded = await uploadSubmissionPhoto(
-        {
-          uri: asset.uri,
-          width: asset.width,
-          height: asset.height,
-          fileName: asset.fileName,
-          mimeType: asset.mimeType,
-          base64: asset.base64,
-        },
-        getToken,
-      );
+      const uploaded = await uploadSubmissionPhoto(image, getToken);
       setItem(id, {
         imageUrl: uploaded.url,
         publicId: uploaded.publicId,

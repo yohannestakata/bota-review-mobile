@@ -2,7 +2,6 @@ import { useAuth } from "@clerk/clerk-expo";
 import { zodFormResolver } from "@/lib/zod-resolver";
 import { Calendar03Icon } from "@hugeicons/core-free-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -29,6 +28,7 @@ import {
 import { getMyReviews } from "@/features/profile";
 import { analytics } from "@/lib/analytics";
 import { getErrorCode, getErrorMessage } from "@/lib/api";
+import { usePickImage } from "@/lib/use-pick-image";
 import { colors } from "@/lib/theme";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 
@@ -84,6 +84,7 @@ export default function WriteReviewScreen() {
     text?: string;
   }>();
   const { getToken } = useAuth();
+  const pickImage = usePickImage();
   const isEdit = Boolean(reviewId);
   const createReview = useCreateReview(branchId);
   const updateReview = useUpdateReview();
@@ -135,33 +136,20 @@ export default function WriteReviewScreen() {
   );
 
   async function pickPhotos() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
+    const result = await pickImage({
+      multiple: true,
+      base64: true,
+      selectionLimit: MAX_PHOTOS - photos.length,
+    });
+    if (result.status === "denied") {
       Alert.alert(
         "Photo access needed",
         "Turn it on to add snapshots to your review.",
       );
       return;
     }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsMultipleSelection: true,
-      base64: true,
-      mediaTypes: ["images"],
-      quality: 0.8,
-      selectionLimit: MAX_PHOTOS - photos.length,
-    });
-
-    if (!result.canceled) {
-      const picked = result.assets.map((asset) => ({
-        uri: asset.uri,
-        width: asset.width,
-        height: asset.height,
-        fileName: asset.fileName,
-        mimeType: asset.mimeType,
-        base64: asset.base64,
-      }));
-      setPhotos((prev) => [...prev, ...picked].slice(0, MAX_PHOTOS));
+    if (result.status === "picked") {
+      setPhotos((prev) => [...prev, ...result.images].slice(0, MAX_PHOTOS));
     }
   }
 

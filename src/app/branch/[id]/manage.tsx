@@ -1,7 +1,6 @@
 import { useAuth } from "@clerk/clerk-expo";
 import { Add01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -28,7 +27,6 @@ import {
   useBranchMenus,
   useUpdateOwnerInfo,
   type BranchHours,
-  type PickedPhoto,
 } from "@/features/branch";
 import {
   LocationPinField,
@@ -44,6 +42,7 @@ import {
 } from "@/features/taxonomy";
 import { zodFormResolver } from "@/lib/zod-resolver";
 import { colors } from "@/lib/theme";
+import { usePickImage } from "@/lib/use-pick-image";
 
 const DAYS = [
   ["mon", "Monday"],
@@ -124,6 +123,7 @@ function Choices({
 export default function ManageListingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getToken } = useAuth();
+  const pickImage = usePickImage();
   const branch = useBranch(id);
   const menus = useBranchMenus(id);
   const neighborhoods = useNeighborhoods();
@@ -237,27 +237,15 @@ export default function ManageListingScreen() {
   });
 
   async function pickAndUploadPhoto() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
+    const result = await pickImage({ base64: true });
+    if (result.status === "denied") {
       Alert.alert("Photo access needed", "Turn it on to add listing photos.");
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsMultipleSelection: false,
-      base64: true,
-      mediaTypes: ["images"],
-      quality: 0.8,
-    });
-    if (result.canceled) return;
-    const asset = result.assets[0];
-    const photo: PickedPhoto = {
-      uri: asset.uri,
-      width: asset.width,
-      height: asset.height,
-      fileName: asset.fileName,
-      mimeType: asset.mimeType,
-      base64: asset.base64,
-    };
+    if (result.status !== "picked") return;
+    const photo = result.images[0];
+    if (!photo) return;
+
     setUploadingPhoto(true);
     try {
       await uploadOwnerPhoto(id, photo, getToken);
@@ -271,33 +259,18 @@ export default function ManageListingScreen() {
   }
 
   async function pickAndUploadAvatar() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
+    const result = await pickImage({ base64: true });
+    if (result.status === "denied") {
       Alert.alert("Photo access needed", "Turn it on to add a logo.");
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsMultipleSelection: false,
-      base64: true,
-      mediaTypes: ["images"],
-      quality: 0.8,
-    });
-    if (result.canceled) return;
-    const asset = result.assets[0];
+    if (result.status !== "picked") return;
+    const image = result.images[0];
+    if (!image) return;
+
     setUploadingAvatar(true);
     try {
-      await uploadOwnerAvatar(
-        id,
-        {
-          uri: asset.uri,
-          width: asset.width,
-          height: asset.height,
-          fileName: asset.fileName,
-          mimeType: asset.mimeType,
-          base64: asset.base64,
-        },
-        getToken,
-      );
+      await uploadOwnerAvatar(id, image, getToken);
       await branch.refetch();
       Alert.alert("Logo updated", "It shows when you reply to reviews.");
     } catch {
