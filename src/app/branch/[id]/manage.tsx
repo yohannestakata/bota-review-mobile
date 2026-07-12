@@ -11,6 +11,7 @@ import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
 import { Button, ChipButton } from "@/components/ui/button";
+import { ChipGroup } from "@/components/ui/chip-group";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { SectionTitle } from "@/components/ui/section-title";
 import { ControlledTextInput } from "@/components/ui/form-field";
@@ -90,29 +91,6 @@ type FormValues = z.infer<typeof schema>;
 
 const PHOTO_GRID_GAP = 8;
 
-function Choices({
-  items,
-  selected,
-  onToggle,
-}: {
-  items: { id: string; name: string }[];
-  selected: string[];
-  onToggle: (id: string) => void;
-}) {
-  return (
-    <View className="flex-row flex-wrap gap-2">
-      {items.map((item) => (
-        <ChipButton
-          key={item.id}
-          label={item.name}
-          onPress={() => onToggle(item.id)}
-          selected={selected.includes(item.id)}
-        />
-      ))}
-    </View>
-  );
-}
-
 export default function ManageListingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getToken } = useAuth();
@@ -187,18 +165,6 @@ export default function ManageListingScreen() {
       phone: data.phone ?? "",
     });
   }, [data, reset]);
-
-  function toggle(
-    current: string[],
-    set: (value: string[]) => void,
-    value: string,
-  ) {
-    set(
-      current.includes(value)
-        ? current.filter((id_) => id_ !== value)
-        : [...current, value],
-    );
-  }
 
   function setDay(day: DayKey, patch: Partial<DayState>) {
     setHours((current) => {
@@ -469,34 +435,39 @@ export default function ManageListingScreen() {
           {cuisines.data?.length ? (
             <View className="gap-3">
               <SectionTitle>Cuisines</SectionTitle>
-              <Choices
-                items={cuisines.data}
-                selected={resolvedCuisines}
-                onToggle={(value) =>
-                  toggle(resolvedCuisines, setCuisineIds, value)
-                }
+              <ChipGroup
+                onChange={setCuisineIds}
+                options={cuisines.data.map((item) => ({
+                  value: item.id,
+                  label: item.name,
+                }))}
+                value={resolvedCuisines}
               />
             </View>
           ) : null}
           {tags.data?.length ? (
             <View className="gap-3">
               <SectionTitle>Good for and tags</SectionTitle>
-              <Choices
-                items={tags.data}
-                selected={resolvedTags}
-                onToggle={(value) => toggle(resolvedTags, setTagIds, value)}
+              <ChipGroup
+                onChange={setTagIds}
+                options={tags.data.map((item) => ({
+                  value: item.id,
+                  label: item.name,
+                }))}
+                value={resolvedTags}
               />
             </View>
           ) : null}
           {amenities.data?.length ? (
             <View className="gap-3">
               <SectionTitle>Amenities</SectionTitle>
-              <Choices
-                items={amenities.data}
-                selected={resolvedAmenities}
-                onToggle={(value) =>
-                  toggle(resolvedAmenities, setAmenityIds, value)
-                }
+              <ChipGroup
+                onChange={setAmenityIds}
+                options={amenities.data.map((item) => ({
+                  value: item.id,
+                  label: item.name,
+                }))}
+                value={resolvedAmenities}
               />
             </View>
           ) : null}

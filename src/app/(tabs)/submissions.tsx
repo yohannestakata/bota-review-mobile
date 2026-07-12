@@ -12,6 +12,7 @@ import { z } from "zod";
 import { Alert } from "@/components/ui/alert";
 import { AuthRequiredScreen } from "@/components/auth/auth-required-screen";
 import { Button, ChipButton } from "@/components/ui/button";
+import { ChipGroup } from "@/components/ui/chip-group";
 import {
   ControlledTextArea,
   ControlledTextInput,
@@ -389,24 +390,14 @@ export default function SubmissionsScreen() {
                           control={control}
                           name="cuisines"
                           render={({ field }) => (
-                            <View className="flex-row flex-wrap gap-2">
-                              {cuisines.data.map((cuisine) => (
-                                <ChipButton
-                                  key={cuisine.slug}
-                                  label={cuisine.name}
-                                  onPress={() =>
-                                    field.onChange(
-                                      field.value.includes(cuisine.slug)
-                                        ? field.value.filter(
-                                            (item) => item !== cuisine.slug,
-                                          )
-                                        : [...field.value, cuisine.slug],
-                                    )
-                                  }
-                                  selected={field.value.includes(cuisine.slug)}
-                                />
-                              ))}
-                            </View>
+                            <ChipGroup
+                              onChange={field.onChange}
+                              options={cuisines.data.map((cuisine) => ({
+                                value: cuisine.slug,
+                                label: cuisine.name,
+                              }))}
+                              value={field.value}
+                            />
                           )}
                         />
                       </View>
@@ -486,24 +477,14 @@ export default function SubmissionsScreen() {
                           control={control}
                           name="tags"
                           render={({ field }) => (
-                            <View className="flex-row flex-wrap gap-2">
-                              {tags.data.map((tag) => (
-                                <ChipButton
-                                  key={tag.slug}
-                                  label={tag.name}
-                                  onPress={() =>
-                                    field.onChange(
-                                      field.value.includes(tag.slug)
-                                        ? field.value.filter(
-                                            (item) => item !== tag.slug,
-                                          )
-                                        : [...field.value, tag.slug],
-                                    )
-                                  }
-                                  selected={field.value.includes(tag.slug)}
-                                />
-                              ))}
-                            </View>
+                            <ChipGroup
+                              onChange={field.onChange}
+                              options={tags.data.map((tag) => ({
+                                value: tag.slug,
+                                label: tag.name,
+                              }))}
+                              value={field.value}
+                            />
                           )}
                         />
                       </View>
@@ -518,24 +499,14 @@ export default function SubmissionsScreen() {
                           control={control}
                           name="helpfulDetails"
                           render={({ field }) => (
-                            <View className="flex-row flex-wrap gap-2">
-                              {amenities.data.map((amenity) => (
-                                <ChipButton
-                                  key={amenity.slug}
-                                  label={amenity.name}
-                                  onPress={() =>
-                                    field.onChange(
-                                      field.value.includes(amenity.slug)
-                                        ? field.value.filter(
-                                            (item) => item !== amenity.slug,
-                                          )
-                                        : [...field.value, amenity.slug],
-                                    )
-                                  }
-                                  selected={field.value.includes(amenity.slug)}
-                                />
-                              ))}
-                            </View>
+                            <ChipGroup
+                              onChange={field.onChange}
+                              options={amenities.data.map((amenity) => ({
+                                value: amenity.slug,
+                                label: amenity.name,
+                              }))}
+                              value={field.value}
+                            />
                           )}
                         />
                       </View>

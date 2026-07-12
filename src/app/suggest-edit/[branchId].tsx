@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
 import { Button, ChipButton } from "@/components/ui/button";
+import { ChipGroup } from "@/components/ui/chip-group";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import {
   ControlledTextArea,
@@ -418,24 +419,14 @@ export default function SuggestEditScreen() {
                           control={control}
                           name="tags"
                           render={({ field }) => (
-                            <View className="flex-row flex-wrap gap-2">
-                              {tagsQuery.data.map((tag) => (
-                                <ChipButton
-                                  key={tag.slug}
-                                  label={tag.name}
-                                  onPress={() =>
-                                    field.onChange(
-                                      field.value.includes(tag.slug)
-                                        ? field.value.filter(
-                                            (item) => item !== tag.slug,
-                                          )
-                                        : [...field.value, tag.slug],
-                                    )
-                                  }
-                                  selected={field.value.includes(tag.slug)}
-                                />
-                              ))}
-                            </View>
+                            <ChipGroup
+                              onChange={field.onChange}
+                              options={tagsQuery.data.map((tag) => ({
+                                value: tag.slug,
+                                label: tag.name,
+                              }))}
+                              value={field.value}
+                            />
                           )}
                         />
                       </View>
@@ -449,24 +440,14 @@ export default function SuggestEditScreen() {
                           control={control}
                           name="amenities"
                           render={({ field }) => (
-                            <View className="flex-row flex-wrap gap-2">
-                              {amenitiesQuery.data.map((amenity) => (
-                                <ChipButton
-                                  key={amenity.slug}
-                                  label={amenity.name}
-                                  onPress={() =>
-                                    field.onChange(
-                                      field.value.includes(amenity.slug)
-                                        ? field.value.filter(
-                                            (item) => item !== amenity.slug,
-                                          )
-                                        : [...field.value, amenity.slug],
-                                    )
-                                  }
-                                  selected={field.value.includes(amenity.slug)}
-                                />
-                              ))}
-                            </View>
+                            <ChipGroup
+                              onChange={field.onChange}
+                              options={amenitiesQuery.data.map((amenity) => ({
+                                value: amenity.slug,
+                                label: amenity.name,
+                              }))}
+                              value={field.value}
+                            />
                           )}
                         />
                       </View>
