@@ -235,6 +235,18 @@ export default function SubmissionsScreen() {
         },
       );
     });
+  }, (errors) => {
+    // A blocking error may live in a collapsed section — open it so the user can
+    // see and fix it (otherwise the submit button just looks stuck).
+    if (errors.contactEmail || errors.contactPhone) {
+      setExpandedSections((current) => ({
+        ...current,
+        locationContact: true,
+      }));
+    }
+    setError("root", {
+      message: "Please fix the highlighted fields before sending.",
+    });
   });
 
   if (!isSignedIn) {
@@ -543,7 +555,7 @@ export default function SubmissionsScreen() {
 
         <View className="px-6 pb-2 pt-2">
           <Button
-            disabled={!formState.isValid || report.isPending}
+            disabled={report.isPending}
             label="Send it in"
             loading={report.isPending}
             onPress={onSubmit}
