@@ -67,11 +67,19 @@ export default function Index() {
   const allSections = home.data?.sections ?? [];
   const collections = allSections
     .filter((section) => section.type === "curated_collection")
-    .map((section) => ({
-      slug: section.slug ?? section.title,
-      title: section.title,
-      coverImageUrl: section.coverImageUrl,
-    }));
+    // A collection needs a real slug to navigate to — falling back to the title
+    // routes to /collection/<Title>, which 404s. Drop slugless collections.
+    .flatMap((section) =>
+      section.slug
+        ? [
+            {
+              slug: section.slug,
+              title: section.title,
+              coverImageUrl: section.coverImageUrl,
+            },
+          ]
+        : [],
+    );
   const branchSections = allSections.filter(
     (section): section is HomeBranchSection =>
       section.type !== "curated_collection",
