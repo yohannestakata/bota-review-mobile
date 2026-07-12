@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Alert } from "@/components/ui/alert";
 import { CloseButton } from "@/components/ui/close-button";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
+import { ListStatePlaceholder } from "@/components/ui/list-state-placeholder";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useDeleteReview } from "@/features/branch";
 import {
@@ -63,15 +64,20 @@ export default function MyReviewsScreen() {
         ItemSeparatorComponent={ListGapMd}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
-          reviews.isPending ? (
-            <ProfileReviewsSkeleton />
-          ) : (
-            <View className="mt-8 items-center px-6">
-              <ThemedText className="text-center" tone="muted">
-                No reviews yet — go share a hot take.
-              </ThemedText>
-            </View>
-          )
+          <ListStatePlaceholder
+            empty={
+              <View className="mt-8 items-center px-6">
+                <ThemedText className="text-center" tone="muted">
+                  No reviews yet — go share a hot take.
+                </ThemedText>
+              </View>
+            }
+            errorText="Couldn't load your reviews."
+            isError={reviews.isError}
+            isPending={reviews.isPending}
+            onRetry={() => reviews.refetch()}
+            skeleton={<ProfileReviewsSkeleton />}
+          />
         }
         onRefresh={() => reviews.refetch()}
         refreshing={reviews.isFetching && !reviews.isPending}

@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { FlashList, ListGapSm } from "@/components/ui/flash-list";
 import { BackButton } from "@/components/ui/back-button";
+import { ListErrorState } from "@/components/ui/list-state-placeholder";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useOwnClaims, type OwnClaim } from "@/features/branch";
@@ -61,6 +62,11 @@ export default function MyClaimsScreen() {
             <Skeleton className="h-20 w-full rounded-2xl" key={i} />
           ))}
         </View>
+      ) : claims.isError ? (
+        <ListErrorState
+          errorText="Couldn't load your claims."
+          onRetry={() => claims.refetch()}
+        />
       ) : data.length === 0 ? (
         <View className="flex-1 items-center justify-center px-6">
           <ThemedText className="text-center" tone="muted">

@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Alert } from "@/components/ui/alert";
 import { BackButton } from "@/components/ui/back-button";
 import { FlashList } from "@/components/ui/flash-list";
+import { ListErrorState } from "@/components/ui/list-state-placeholder";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
@@ -76,6 +77,11 @@ export default function BranchReviewsScreen() {
             <Skeleton className="h-28 w-full rounded-2xl" key={i} />
           ))}
         </View>
+      ) : reviews.isError ? (
+        <ListErrorState
+          errorText="Couldn't load reviews."
+          onRetry={() => reviews.refetch()}
+        />
       ) : data.length === 0 ? (
         <View className="flex-1 items-center justify-center px-6">
           <ThemedText className="text-center" tone="muted">
