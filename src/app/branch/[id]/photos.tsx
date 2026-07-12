@@ -3,6 +3,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   Pressable,
@@ -94,6 +95,20 @@ export default function PhotoGalleryScreen() {
         showsHorizontalScrollIndicator={false}
         style={{ flex: 1 }}
       />
+
+      {photos.length === 0 ? (
+        <View className="absolute inset-0 items-center justify-center px-6">
+          {branch.isPending ? (
+            <ActivityIndicator color={colors.inverse} />
+          ) : (
+            <ThemedText className="text-center" tone="inverse">
+              {branch.isError
+                ? "Couldn't load photos. Try again."
+                : "No photos here yet."}
+            </ThemedText>
+          )}
+        </View>
+      ) : null}
 
       {/* Top bar: close + photo count */}
       <View
