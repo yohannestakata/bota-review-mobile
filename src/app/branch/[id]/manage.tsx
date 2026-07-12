@@ -12,6 +12,7 @@ import { z } from "zod";
 import { Alert } from "@/components/ui/alert";
 import { Button, ChipButton } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
+import { SectionTitle } from "@/components/ui/section-title";
 import { ControlledTextInput } from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ControlledPhoneInput } from "@/components/ui/phone-input";
@@ -88,14 +89,6 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 const PHOTO_GRID_GAP = 8;
-
-function SectionTitle({ children }: { children: string }) {
-  return (
-    <ThemedText size="xl" weight="bold">
-      {children}
-    </ThemedText>
-  );
-}
 
 function Choices({
   items,

@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
+import { SectionTitle } from "@/components/ui/section-title";
 import { Stars } from "@/components/ui/stars";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
@@ -61,14 +62,6 @@ function Chip({ label }: { label: string }) {
 
 function Divider() {
   return <View className="mx-6 h-px bg-border" />;
-}
-
-function SectionTitle({ title }: { title: string }) {
-  return (
-    <ThemedText className="px-6" size="xl" weight="bold">
-      {title}
-    </ThemedText>
-  );
 }
 
 function capitalize(value: string) {
@@ -443,7 +436,7 @@ export default function BranchDetailScreen() {
                 <Divider />
               </View>
               <View className="mt-6 gap-3">
-                <SectionTitle title="Photos" />
+                <SectionTitle className="px-6">Photos</SectionTitle>
                 <ScrollView
                   contentContainerClassName="gap-3 px-6"
                   horizontal
