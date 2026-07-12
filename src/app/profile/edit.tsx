@@ -15,6 +15,7 @@ import { ScreenHeader } from "@/components/ui/screen-header";
 import { ControlledTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { getAuthMessage } from "@/lib/auth";
+import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 import { openLegal, PRIVACY_POLICY_URL, TERMS_URL } from "@/lib/legal";
 import { usePickImage } from "@/lib/use-pick-image";
 
@@ -69,6 +70,10 @@ export default function EditProfileScreen() {
       },
     });
 
+  const attemptClose = useDiscardConfirm(
+    formState.isDirty || avatarUri !== null,
+  );
+
   async function pickAvatar() {
     const result = await pickImage({
       allowsEditing: true,
@@ -76,6 +81,13 @@ export default function EditProfileScreen() {
       base64: true,
       quality: 0.7,
     });
+    if (result.status === "denied") {
+      Alert.alert(
+        "Photo access needed",
+        "Turn it on in Settings to choose a new profile photo.",
+      );
+      return;
+    }
     if (result.status !== "picked") return;
     const image = result.images[0];
     if (!image) return;
@@ -110,7 +122,7 @@ export default function EditProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <ScreenHeader title="Edit profile" />
+      <ScreenHeader onClose={attemptClose} title="Edit profile" />
 
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
@@ -184,7 +196,7 @@ export default function EditProfileScreen() {
 
         <View className="px-6 pb-2 pt-2">
           <Button
-            disabled={formState.isSubmitting}
+            disabled={formState.isSubmitting || deleting}
             label="Save"
             loading={formState.isSubmitting}
             onPress={onSave}
