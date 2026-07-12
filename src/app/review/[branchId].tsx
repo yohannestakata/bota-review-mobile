@@ -3,7 +3,7 @@ import { zodFormResolver } from "@/lib/zod-resolver";
 import { Calendar03Icon } from "@hugeicons/core-free-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Pressable, ScrollView, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
@@ -112,9 +112,13 @@ export default function WriteReviewScreen() {
   const busy = createReview.isPending || updateReview.isPending || uploading;
   const textError = formState.errors.text?.message;
 
-  // Hydrate the form once the canonical review loads (edit mode only).
+  // Hydrate the form exactly once when the canonical review loads (edit mode).
+  // The ref guard stops a slow/refetched response from clobbering edits already
+  // in progress — otherwise a late fetch would reset() over the user's typing.
+  const hydratedRef = useRef(false);
   useEffect(() => {
-    if (existingReview.data) {
+    if (existingReview.data && !hydratedRef.current) {
+      hydratedRef.current = true;
       const r = existingReview.data;
       reset({
         rating: r.rating,
@@ -262,6 +266,19 @@ export default function WriteReviewScreen() {
           contentContainerClassName="gap-6 px-6 pt-4"
           keyboardShouldPersistTaps="handled"
         >
+          {isEdit && existingReview.isError && !hydratedRef.current ? (
+            <View className="gap-2 rounded-2xl bg-danger-soft p-4">
+              <ThemedText size="sm" tone="danger" weight="medium">
+                Couldn&apos;t load your saved review.
+              </ThemedText>
+              <Pressable onPress={() => existingReview.refetch()}>
+                <ThemedText size="sm" tone="brand" weight="semibold">
+                  Try again
+                </ThemedText>
+              </Pressable>
+            </View>
+          ) : null}
+
           <View className="gap-3">
             <ThemedText size="xl" weight="bold">
               How was it?
