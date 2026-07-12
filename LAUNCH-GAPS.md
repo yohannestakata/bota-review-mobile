@@ -15,24 +15,24 @@ Severity: **SHOULD** = fix for v1 · **NICE** = polish/defer.
 _All six landed (+ test.tsx from Section C): a5fa33e, b4711fb, 6b2e1d6, 7e0ec3b,
 ae7a998, a85e3fd, f3bf604._
 
-- [ ] **Masked errors → one list pattern.** A load *failure* is rendered as an
+- [x] **Masked errors → one list pattern.** A load *failure* is rendered as an
       empty state with no retry in: `menu/[branchId].tsx:52`, `reviews/[branchId].tsx:79`,
       `profile/claims.tsx:45`, `profile/reviews.tsx:65`, `profile/replies.tsx:143`.
-      `(tabs)/saved.tsx` does it right — standardize all on that (isError → message + retry). · SHOULD
-- [ ] **Unify taxonomy hooks.** `useCuisines`/`useNeighborhoods`/`useTags` exist twice
+      `(tabs)/saved.tsx` does it right — standardize all on that (isError → message + retry). · SHOULD → `b4711fb`
+- [x] **Unify taxonomy hooks.** `useCuisines`/`useNeighborhoods`/`useTags` exist twice
       with **mismatched cache keys** → same data fetched/cached twice.
       `features/search/queries.ts` (namespaced keys) vs `features/submissions/queries.ts`
       (flat keys). Consolidate to one module + one key convention; delete the dupes;
-      fix the barrels. Also dedupe `getCuisines`/`getTags` (`features/search/api.ts` → `lib/api.ts`). · SHOULD
-- [ ] **Extract `useSaveHandler()`.** `onToggleSave` + `EMPTY_SAVED` is byte-duplicated in
-      `(tabs)/index.tsx:65`, `(tabs)/search.tsx`, `collection/[slug].tsx` (incl. analytics + login redirect). · SHOULD
-- [ ] **Extract `usePickImage()`.** Image-pick permission+launch duplicated in 5 places with
+      fix the barrels. Also dedupe `getCuisines`/`getTags` (`features/search/api.ts` → `lib/api.ts`). · SHOULD → `a5fa33e`
+- [x] **Extract `useSaveHandler()`.** `onToggleSave` + `EMPTY_SAVED` is byte-duplicated in
+      `(tabs)/index.tsx:65`, `(tabs)/search.tsx`, `collection/[slug].tsx` (incl. analytics + login redirect). · SHOULD → `6b2e1d6`
+- [x] **Extract `usePickImage()`.** Image-pick permission+launch duplicated in 5 places with
       divergent quality/handling: `manage.tsx:238,272`, `profile/edit.tsx:72`,
-      `review/[branchId].tsx:142`, `menu-field.tsx:134`, `photo-field.tsx:38`. · SHOULD
-- [ ] **Promote `ScreenHeader`** (CloseButton + title + spacer) to `components/ui`; re-inlined in
-      ~7 screens (manage, photos, suggest-edit, profile/notifications, profile/edit, profile/reviews, review). · SHOULD
-- [ ] **Import shared `getErrorMessage`** from `@/lib/api`; delete 4 inline copies
-      (`submissions.tsx:38`, `suggest-edit:159`, `review:74`, `claim:127`). · SHOULD
+      `review/[branchId].tsx:142`, `menu-field.tsx:134`, `photo-field.tsx:38`. · SHOULD → `a85e3fd`
+- [x] **Promote `ScreenHeader`** (CloseButton + title + spacer) to `components/ui`; re-inlined in
+      ~7 screens (manage, photos, suggest-edit, profile/notifications, profile/edit, profile/reviews, review). · SHOULD → `f3bf604`
+- [x] **Import shared `getErrorMessage`** from `@/lib/api`; delete 4 inline copies
+      (`submissions.tsx:38`, `suggest-edit:159`, `review:74`, `claim:127`). · SHOULD → `7e0ec3b`
 
 ## B. Screen gaps — missing states / dead ends / correctness
 
