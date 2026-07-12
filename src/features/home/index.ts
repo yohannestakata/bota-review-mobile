@@ -5,6 +5,9 @@ export { BranchCard } from "./components/branch-card";
 export { CollectionCircles } from "./components/collection-circles";
 export { LocationPill } from "./components/location-pill";
 export { HomeSearchBar } from "./components/home-search-bar";
+export { TastePickerCard } from "./components/taste-picker-card";
+export { useTastePreferences } from "./use-taste-preferences";
+export { rankByTaste } from "./taste";
 export { HomeSection } from "./components/home-section";
 export { HomeFeedSkeleton } from "./components/home-feed-skeleton";
 export {

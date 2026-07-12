@@ -15,8 +15,11 @@ import {
   HomeSection,
   homeGreeting,
   LocationPill,
+  rankByTaste,
+  TastePickerCard,
   useHomeFeed,
   useSavedBranchIds,
+  useTastePreferences,
   useToggleSave,
 } from "@/features/home";
 import { Avatar } from "@/components/ui/avatar";
@@ -35,6 +38,7 @@ export default function Index() {
   const { user } = useUser();
   const location = useLocation();
   const home = useHomeFeed(location.coords);
+  const taste = useTastePreferences();
   const saved = useSavedBranchIds();
   const savedIds = saved.data;
   const toggleSave = useToggleSave();
@@ -94,6 +98,12 @@ export default function Index() {
   );
   const highlyRated = branchSections.find(
     (section) => section.type === "highly_rated",
+  );
+  // Gently boost the user's picked cuisines up the main feed (client-side, so
+  // the shared home cache stays intact).
+  const highlyRatedItems = useMemo(
+    () => rankByTaste(highlyRated?.items ?? [], taste.cuisines),
+    [highlyRated, taste.cuisines],
   );
   const railSections = branchSections.filter(
     (section) => section.type !== "highly_rated" && section.items.length > 0,
@@ -164,6 +174,14 @@ export default function Index() {
           <HomeSearchBar onPress={() => router.push("/search")} />
         </View>
 
+        {home.isSuccess && !isEmpty ? (
+          <TastePickerCard
+            onToggle={taste.toggle}
+            picks={taste.cuisines}
+            ready={taste.ready}
+          />
+        ) : null}
+
         {home.isPending ? <HomeFeedSkeleton /> : null}
 
         {home.isError && !home.data ? (
@@ -211,12 +229,12 @@ export default function Index() {
           />
         ))}
 
-        {home.isSuccess && highlyRated && highlyRated.items.length > 0 ? (
+        {home.isSuccess && highlyRatedItems.length > 0 ? (
           <View className="mt-12 gap-4 px-6">
             <ThemedText size="xl" weight="bold">
               Highly rated
             </ThemedText>
-            {highlyRated.items.map((branch) => (
+            {highlyRatedItems.map((branch) => (
               <BranchCard
                 branch={branch}
                 isSaved={(savedIds ?? EMPTY_SAVED).has(branch.id)}
