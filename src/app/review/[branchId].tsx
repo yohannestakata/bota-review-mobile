@@ -28,7 +28,7 @@ import {
 } from "@/features/branch";
 import { getMyReviews } from "@/features/profile";
 import { analytics } from "@/lib/analytics";
-import { getErrorCode } from "@/lib/api";
+import { getErrorCode, getErrorMessage } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 
@@ -70,10 +70,6 @@ const reviewSchema = z.object({
 });
 
 type ReviewValues = z.infer<typeof reviewSchema>;
-
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Something went wrong";
-}
 
 export default function WriteReviewScreen() {
   const {

@@ -31,11 +31,8 @@ import {
   type PlaceMissingDetails,
 } from "@/features/submissions";
 import { useAmenities, useCuisines, useTags } from "@/features/taxonomy";
+import { getErrorMessage } from "@/lib/api";
 import { optionalEmailField } from "@/lib/validation";
-
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Something went wrong";
-}
 
 const submissionSchema = z.object({
   placeName: z.string().trim().min(1, "Place name is required"),

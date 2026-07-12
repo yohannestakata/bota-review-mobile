@@ -26,6 +26,7 @@ import {
 import { useAmenities, useTags } from "@/features/taxonomy";
 import { useBranch, useBranchMenus } from "@/features/branch/queries";
 import { analytics } from "@/lib/analytics";
+import { getErrorMessage } from "@/lib/api";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 
 type Kind = "field_correction" | "temporarily_closed" | "permanently_closed";
@@ -154,10 +155,6 @@ const suggestEditSchema = suggestEditObject.superRefine((values, ctx) => {
     });
   }
 });
-
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Something went wrong";
-}
 
 export default function SuggestEditScreen() {
   const { branchId, name, photoId, photoUrl } = useLocalSearchParams<{

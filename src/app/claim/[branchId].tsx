@@ -25,7 +25,7 @@ import {
   type ClaimVerificationPlatform,
 } from "@/features/branch";
 import { analytics } from "@/lib/analytics";
-import { getErrorCode } from "@/lib/api";
+import { getErrorCode, getErrorMessage } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 import { colors } from "@/lib/theme";
@@ -123,10 +123,6 @@ const claimSchema = z
   });
 
 type ClaimValues = z.infer<typeof claimSchema>;
-
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Something went wrong";
-}
 
 function ScreenHeader({
   title,
