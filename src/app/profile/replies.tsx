@@ -19,7 +19,7 @@ import { getErrorMessage } from "@/lib/api";
 import { useState } from "react";
 
 function statusLabel(status: MyReply["moderationStatus"]): string | null {
-  if (status === "pending") return "Posted";
+  if (status === "pending") return "Under review";
   if (status === "rejected") return "Rejected";
   return null;
 }
