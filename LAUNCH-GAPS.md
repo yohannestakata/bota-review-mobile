@@ -41,7 +41,7 @@ ae7a998, a85e3fd, f3bf604._
 - [x] `(tabs)/submissions.tsx:457` — invalid `contactEmail` (in a collapsed section) silently disables submit. Surface the error / auto-expand. · SHOULD → `e4b0bdb`
 - [x] `suggest-edit/[branchId].tsx:171` — branch/taxonomy queries have no load-error state; pickers render empty with no explanation. · SHOULD → `f27c671`
 - [x] `branch/[id].tsx:232` — hero uses `photos[0]` but rail filters on `isCover`; non-cover first photo desyncs hero/rail. Derive cover from `find(isCover) ?? [0]`. · SHOULD → `366b3e7`
-- [ ] `(tabs)/index.tsx:91` — collection nav falls back to `title` when `slug` missing → `/collection/<Title>` 404s. Drop slugless collections. · SHOULD — DEFERRED (index.tsx is active taste work)
+- [x] `(tabs)/index.tsx:91` — collection nav falls back to `title` when `slug` missing → `/collection/<Title>` 404s. Drop slugless collections. · SHOULD → `fa944f6`
 - [x] `review/[branchId].tsx:119` — edit: `useReview` error unsurfaced; `reset()` on slow fetch can clobber typing; save can overwrite with stale text. Guard hydrate + show error. · SHOULD → `28f7b04`
 - [x] `profile/reviews.tsx:38` — `deleteReview` has no `onError`; failed delete is silent. Add Alert. · SHOULD → `c32f520`
 - [ ] `(tabs)/index.tsx:187` / `search.tsx:322` — failed refetch with stale cache shows old data, no error banner. · NICE
@@ -52,7 +52,7 @@ ae7a998, a85e3fd, f3bf604._
 ## C. Dead code / hygiene
 
 - [x] **Delete `(tabs)/test.tsx`** (typography scratch screen) + its `Tabs.Screen` line in `(tabs)/_layout.tsx:202`. Still route-reachable. · SHOULD → `ae7a998`
-- [ ] Extract a `ChipGroup` wrapper (`flex-row flex-wrap gap-2` + map of `ChipButton`) — re-invented in manage/filter-sheet/suggest-edit/submissions. · NICE — DEFERRED (call sites are heterogeneous — single/multi-select, slug/id/label, RHF Controllers — and several live in active taste files; revisit after taste lands)
+- [x] Extract a `ChipGroup` wrapper (`flex-row flex-wrap gap-2` + map of `ChipButton`) — re-invented in manage/filter-sheet/suggest-edit/submissions. · NICE → `4a0f1d7` (multi-select sites in submissions/suggest-edit/manage; single-select chips left as-is)
 - [x] One shared `SectionTitle` (defined twice, different prop shapes: `branch/[id].tsx:66` vs `manage.tsx:91`). · NICE → `d2e30c0`
 - [x] `amenity-list.tsx:19` — import canonical `Amenity` from `lib/api` instead of a local type. · NICE → `bc7f4e0`
 - [x] Prune unused deps (verify first): `@expo/ui`, `expo-glass-effect`, `expo-symbols`, `react-native-shadow-2`, `expo-file-system`. · NICE → `58c0132` (kept `expo-device`/`expo-application` — notifications WIP)
