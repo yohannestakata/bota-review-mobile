@@ -28,6 +28,7 @@ import {
 import { getMyReviews } from "@/features/profile";
 import { analytics } from "@/lib/analytics";
 import { getErrorCode, getErrorMessage } from "@/lib/api";
+import { promptAndRegisterPush } from "@/lib/push-registration";
 import { usePickImage } from "@/lib/use-pick-image";
 import { colors } from "@/lib/theme";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
@@ -191,6 +192,8 @@ export default function WriteReviewScreen() {
         branch_id: branchId,
         rating: values.rating,
       });
+      // First review is a meaningful action — a good moment to ask about push.
+      void promptAndRegisterPush(getToken);
 
       let failed = 0;
       if (photos.length > 0) {

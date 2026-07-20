@@ -1,7 +1,9 @@
+import { useAuth } from "@clerk/clerk-expo";
 import { useState } from "react";
 
 import { Alert } from "@/components/ui/alert";
 import { getErrorMessage } from "@/lib/api";
+import { promptAndRegisterPush } from "@/lib/push-registration";
 
 import type { BranchReview, ReviewReply } from "./api";
 import type { ReplyTarget } from "./components/reply-composer-modal";
@@ -11,6 +13,7 @@ import { useCreateReply, useReportReply } from "./queries";
 // all-reviews screens. Editing/deleting your own reply is done from the profile
 // "Your replies" screen, not inline here.
 export function useReplyActions(branchId: string) {
+  const { getToken } = useAuth();
   const [target, setTarget] = useState<ReplyTarget | null>(null);
   const create = useCreateReply(branchId);
   const report = useReportReply();
@@ -32,6 +35,8 @@ export function useReplyActions(branchId: string) {
         body,
       });
       setTarget(null);
+      // Replying is a meaningful action — a good moment to ask about push.
+      void promptAndRegisterPush(getToken);
       if (result.moderationStatus !== "approved") {
         Alert.alert("Reply posted", "Thanks for adding your thoughts.");
       }

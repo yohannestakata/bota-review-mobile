@@ -15,6 +15,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AnalyticsProvider } from "@/components/analytics-provider";
+import { PushRegistration } from "@/components/push-registration";
 import { AlertProvider } from "@/components/ui/alert";
 import { debugLog } from "@/lib/debug";
 import { routeFromNotification } from "@/lib/notification-routing";
@@ -106,6 +107,7 @@ function RootLayout() {
             <QueryClientProvider client={queryClient}>
               <BottomSheetModalProvider>
                 <AlertProvider>
+                  <PushRegistration />
                   <StatusBar barStyle="dark-content" />
                   <Stack
                     screenOptions={{

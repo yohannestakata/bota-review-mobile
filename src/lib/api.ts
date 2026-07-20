@@ -116,6 +116,23 @@ export function getCurrentUser(getToken: TokenGetter) {
   return apiFetch<CurrentUser>("/me", getToken);
 }
 
+export function registerDeviceToken(
+  body: { token: string; platform?: "ios" | "android" },
+  getToken: TokenGetter,
+) {
+  return apiFetch<void>("/notifications/device-tokens", getToken, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function unregisterDeviceToken(token: string, getToken: TokenGetter) {
+  return apiFetch<void>("/notifications/device-tokens", getToken, {
+    method: "DELETE",
+    body: JSON.stringify({ token }),
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Shared domain types
 // ---------------------------------------------------------------------------

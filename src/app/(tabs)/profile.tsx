@@ -34,6 +34,7 @@ import {
   useMyReplies,
   useMyReviews,
 } from "@/features/profile";
+import { clearPushRegistration } from "@/lib/push-registration";
 import { colors } from "@/lib/theme";
 
 type IconType = ComponentProps<typeof AppIcon>["icon"];
@@ -116,7 +117,7 @@ function RowDivider() {
 }
 
 export default function ProfileScreen() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
   const { signOut } = useClerk();
   const { user } = useUser();
   const me = useMe();
@@ -140,6 +141,8 @@ export default function ProfileScreen() {
     if (loggingOut) return;
     setLoggingOut(true);
     try {
+      // Drop this device's push token while we still have a valid auth token.
+      await clearPushRegistration(getToken);
       await signOut();
       router.replace("/login");
     } catch {
