@@ -5,7 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import * as Notifications from "expo-notifications";
 import { ObserveRoot, useObserve } from "expo-observe";
-import { router, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect } from "react";
@@ -18,6 +18,7 @@ import { AnalyticsProvider } from "@/components/analytics-provider";
 import { AlertProvider } from "@/components/ui/alert";
 import { debugLog } from "@/lib/debug";
 import { reconcileMealReminderSchedule } from "@/lib/meal-notifications";
+import { routeFromNotification } from "@/lib/notification-routing";
 import { queryClient } from "@/lib/query-client";
 import { colors } from "@/lib/theme";
 
@@ -86,11 +87,7 @@ function RootLayout() {
 
   useEffect(() => {
     function openNotification(response: Notifications.NotificationResponse) {
-      if (
-        response.notification.request.content.data?.destination === "explore"
-      ) {
-        router.replace("/");
-      }
+      routeFromNotification(response.notification.request.content.data);
     }
 
     void Notifications.getLastNotificationResponseAsync().then((response) => {

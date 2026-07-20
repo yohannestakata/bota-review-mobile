@@ -2,6 +2,8 @@ import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
+import { notificationsAllowed } from "@/lib/push-notifications";
+
 export type MealReminder = "breakfast" | "lunch" | "dinner" | "lateNight";
 export type MealReminderPreferences = Record<MealReminder, boolean>;
 
@@ -94,22 +96,13 @@ async function ensureNotificationChannel() {
   });
 }
 
-function permissionAllowsNotifications(
-  permission: Notifications.NotificationPermissionsStatus,
-) {
-  return (
-    permission.granted ||
-    permission.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL
-  );
-}
-
 async function requestNotificationPermission() {
   await ensureNotificationChannel();
   let permission = await Notifications.getPermissionsAsync();
-  if (!permissionAllowsNotifications(permission)) {
+  if (!notificationsAllowed(permission)) {
     permission = await Notifications.requestPermissionsAsync();
   }
-  if (!permissionAllowsNotifications(permission)) {
+  if (!notificationsAllowed(permission)) {
     throw new Error("NOTIFICATION_PERMISSION_DENIED");
   }
 }
@@ -162,7 +155,7 @@ export async function reconcileMealReminderSchedule() {
   if (enabledCount === 0) return;
 
   const permission = await Notifications.getPermissionsAsync();
-  if (!permissionAllowsNotifications(permission)) return;
+  if (!notificationsAllowed(permission)) return;
 
   const stored = await SecureStore.getItemAsync(IDENTIFIERS_KEY);
   const identifiers = stored ? (JSON.parse(stored) as string[]) : [];
