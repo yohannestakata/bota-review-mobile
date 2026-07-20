@@ -47,7 +47,7 @@ ae7a998, a85e3fd, f3bf604._
 - [ ] `(tabs)/index.tsx:187` / `search.tsx:322` — failed refetch with stale cache shows old data, no error banner. · NICE
 - [ ] `(tabs)/profile.tsx:119` — counts flash `0` while `useMe`/reviews/claims load. · NICE
 - [ ] `search.tsx:96` — `nearby` chip can stay active after location revoked while sort silently falls back. · NICE
-- [ ] `claim/[branchId].tsx:214` — `business_email` evidence not validated as an email. · NICE
+- [x] `claim/[branchId].tsx:214` — `business_email` evidence not validated as an email. · NICE → `8bbd391`
 
 ## C. Dead code / hygiene
 
