@@ -62,6 +62,19 @@ export default function SearchScreen() {
   // Waiting on a granted-but-not-yet-resolved location fix.
   const nearbyPending = nearby && coords == null && status !== "denied";
 
+  // If location is revoked/unavailable with no usable fix, don't leave the
+  // "Nearby" chip looking active while the sort has quietly fallen back to
+  // rating — turn it off and say why. (Stale coords keep working as-is.)
+  useEffect(() => {
+    if (nearby && coords == null && status === "denied") {
+      setNearby(false);
+      Alert.alert(
+        "Location is off",
+        "Turn location back on to sort by distance.",
+      );
+    }
+  }, [nearby, coords, status]);
+
   const params = useMemo(
     () => ({
       q: debouncedQ,
@@ -324,9 +337,25 @@ export default function SearchScreen() {
         }
         ListHeaderComponent={
           results.length > 0 ? (
-            <ThemedText className="mb-5" size="xl" weight="bold">
-              {active ? "Results" : "Explore places"}
-            </ThemedText>
+            <View className="mb-5 gap-3">
+              {search.failureCount > 0 &&
+              !search.isFetching &&
+              !search.isFetchNextPageError ? (
+                <View className="flex-row items-center justify-between gap-3 rounded-2xl bg-surface-muted px-4 py-3">
+                  <ThemedText className="flex-1" size="sm" tone="muted">
+                    Showing saved results — couldn&apos;t refresh.
+                  </ThemedText>
+                  <Pressable hitSlop={6} onPress={() => search.refetch()}>
+                    <ThemedText size="sm" tone="brand" weight="semibold">
+                      Retry
+                    </ThemedText>
+                  </Pressable>
+                </View>
+              ) : null}
+              <ThemedText size="xl" weight="bold">
+                {active ? "Results" : "Explore places"}
+              </ThemedText>
+            </View>
           ) : null
         }
         ListFooterComponent={

@@ -193,6 +193,19 @@ export default function Index() {
           </View>
         ) : null}
 
+        {home.data && home.failureCount > 0 && !home.isFetching ? (
+          <View className="mx-6 mt-4 flex-row items-center justify-between gap-3 rounded-2xl bg-surface-muted px-4 py-3">
+            <ThemedText className="flex-1" size="sm" tone="muted">
+              Showing saved results — couldn&apos;t refresh.
+            </ThemedText>
+            <Pressable hitSlop={6} onPress={() => home.refetch()}>
+              <ThemedText size="sm" tone="brand" weight="semibold">
+                Retry
+              </ThemedText>
+            </Pressable>
+          </View>
+        ) : null}
+
         {home.isSuccess && collections.length > 0 ? (
           <View className="mt-6">
             <CollectionCircles
