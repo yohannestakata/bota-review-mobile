@@ -29,7 +29,7 @@ import { getErrorCode, getErrorMessage } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 import { colors } from "@/lib/theme";
-import { emailField } from "@/lib/validation";
+import { emailField, EMAIL_REGEX } from "@/lib/validation";
 
 const ROLES = [
   { value: "owner", label: "Owner" },
@@ -107,6 +107,18 @@ const claimSchema = z
           data.verificationMethod === "business_email"
             ? "Business email address is required"
             : "Social media handle is required",
+      });
+    }
+
+    if (
+      data.verificationMethod === "business_email" &&
+      data.verificationEvidence?.trim() &&
+      !EMAIL_REGEX.test(data.verificationEvidence.trim())
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["verificationEvidence"],
+        message: "Enter a valid business email address",
       });
     }
 
