@@ -44,9 +44,9 @@ ae7a998, a85e3fd, f3bf604._
 - [x] `(tabs)/index.tsx:91` — collection nav falls back to `title` when `slug` missing → `/collection/<Title>` 404s. Drop slugless collections. · SHOULD → `fa944f6`
 - [x] `review/[branchId].tsx:119` — edit: `useReview` error unsurfaced; `reset()` on slow fetch can clobber typing; save can overwrite with stale text. Guard hydrate + show error. · SHOULD → `28f7b04`
 - [x] `profile/reviews.tsx:38` — `deleteReview` has no `onError`; failed delete is silent. Add Alert. · SHOULD → `c32f520`
-- [ ] `(tabs)/index.tsx:187` / `search.tsx:322` — failed refetch with stale cache shows old data, no error banner. · NICE
-- [ ] `(tabs)/profile.tsx:119` — counts flash `0` while `useMe`/reviews/claims load. · NICE
-- [ ] `search.tsx:96` — `nearby` chip can stay active after location revoked while sort silently falls back. · NICE
+- [x] `(tabs)/index.tsx:187` / `search.tsx:322` — failed refetch with stale cache shows old data, no error banner. · NICE → `e89670b`
+- [x] `(tabs)/profile.tsx:119` — counts flash `0` while `useMe`/reviews/claims load. · NICE → `dc38e12`
+- [x] `search.tsx:96` — `nearby` chip can stay active after location revoked while sort silently falls back. · NICE → `e89670b`
 - [x] `claim/[branchId].tsx:214` — `business_email` evidence not validated as an email. · NICE → `8bbd391`
 
 ## C. Dead code / hygiene
