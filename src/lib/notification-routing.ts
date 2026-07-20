@@ -9,12 +9,9 @@ export type NotificationData = {
   type?: NotificationType;
   branchId?: string;
   collectionSlug?: string;
-  // Legacy: local meal reminders set `destination: "explore"`.
-  destination?: string;
 } & Record<string, unknown>;
 
-// One per launch scenario (1–10). The server sets these on the push payload;
-// meal reminders keep using the legacy `destination` field.
+// One per launch scenario (1–10). The server sets these on the push payload.
 export type NotificationType =
   | "review_reply" // 1 someone replied to your review
   | "edit_approved" // 2 your suggested edit was approved
@@ -33,12 +30,6 @@ export type NotificationType =
  */
 export function routeFromNotification(data: NotificationData | undefined) {
   if (!data) return;
-
-  // Legacy local meal reminders.
-  if (data.destination === "explore") {
-    router.replace("/");
-    return;
-  }
 
   switch (data.type) {
     // Anything anchored to a specific branch opens that branch.

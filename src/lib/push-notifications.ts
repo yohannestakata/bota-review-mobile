@@ -18,8 +18,7 @@ export const PUSH_CHANNELS: { id: string; name: string }[] = [
 
 /**
  * Whether the current permission actually lets us show notifications — granted
- * outright, or iOS provisional (quiet delivery). Shared with meal reminders so
- * both paths agree on what "allowed" means.
+ * outright, or iOS provisional (quiet delivery).
  */
 export function notificationsAllowed(
   permission: Notifications.NotificationPermissionsStatus,
