@@ -9,11 +9,35 @@ import { debugLog } from "@/lib/debug";
 // requested or a token is issued. These mirror the notification categories the
 // server sends (see notification-routing) so the OS settings stay legible and a
 // user can mute one category without losing the rest.
-export const PUSH_CHANNELS: { id: string; name: string }[] = [
-  { id: "social", name: "Replies & responses" },
-  { id: "contributions", name: "Your contributions" },
-  { id: "saved", name: "Saved places" },
-  { id: "discovery", name: "New on Bota" },
+export const PUSH_CHANNELS: {
+  id: string;
+  name: string;
+  importance: Notifications.AndroidImportance;
+}[] = [
+  // Personal, time-sensitive → HIGH so they surface as heads-up and are less
+  // likely to be throttled in the background. Broadcasts stay DEFAULT so they
+  // don't pop up in your face. (Android locks a channel's importance after it's
+  // first created — this applies to fresh installs / new channel ids.)
+  {
+    id: "social",
+    name: "Replies & responses",
+    importance: Notifications.AndroidImportance.HIGH,
+  },
+  {
+    id: "contributions",
+    name: "Your contributions",
+    importance: Notifications.AndroidImportance.HIGH,
+  },
+  {
+    id: "saved",
+    name: "Saved places",
+    importance: Notifications.AndroidImportance.HIGH,
+  },
+  {
+    id: "discovery",
+    name: "New on Bota",
+    importance: Notifications.AndroidImportance.DEFAULT,
+  },
 ];
 
 /**
@@ -35,7 +59,7 @@ async function ensurePushChannels() {
     PUSH_CHANNELS.map((channel) =>
       Notifications.setNotificationChannelAsync(channel.id, {
         name: channel.name,
-        importance: Notifications.AndroidImportance.DEFAULT,
+        importance: channel.importance,
       }),
     ),
   );
