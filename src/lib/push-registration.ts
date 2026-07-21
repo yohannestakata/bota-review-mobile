@@ -6,6 +6,7 @@ import {
   unregisterDeviceToken,
   type TokenGetter,
 } from "@/lib/api";
+import { maybeSuggestBackgroundAccess } from "@/lib/battery-optimization";
 import { debugLog } from "@/lib/debug";
 import {
   ensureNotificationPermission,
@@ -50,6 +51,9 @@ export async function promptAndRegisterPush(getToken: TokenGetter) {
     const granted = await ensureNotificationPermission();
     if (!granted) return;
     await syncPushRegistration(getToken);
+    // Right after enabling notifications is the moment to suggest background
+    // access (Android), so swiped-away delivery works too. One-time, dismissible.
+    await maybeSuggestBackgroundAccess();
   } catch (error) {
     debugLog("notifications", "push registration failed", {
       error: error instanceof Error ? error.message : String(error),
