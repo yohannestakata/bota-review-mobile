@@ -1,15 +1,17 @@
 import {
   Appointment01Icon,
+  ChildIcon,
   CheckmarkCircle02Icon,
   CreditCardIcon,
   DeliveryBox01Icon,
+  DiningTableIcon,
   HalalIcon,
   MusicNote01Icon,
   ParkingAreaCircleIcon,
+  PowerSocketIcon,
   ShoppingBag01Icon,
   SnowIcon,
   UmbrellaIcon,
-  UserMultiple02Icon,
   WheelchairIcon,
   Wifi01Icon,
 } from "@hugeicons/core-free-icons";
@@ -35,8 +37,10 @@ const AMENITY_ICONS: Record<string, IconType> = {
   delivery: DeliveryBox01Icon,
   takeaway: ShoppingBag01Icon,
   reservations: Appointment01Icon,
-  "family-friendly": UserMultiple02Icon,
   halal: HalalIcon,
+  "kids-area": ChildIcon,
+  "power-outlets": PowerSocketIcon,
+  "private-dining": DiningTableIcon,
 };
 
 // Normalise a slug (or fall back to the name) into the map's key format.
