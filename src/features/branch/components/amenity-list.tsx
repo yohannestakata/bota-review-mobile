@@ -1,10 +1,15 @@
 import {
+  Appointment01Icon,
   CheckmarkCircle02Icon,
   CreditCardIcon,
+  DeliveryBox01Icon,
+  HalalIcon,
   MusicNote01Icon,
   ParkingAreaCircleIcon,
+  ShoppingBag01Icon,
   SnowIcon,
   UmbrellaIcon,
+  UserMultiple02Icon,
   WheelchairIcon,
   Wifi01Icon,
 } from "@hugeicons/core-free-icons";
@@ -18,9 +23,7 @@ import { colors } from "@/lib/theme";
 
 type IconType = ComponentProps<typeof AppIcon>["icon"];
 
-// Per-amenity icons keyed by slug. Amenities are a small, controlled taxonomy,
-// so a static map gives full design control; anything unmapped falls back to a
-// neutral check.
+// Keep this aligned with the canonical amenity taxonomy in the backend seed.
 const AMENITY_ICONS: Record<string, IconType> = {
   wifi: Wifi01Icon,
   parking: ParkingAreaCircleIcon,
@@ -29,6 +32,11 @@ const AMENITY_ICONS: Record<string, IconType> = {
   "wheelchair-accessible": WheelchairIcon,
   "live-music": MusicNote01Icon,
   "air-conditioning": SnowIcon,
+  delivery: DeliveryBox01Icon,
+  takeaway: ShoppingBag01Icon,
+  reservations: Appointment01Icon,
+  "family-friendly": UserMultiple02Icon,
+  halal: HalalIcon,
 };
 
 // Normalise a slug (or fall back to the name) into the map's key format.
