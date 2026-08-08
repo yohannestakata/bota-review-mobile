@@ -24,6 +24,7 @@ import {
   BranchHeaderButtons,
   BranchDetailSkeleton,
   BranchHero,
+  BranchMap,
   BranchStickyHeader,
   isOpenNow,
   formatBirr,
@@ -425,6 +426,28 @@ export default function BranchDetailScreen() {
                   Hours
                 </ThemedText>
                 <OpeningHours hours={data.hours} />
+              </View>
+            </>
+          ) : null}
+
+          {/* Location */}
+          {data.latitude && data.longitude ? (
+            <>
+              <View className="mt-7">
+                <Divider />
+              </View>
+              <View className="mt-6 gap-3 px-6">
+                <ThemedText size="xl" weight="bold">
+                  Location
+                </ThemedText>
+                {data.addressText ? (
+                  <ThemedText tone="muted">{data.addressText}</ThemedText>
+                ) : null}
+                <BranchMap
+                  branchId={data.id}
+                  latitude={data.latitude}
+                  longitude={data.longitude}
+                />
               </View>
             </>
           ) : null}

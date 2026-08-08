@@ -10,6 +10,7 @@ export { AmenityList } from "./components/amenity-list";
 export { BranchHeaderButtons } from "./components/branch-header-buttons";
 export { BranchDetailSkeleton } from "./components/branch-detail-skeleton";
 export { BranchHero } from "./components/branch-hero";
+export { BranchMap } from "./components/branch-map";
 export { BranchStickyHeader } from "./components/branch-sticky-header";
 export { PhotoGrid } from "./components/photo-grid";
 export { PhotoViewer } from "./components/photo-viewer";

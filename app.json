@@ -74,6 +74,7 @@
       ],
       "expo-localization",
       "@react-native-community/datetimepicker",
+      "@maplibre/maplibre-react-native",
       [
         "expo-build-properties",
         {
