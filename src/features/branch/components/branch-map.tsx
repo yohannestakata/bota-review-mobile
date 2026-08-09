@@ -1,26 +1,55 @@
-import { Location01Icon } from "@hugeicons/core-free-icons";
-import { GebetaMap } from "@gebeta/tiles-react-native";
-import { Linking, Pressable, View } from "react-native";
+import {
+  Camera,
+  Map as MapLibreMap,
+  TransformRequestManager,
+  ViewAnnotation,
+} from "@maplibre/maplibre-react-native";
+import { Text, View } from "react-native";
+import Svg, { Circle, Path } from "react-native-svg";
 
-import { AppIcon } from "@/components/ui/huge-icon";
-import { analytics } from "@/lib/analytics";
 import { colors } from "@/lib/theme";
+
+// A filled teardrop map pin with a white center dot; its tip sits on the point.
+function MapPin() {
+  return (
+    <Svg width={28} height={37} viewBox="0 0 24 32">
+      <Path
+        d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20C24 5.373 18.627 0 12 0z"
+        fill={colors.primary}
+      />
+      <Circle cx="12" cy="12" r="4.5" fill="#ffffff" />
+    </Svg>
+  );
+}
 
 // Inlined at build time (EXPO_PUBLIC_*). Empty when unset — the map hides
 // itself so the rest of the location UI still works without a key.
 const GEBETA_API_KEY = process.env.EXPO_PUBLIC_GEBETA_API_KEY ?? "";
 
+// Gebeta's public style; its tile/glyph/sprite sources all live on this host.
+const GEBETA_STYLE_URL =
+  "https://tiles.gebeta.app/styles/standard/style.json?device=mobile";
+
+// Gebeta's tile server authenticates via an `Authorization: Bearer` header and
+// rejects any `?apiKey=` query param, so we drive MapLibre directly and attach
+// the header to every request to the Gebeta host. Registered once at import.
+if (GEBETA_API_KEY) {
+  TransformRequestManager.addHeader({
+    name: "Authorization",
+    value: `Bearer ${GEBETA_API_KEY}`,
+    match: "tiles\\.gebeta\\.app",
+  });
+}
+
 type BranchMapProps = {
-  branchId: string;
   latitude: string | null;
   longitude: string | null;
 };
 
-// A static, tap-to-navigate location preview. The map is centered on the
-// branch and we overlay a fixed pin at the visual center — the SDK's own
-// marker API is unreliable, and a single fixed point doesn't need it. Tapping
-// anywhere opens the device's maps app for directions.
-export function BranchMap({ branchId, latitude, longitude }: BranchMapProps) {
+// An interactive location map centered on the branch, with a pin marker at its
+// coordinates. Pan/zoom enabled; MapLibre's own logo/attribution are hidden in
+// favor of the required "© Gebeta Maps" credit.
+export function BranchMap({ latitude, longitude }: BranchMapProps) {
   const lat = Number(latitude);
   const lng = Number(longitude);
   const hasCoords =
@@ -31,34 +60,28 @@ export function BranchMap({ branchId, latitude, longitude }: BranchMapProps) {
 
   if (!hasCoords || !GEBETA_API_KEY) return null;
 
-  const openDirections = () => {
-    analytics.track("directions_clicked", { branch_id: branchId });
-    void Linking.openURL(
-      `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
-    );
-  };
-
   return (
-    <View className="h-44 overflow-hidden rounded-2xl border border-border">
-      <GebetaMap apiKey={GEBETA_API_KEY} center={[lng, lat]} zoom={15} />
-      {/* Fixed pin at the map center (branch location). Nudged up so the pin's
-          tip, not its middle, sits on the point. */}
+    <View className="h-56 overflow-hidden rounded-2xl border border-border">
+      <MapLibreMap
+        attribution={false}
+        compass={false}
+        logo={false}
+        mapStyle={GEBETA_STYLE_URL}
+        style={{ flex: 1 }}
+      >
+        <Camera initialViewState={{ center: [lng, lat], zoom: 16.5 }} />
+        <ViewAnnotation anchor="bottom" lngLat={[lng, lat]}>
+          <MapPin />
+        </ViewAnnotation>
+      </MapLibreMap>
+
+      {/* Required Gebeta attribution. */}
       <View
-        className="absolute inset-0 items-center justify-center"
+        className="absolute bottom-1.5 right-1.5 rounded bg-background/80 px-1.5 py-0.5"
         pointerEvents="none"
       >
-        <View style={{ marginTop: -14 }}>
-          <AppIcon color={colors.primary} icon={Location01Icon} size={30} />
-        </View>
+        <Text style={{ color: colors.muted, fontSize: 10 }}>© Gebeta Maps</Text>
       </View>
-      {/* Tap to open directions. Sits above the map so the whole card is the
-          affordance. */}
-      <Pressable
-        accessibilityLabel="Open directions"
-        accessibilityRole="button"
-        className="absolute inset-0"
-        onPress={openDirections}
-      />
     </View>
   );
 }

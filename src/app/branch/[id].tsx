@@ -8,7 +8,14 @@ import { colors } from "@/lib/theme";
 import { Image } from "expo-image";
 import { router, type Href, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef } from "react";
-import { Pressable, RefreshControl, ScrollView, View } from "react-native";
+import {
+  Linking,
+  Platform,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  View,
+} from "react-native";
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
@@ -73,6 +80,23 @@ function SectionTitle({ title }: { title: string }) {
 
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+// Opens the coordinates in the platform's default maps app: Apple Maps on iOS,
+// the geo: intent (default maps app) on Android, Google Maps on web.
+function openInDefaultMaps(
+  latitude: string | null,
+  longitude: string | null,
+  name: string,
+) {
+  if (!latitude || !longitude) return;
+  const label = encodeURIComponent(name);
+  const url = Platform.select({
+    ios: `http://maps.apple.com/?ll=${latitude},${longitude}&q=${label}`,
+    android: `geo:${latitude},${longitude}?q=${latitude},${longitude}(${label})`,
+    default: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
+  });
+  if (url) void Linking.openURL(url);
 }
 
 function RatingBreakdown({
@@ -311,8 +335,14 @@ export default function BranchDetailScreen() {
             </View>
 
             {data.addressText ? (
-              <View className="flex-row items-center gap-1.5">
-                <AppIcon color={colors.muted} icon={Location01Icon} size={15} />
+              <View className="flex-row items-start gap-1.5">
+                <View className="mt-0.5">
+                  <AppIcon
+                    color={colors.muted}
+                    icon={Location01Icon}
+                    size={15}
+                  />
+                </View>
                 <ThemedText tone="muted">{data.addressText}</ThemedText>
               </View>
             ) : null}
@@ -437,14 +467,25 @@ export default function BranchDetailScreen() {
                 <Divider />
               </View>
               <View className="mt-6 gap-3 px-6">
-                <ThemedText size="xl" weight="bold">
-                  Location
-                </ThemedText>
-                {data.addressText ? (
-                  <ThemedText tone="muted">{data.addressText}</ThemedText>
-                ) : null}
+                <View className="flex-row items-center justify-between">
+                  <ThemedText size="xl" weight="bold">
+                    Location
+                  </ThemedText>
+                  <Button
+                    label="Open in Maps"
+                    onPress={() =>
+                      openInDefaultMaps(
+                        data.latitude,
+                        data.longitude,
+                        data.place.name,
+                      )
+                    }
+                    rightIcon={ArrowRight01Icon}
+                    size="xs"
+                    variant="ghost"
+                  />
+                </View>
                 <BranchMap
-                  branchId={data.id}
                   latitude={data.latitude}
                   longitude={data.longitude}
                 />

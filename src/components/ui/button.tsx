@@ -11,7 +11,7 @@ import { ThemedText } from "@/components/ui/themed-text";
 import { colors } from "@/lib/theme";
 
 type Variant = "primary" | "secondary" | "outline" | "ghost";
-type Size = "md" | "sm";
+type Size = "md" | "sm" | "xs";
 type IconType = ComponentProps<typeof AppIcon>["icon"];
 
 type ButtonProps = {
@@ -22,6 +22,7 @@ type ButtonProps = {
   loading?: boolean;
   disabled?: boolean;
   icon?: IconType;
+  rightIcon?: IconType;
   leftSlot?: ReactNode;
   className?: string;
   textClassName?: string;
@@ -49,6 +50,15 @@ const VARIANTS: Record<
 const SIZES: Record<Size, string> = {
   md: "h-16",
   sm: "h-14",
+  xs: "h-12 gap-1.5",
+};
+
+// Horizontal padding per size, skipped entirely for the ghost variant so it
+// sits flush.
+const SIZE_PADDING: Record<Size, string> = {
+  md: "px-6",
+  sm: "px-6",
+  xs: "px-4",
 };
 
 export function Button({
@@ -59,6 +69,7 @@ export function Button({
   loading = false,
   disabled = false,
   icon,
+  rightIcon,
   leftSlot,
   className = "",
   textClassName,
@@ -69,7 +80,7 @@ export function Button({
 
   return (
     <Pressable
-      className={`flex-row items-center justify-center gap-2 rounded-full px-6 ${SIZES[size]} ${v.container} ${isDisabled ? "opacity-40" : ""} ${className}`}
+      className={`flex-row items-center justify-center gap-2 rounded-full ${SIZES[size]} ${variant === "ghost" ? "" : SIZE_PADDING[size]} ${v.container} ${isDisabled ? "opacity-40" : ""} ${className}`}
       disabled={isDisabled}
       onPress={onPress}
     >
@@ -78,15 +89,29 @@ export function Button({
       ) : (
         <>
           {leftSlot ?? null}
-          {icon ? <AppIcon color={v.color} icon={icon} size={18} /> : null}
+          {icon ? (
+            <AppIcon
+              color={v.color}
+              icon={icon}
+              size={size === "xs" ? 16 : 18}
+            />
+          ) : null}
           <ThemedText
             className={`shrink text-center ${textClassName ?? ""}`}
             numberOfLines={2}
+            size={size === "xs" ? "sm" : undefined}
             tone={tone ?? v.tone}
             weight="semibold"
           >
             {label}
           </ThemedText>
+          {rightIcon ? (
+            <AppIcon
+              color={v.color}
+              icon={rightIcon}
+              size={size === "xs" ? 16 : 18}
+            />
+          ) : null}
         </>
       )}
     </Pressable>
