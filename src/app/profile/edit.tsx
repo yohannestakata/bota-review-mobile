@@ -1,6 +1,5 @@
 import { useClerk, useUser } from "@clerk/clerk-expo";
 import { zodFormResolver } from "@/lib/zod-resolver";
-import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -12,11 +11,13 @@ import { z } from "zod";
 import { Alert } from "@/components/ui/alert";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { CloseButton } from "@/components/ui/close-button";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import { ControlledTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { getAuthMessage } from "@/lib/auth";
+import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 import { openLegal, PRIVACY_POLICY_URL, TERMS_URL } from "@/lib/legal";
+import { usePickImage } from "@/lib/use-pick-image";
 
 const editProfileSchema = z.object({
   firstName: z.string().trim().optional(),
@@ -29,6 +30,7 @@ type EditProfileValues = z.infer<typeof editProfileSchema>;
 export default function EditProfileScreen() {
   const { user } = useUser();
   const { signOut } = useClerk();
+  const pickImage = usePickImage();
 
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [avatarData, setAvatarData] = useState<string | null>(null);
@@ -68,28 +70,33 @@ export default function EditProfileScreen() {
       },
     });
 
-  async function pickAvatar() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      return;
-    }
+  const attemptClose = useDiscardConfirm(
+    formState.isDirty || avatarUri !== null,
+  );
 
-    const result = await ImagePicker.launchImageLibraryAsync({
+  async function pickAvatar() {
+    const result = await pickImage({
       allowsEditing: true,
       aspect: [1, 1],
       base64: true,
-      mediaTypes: ["images"],
       quality: 0.7,
     });
+    if (result.status === "denied") {
+      Alert.alert(
+        "Photo access needed",
+        "Turn it on in Settings to choose a new profile photo.",
+      );
+      return;
+    }
+    if (result.status !== "picked") return;
+    const image = result.images[0];
+    if (!image) return;
 
-    if (!result.canceled) {
-      const asset = result.assets[0];
-      setAvatarUri(asset.uri);
-      if (asset.base64) {
-        setAvatarData(
-          `data:${asset.mimeType ?? "image/jpeg"};base64,${asset.base64}`,
-        );
-      }
+    setAvatarUri(image.uri);
+    if (image.base64) {
+      setAvatarData(
+        `data:${image.mimeType ?? "image/jpeg"};base64,${image.base64}`,
+      );
     }
   }
 
@@ -115,13 +122,7 @@ export default function EditProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <CloseButton onPress={() => router.back()} />
-        <ThemedText size="xl" weight="bold">
-          Edit profile
-        </ThemedText>
-        <View className="w-6" />
-      </View>
+      <ScreenHeader onClose={attemptClose} title="Edit profile" />
 
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
@@ -195,7 +196,7 @@ export default function EditProfileScreen() {
 
         <View className="px-6 pb-2 pt-2">
           <Button
-            disabled={formState.isSubmitting}
+            disabled={formState.isSubmitting || deleting}
             label="Save"
             loading={formState.isSubmitting}
             onPress={onSave}

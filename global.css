@@ -40,9 +40,13 @@
   --color-border: #e4e7df;
   --color-placeholder: #edf0ea;
   --color-foreground: #1f241f;
+  --color-heading: #10251e;
   --color-muted: #6b7068;
   --color-subtle: #c8cec3;
   --color-primary: #004733;
+  --color-personalized: #eef7f1;
+  --color-accent: #c98712;
+  --color-accent-soft: #fff1c7;
   --color-inverse: #ffffff;
   --color-rating: #004733;
   --color-favorite: #e11d48;

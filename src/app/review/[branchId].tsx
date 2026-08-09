@@ -2,9 +2,8 @@ import { useAuth } from "@clerk/clerk-expo";
 import { zodFormResolver } from "@/lib/zod-resolver";
 import { Calendar03Icon } from "@hugeicons/core-free-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Pressable, ScrollView, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
@@ -13,7 +12,7 @@ import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { CloseButton } from "@/components/ui/close-button";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import { ControlledTextArea } from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
@@ -28,7 +27,9 @@ import {
 } from "@/features/branch";
 import { getMyReviews } from "@/features/profile";
 import { analytics } from "@/lib/analytics";
-import { getErrorCode } from "@/lib/api";
+import { getErrorCode, getErrorMessage } from "@/lib/api";
+import { promptAndRegisterPush } from "@/lib/push-registration";
+import { usePickImage } from "@/lib/use-pick-image";
 import { colors } from "@/lib/theme";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 
@@ -71,10 +72,6 @@ const reviewSchema = z.object({
 
 type ReviewValues = z.infer<typeof reviewSchema>;
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Something went wrong";
-}
-
 export default function WriteReviewScreen() {
   const {
     branchId,
@@ -88,6 +85,7 @@ export default function WriteReviewScreen() {
     text?: string;
   }>();
   const { getToken } = useAuth();
+  const pickImage = usePickImage();
   const isEdit = Boolean(reviewId);
   const createReview = useCreateReview(branchId);
   const updateReview = useUpdateReview();
@@ -115,9 +113,13 @@ export default function WriteReviewScreen() {
   const busy = createReview.isPending || updateReview.isPending || uploading;
   const textError = formState.errors.text?.message;
 
-  // Hydrate the form once the canonical review loads (edit mode only).
+  // Hydrate the form exactly once when the canonical review loads (edit mode).
+  // The ref guard stops a slow/refetched response from clobbering edits already
+  // in progress — otherwise a late fetch would reset() over the user's typing.
+  const hydratedRef = useRef(false);
   useEffect(() => {
-    if (existingReview.data) {
+    if (existingReview.data && !hydratedRef.current) {
+      hydratedRef.current = true;
       const r = existingReview.data;
       reset({
         rating: r.rating,
@@ -139,33 +141,20 @@ export default function WriteReviewScreen() {
   );
 
   async function pickPhotos() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
+    const result = await pickImage({
+      multiple: true,
+      base64: true,
+      selectionLimit: MAX_PHOTOS - photos.length,
+    });
+    if (result.status === "denied") {
       Alert.alert(
         "Photo access needed",
         "Turn it on to add snapshots to your review.",
       );
       return;
     }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsMultipleSelection: true,
-      base64: true,
-      mediaTypes: ["images"],
-      quality: 0.8,
-      selectionLimit: MAX_PHOTOS - photos.length,
-    });
-
-    if (!result.canceled) {
-      const picked = result.assets.map((asset) => ({
-        uri: asset.uri,
-        width: asset.width,
-        height: asset.height,
-        fileName: asset.fileName,
-        mimeType: asset.mimeType,
-        base64: asset.base64,
-      }));
-      setPhotos((prev) => [...prev, ...picked].slice(0, MAX_PHOTOS));
+    if (result.status === "picked") {
+      setPhotos((prev) => [...prev, ...result.images].slice(0, MAX_PHOTOS));
     }
   }
 
@@ -203,6 +192,8 @@ export default function WriteReviewScreen() {
         branch_id: branchId,
         rating: values.rating,
       });
+      // First review is a meaningful action — a good moment to ask about push.
+      void promptAndRegisterPush(getToken);
 
       let failed = 0;
       if (photos.length > 0) {
@@ -267,13 +258,10 @@ export default function WriteReviewScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <CloseButton onPress={attemptClose} />
-        <ThemedText size="xl" weight="bold">
-          {isEdit ? "Edit review" : "Write a review"}
-        </ThemedText>
-        <View className="w-6" />
-      </View>
+      <ScreenHeader
+        onClose={attemptClose}
+        title={isEdit ? "Edit review" : "Write a review"}
+      />
 
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
@@ -281,6 +269,19 @@ export default function WriteReviewScreen() {
           contentContainerClassName="gap-6 px-6 pt-4"
           keyboardShouldPersistTaps="handled"
         >
+          {isEdit && existingReview.isError && !hydratedRef.current ? (
+            <View className="gap-2 rounded-2xl bg-danger-soft p-4">
+              <ThemedText size="sm" tone="danger" weight="medium">
+                Couldn&apos;t load your saved review.
+              </ThemedText>
+              <Pressable onPress={() => existingReview.refetch()}>
+                <ThemedText size="sm" tone="brand" weight="semibold">
+                  Try again
+                </ThemedText>
+              </Pressable>
+            </View>
+          ) : null}
+
           <View className="gap-3">
             <ThemedText size="xl" weight="bold">
               How was it?

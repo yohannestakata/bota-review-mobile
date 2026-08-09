@@ -1,4 +1,5 @@
 import {
+  Add01Icon,
   ArrowRight01Icon,
   Location01Icon,
   PencilEdit02Icon,
@@ -24,6 +25,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
+import { SectionTitle } from "@/components/ui/section-title";
 import { Stars } from "@/components/ui/stars";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
@@ -68,14 +70,6 @@ function Chip({ label }: { label: string }) {
 
 function Divider() {
   return <View className="mx-6 h-px bg-border" />;
-}
-
-function SectionTitle({ title }: { title: string }) {
-  return (
-    <ThemedText className="px-6" size="xl" weight="bold">
-      {title}
-    </ThemedText>
-  );
 }
 
 function capitalize(value: string) {
@@ -253,7 +247,13 @@ export default function BranchDetailScreen() {
   }
 
   const data = branch.data;
-  const cover = data.photos[0]?.url ?? null;
+  // Hero + rail must agree on which photo is the cover: prefer the flagged one,
+  // fall back to the first, and keep exactly that photo out of the rail.
+  const coverPhoto = data.photos.find((photo) => photo.isCover) ?? data.photos[0];
+  const cover = coverPhoto?.url ?? null;
+  const detailPhotos = data.photos.filter(
+    (photo) => photo.id !== coverPhoto?.id,
+  );
   const price = formatMenuPriceRange(data.menuPriceRange);
   const hasRating = data.reviewCount > 0;
   const ratingValue = Number(data.rating);
@@ -494,33 +494,40 @@ export default function BranchDetailScreen() {
           ) : null}
 
           {/* Photos */}
-          {data.photos.length > 0 ? (
+          {detailPhotos.length > 0 ? (
             <>
               <View className="mt-7">
                 <Divider />
               </View>
               <View className="mt-6 gap-3">
-                <SectionTitle title="Photos" />
+                <SectionTitle className="px-6">Photos</SectionTitle>
                 <ScrollView
                   contentContainerClassName="gap-3 px-6"
                   horizontal
                   showsHorizontalScrollIndicator={false}
                 >
-                  {data.photos.map((photo, index) => (
-                    <Pressable
-                      key={photo.id}
-                      onPress={() =>
-                        router.push(`/branch/${data.id}/photos?index=${index}`)
-                      }
-                    >
-                      <Image
-                        contentFit="cover"
-                        source={photo.url}
-                        style={{ width: 220, height: 150, borderRadius: 16 }}
-                        transition={150}
-                      />
-                    </Pressable>
-                  ))}
+                  {detailPhotos.map((photo) => {
+                    const galleryIndex = data.photos.findIndex(
+                      (item) => item.id === photo.id,
+                    );
+                    return (
+                      <Pressable
+                        key={photo.id}
+                        onPress={() =>
+                          router.push(
+                            `/branch/${data.id}/photos?index=${galleryIndex}`,
+                          )
+                        }
+                      >
+                        <Image
+                          contentFit="cover"
+                          source={photo.url}
+                          style={{ width: 220, height: 150, borderRadius: 16 }}
+                          transition={150}
+                        />
+                      </Pressable>
+                    );
+                  })}
                 </ScrollView>
               </View>
             </>
@@ -559,6 +566,40 @@ export default function BranchDetailScreen() {
                     />
                   ))}
                 </ScrollView>
+              </View>
+            </>
+          ) : siblings.isSuccess ? (
+            <>
+              <View className="mt-7">
+                <Divider />
+              </View>
+              <View className="mt-6 px-6">
+                <Pressable
+                  className="flex-row items-center gap-3 rounded-2xl border border-placeholder p-4"
+                  onPress={() =>
+                    router.push({
+                      pathname: "/submissions",
+                      params: {
+                        placeId: data.place.id,
+                        placeName: data.place.name,
+                      },
+                    })
+                  }
+                >
+                  <AppIcon
+                    color={colors.foreground}
+                    icon={Add01Icon}
+                    size={20}
+                  />
+                  <View className="flex-1">
+                    <ThemedText weight="medium">
+                      Add another location
+                    </ThemedText>
+                    <ThemedText size="sm" tone="muted">
+                      Know another {data.place.name} spot? Put it on Bota.
+                    </ThemedText>
+                  </View>
+                </Pressable>
               </View>
             </>
           ) : null}
@@ -601,6 +642,7 @@ export default function BranchDetailScreen() {
                       <View className="my-5 h-px bg-border" />
                     ) : null}
                     <ReviewRow
+                      businessAvatarUrl={data.place.avatarUrl ?? undefined}
                       businessName={data.place.name}
                       currentUserId={me.data?.id}
                       onReply={isSignedIn ? replyActions.startReply : undefined}
@@ -637,22 +679,24 @@ export default function BranchDetailScreen() {
             ) : null}
           </View>
 
-          <View className="mt-8 px-6">
-            <Button
-              label="Suggest an edit or report closed"
-              onPress={() =>
-                requireSignIn(() =>
-                  router.push({
-                    pathname: "/suggest-edit/[branchId]",
-                    params: { branchId: data.id, name: data.place.name },
-                  }),
-                )
-              }
-              size="sm"
-              tone="muted"
-              variant="outline"
-            />
-          </View>
+          {!isOwnBranch ? (
+            <View className="mt-8 px-6">
+              <Button
+                label="Suggest an edit or report closed"
+                onPress={() =>
+                  requireSignIn(() =>
+                    router.push({
+                      pathname: "/suggest-edit/[branchId]",
+                      params: { branchId: data.id, name: data.place.name },
+                    }),
+                  )
+                }
+                size="sm"
+                tone="muted"
+                variant="outline"
+              />
+            </View>
+          ) : null}
 
           {isOwnBranch ? (
             <View className="mt-4 px-6">
@@ -668,7 +712,7 @@ export default function BranchDetailScreen() {
                 <View className="flex-1">
                   <ThemedText weight="medium">Manage your listing</ThemedText>
                   <ThemedText size="sm" tone="muted">
-                    Update hours, contact info, and photos.
+                    Update details, menu, hours, and photos.
                   </ThemedText>
                 </View>
                 <AppIcon

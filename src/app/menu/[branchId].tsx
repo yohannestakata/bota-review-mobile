@@ -3,6 +3,7 @@ import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackButton } from "@/components/ui/back-button";
+import { ListErrorState } from "@/components/ui/list-state-placeholder";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   MenuList,
@@ -49,6 +50,11 @@ export default function MenuScreen() {
             <MenuSkeleton />
           </View>
         </ScrollView>
+      ) : menus.isError ? (
+        <ListErrorState
+          errorText="Couldn't load the menu."
+          onRetry={() => menus.refetch()}
+        />
       ) : itemCount === 0 ? (
         <View className="flex-1 items-center justify-center px-6">
           <ThemedText className="text-center" tone="muted">

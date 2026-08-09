@@ -198,8 +198,6 @@ export default function TabLayout() {
           ),
         }}
       />
-      {/* Dev-only screen — kept in the project but hidden from the tab bar. */}
-      <Tabs.Screen name="test" options={{ href: null }} />
       <Tabs.Screen
         name="profile"
         options={{

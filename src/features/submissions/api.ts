@@ -14,21 +14,45 @@ export type SubmissionHoursEntry = {
   close: string; // "HH:MM"
 };
 
+export type SubmissionHourChange =
+  | {
+      operation: "set";
+      day: SubmissionHoursEntry["day"];
+      open: string;
+      close: string;
+    }
+  | { operation: "close"; day: SubmissionHoursEntry["day"] };
+
+export type SubmissionTaxonomyChanges = {
+  add: string[];
+  remove: string[];
+};
+
 export type SubmissionMenuItem = {
   name: string;
+  category?: string;
   price?: number;
   // A photo the submitter uploaded for this item (Cloudinary ref), attached to
   // the menu item on approve.
   imageUrl?: string;
   publicId?: string;
+  photoIsNew?: boolean;
 };
 
+export type SubmissionMenuChange =
+  | { operation: "add"; item: SubmissionMenuItem }
+  | { operation: "update"; itemId: string; item: SubmissionMenuItem }
+  | { operation: "remove"; itemId: string; itemName: string };
+
 export type SubmissionStructuredDetails = {
-  hours?: SubmissionHoursEntry[];
-  menu?: SubmissionMenuItem[];
+  hourChanges?: SubmissionHourChange[];
+  menuChanges?: SubmissionMenuChange[];
   cuisines?: string[];
-  tags?: string[];
-  amenities?: string[];
+  tagChanges?: SubmissionTaxonomyChanges;
+  amenityChanges?: SubmissionTaxonomyChanges;
+  photos?: SubmissionPhoto[];
+  reportedPhotoId?: string;
+  reportedPhotoUrl?: string;
 };
 
 export type PlaceMissingDetails = {

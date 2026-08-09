@@ -11,7 +11,8 @@ import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
 import { AuthRequiredScreen } from "@/components/auth/auth-required-screen";
-import { Button } from "@/components/ui/button";
+import { Button, ChipButton } from "@/components/ui/button";
+import { ChipGroup } from "@/components/ui/chip-group";
 import {
   ControlledTextArea,
   ControlledTextInput,
@@ -27,18 +28,12 @@ import {
   NeighborhoodField,
   PhotoField,
   PlaceNameField,
-  useAmenities,
-  useCuisines,
   useReportMissingPlace,
-  useTags,
   type PlaceMissingDetails,
 } from "@/features/submissions";
-import { cn } from "@/lib/cn";
+import { useAmenities, useCuisines, useTags } from "@/features/taxonomy";
+import { getErrorMessage } from "@/lib/api";
 import { optionalEmailField } from "@/lib/validation";
-
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Something went wrong";
-}
 
 const submissionSchema = z.object({
   placeName: z.string().trim().min(1, "Place name is required"),
@@ -123,39 +118,6 @@ const DEFAULT_VALUES: SubmissionValues = {
   photos: [],
   helpfulDetails: [],
 };
-
-function Pill({
-  label,
-  selected,
-  onPress,
-  surface = "default",
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-  surface?: "default" | "muted";
-}) {
-  return (
-    <Pressable
-      className={cn(
-        "rounded-full px-4 py-2",
-        surface === "muted" && "border",
-        selected && "bg-primary",
-        !selected && surface === "default" && "bg-surface",
-        !selected && surface === "muted" && "border-placeholder bg-background",
-      )}
-      onPress={onPress}
-    >
-      <ThemedText
-        size="sm"
-        tone={selected ? "inverse" : "default"}
-        weight="medium"
-      >
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
-}
 
 function SectionToggle({
   description,
@@ -274,6 +236,18 @@ export default function SubmissionsScreen() {
         },
       );
     });
+  }, (errors) => {
+    // A blocking error may live in a collapsed section — open it so the user can
+    // see and fix it (otherwise the submit button just looks stuck).
+    if (errors.contactEmail || errors.contactPhone) {
+      setExpandedSections((current) => ({
+        ...current,
+        locationContact: true,
+      }));
+    }
+    setError("root", {
+      message: "Please fix the highlighted fields before sending.",
+    });
   });
 
   if (!isSignedIn) {
@@ -389,7 +363,7 @@ export default function SubmissionsScreen() {
                         render={({ field }) => (
                           <View className="flex-row flex-wrap gap-2">
                             {PLACE_TYPES.map((option) => (
-                              <Pill
+                              <ChipButton
                                 key={option.value}
                                 label={option.label}
                                 onPress={() =>
@@ -400,7 +374,6 @@ export default function SubmissionsScreen() {
                                   )
                                 }
                                 selected={field.value === option.value}
-                                surface="muted"
                               />
                             ))}
                           </View>
@@ -417,25 +390,14 @@ export default function SubmissionsScreen() {
                           control={control}
                           name="cuisines"
                           render={({ field }) => (
-                            <View className="flex-row flex-wrap gap-2">
-                              {cuisines.data.map((cuisine) => (
-                                <Pill
-                                  key={cuisine.slug}
-                                  label={cuisine.name}
-                                  onPress={() =>
-                                    field.onChange(
-                                      field.value.includes(cuisine.slug)
-                                        ? field.value.filter(
-                                            (item) => item !== cuisine.slug,
-                                          )
-                                        : [...field.value, cuisine.slug],
-                                    )
-                                  }
-                                  selected={field.value.includes(cuisine.slug)}
-                                  surface="muted"
-                                />
-                              ))}
-                            </View>
+                            <ChipGroup
+                              onChange={field.onChange}
+                              options={cuisines.data.map((cuisine) => ({
+                                value: cuisine.slug,
+                                label: cuisine.name,
+                              }))}
+                              value={field.value}
+                            />
                           )}
                         />
                       </View>
@@ -515,25 +477,14 @@ export default function SubmissionsScreen() {
                           control={control}
                           name="tags"
                           render={({ field }) => (
-                            <View className="flex-row flex-wrap gap-2">
-                              {tags.data.map((tag) => (
-                                <Pill
-                                  key={tag.slug}
-                                  label={tag.name}
-                                  onPress={() =>
-                                    field.onChange(
-                                      field.value.includes(tag.slug)
-                                        ? field.value.filter(
-                                            (item) => item !== tag.slug,
-                                          )
-                                        : [...field.value, tag.slug],
-                                    )
-                                  }
-                                  selected={field.value.includes(tag.slug)}
-                                  surface="muted"
-                                />
-                              ))}
-                            </View>
+                            <ChipGroup
+                              onChange={field.onChange}
+                              options={tags.data.map((tag) => ({
+                                value: tag.slug,
+                                label: tag.name,
+                              }))}
+                              value={field.value}
+                            />
                           )}
                         />
                       </View>
@@ -548,25 +499,14 @@ export default function SubmissionsScreen() {
                           control={control}
                           name="helpfulDetails"
                           render={({ field }) => (
-                            <View className="flex-row flex-wrap gap-2">
-                              {amenities.data.map((amenity) => (
-                                <Pill
-                                  key={amenity.slug}
-                                  label={amenity.name}
-                                  onPress={() =>
-                                    field.onChange(
-                                      field.value.includes(amenity.slug)
-                                        ? field.value.filter(
-                                            (item) => item !== amenity.slug,
-                                          )
-                                        : [...field.value, amenity.slug],
-                                    )
-                                  }
-                                  selected={field.value.includes(amenity.slug)}
-                                  surface="muted"
-                                />
-                              ))}
-                            </View>
+                            <ChipGroup
+                              onChange={field.onChange}
+                              options={amenities.data.map((amenity) => ({
+                                value: amenity.slug,
+                                label: amenity.name,
+                              }))}
+                              value={field.value}
+                            />
                           )}
                         />
                       </View>
@@ -586,7 +526,7 @@ export default function SubmissionsScreen() {
 
         <View className="px-6 pb-2 pt-2">
           <Button
-            disabled={!formState.isValid || report.isPending}
+            disabled={report.isPending}
             label="Send it in"
             loading={report.isPending}
             onPress={onSubmit}

@@ -8,8 +8,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { CloseButton } from "@/components/ui/close-button";
+import { Button, ChipButton } from "@/components/ui/button";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import {
   ControlledTextArea,
   ControlledTextInput,
@@ -25,11 +25,11 @@ import {
   type ClaimVerificationPlatform,
 } from "@/features/branch";
 import { analytics } from "@/lib/analytics";
-import { getErrorCode } from "@/lib/api";
+import { getErrorCode, getErrorMessage } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 import { colors } from "@/lib/theme";
-import { emailField } from "@/lib/validation";
+import { emailField, EMAIL_REGEX } from "@/lib/validation";
 
 const ROLES = [
   { value: "owner", label: "Owner" },
@@ -111,6 +111,18 @@ const claimSchema = z
     }
 
     if (
+      data.verificationMethod === "business_email" &&
+      data.verificationEvidence?.trim() &&
+      !EMAIL_REGEX.test(data.verificationEvidence.trim())
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["verificationEvidence"],
+        message: "Enter a valid business email address",
+      });
+    }
+
+    if (
       data.verificationMethod === "social_media" &&
       !data.verificationPlatform
     ) {
@@ -123,56 +135,6 @@ const claimSchema = z
   });
 
 type ClaimValues = z.infer<typeof claimSchema>;
-
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Something went wrong";
-}
-
-function Pill({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      className={cn(
-        "rounded-full px-4 py-2",
-        selected ? "bg-primary" : "border border-placeholder bg-surface",
-      )}
-      onPress={onPress}
-    >
-      <ThemedText
-        size="sm"
-        tone={selected ? "inverse" : "default"}
-        weight="medium"
-      >
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
-}
-
-function ScreenHeader({
-  title,
-  onClose,
-}: {
-  title: string;
-  onClose?: () => void;
-}) {
-  return (
-    <View className="flex-row items-center justify-between px-4 py-3">
-      <CloseButton onPress={onClose ?? (() => router.back())} />
-      <ThemedText size="xl" weight="bold">
-        {title}
-      </ThemedText>
-      <View className="w-6" />
-    </View>
-  );
-}
 
 function ClaimStatusScreen({ verified }: { verified: boolean }) {
   return (
@@ -334,7 +296,7 @@ export default function ClaimBusinessScreen() {
               render={({ field }) => (
                 <View className="flex-row flex-wrap gap-2">
                   {ROLES.map((role) => (
-                    <Pill
+                    <ChipButton
                       key={role.value}
                       label={role.label}
                       onPress={() => field.onChange(role.value)}
@@ -407,7 +369,7 @@ export default function ClaimBusinessScreen() {
                   <View className="gap-2">
                     <View className="flex-row flex-wrap gap-2">
                       {SOCIAL_PLATFORMS.map((platform) => (
-                        <Pill
+                        <ChipButton
                           key={platform.value}
                           label={platform.label}
                           onPress={() => field.onChange(platform.value)}

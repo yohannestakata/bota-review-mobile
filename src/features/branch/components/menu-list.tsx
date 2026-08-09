@@ -21,24 +21,28 @@ export function MenuList({ menus }: { menus: Menu[] }) {
             </ThemedText>
           ) : null}
 
-          {groupByCategory(menu.items).map((group) => (
-            <View className="mb-2" key={`${menu.id}-${group.category}`}>
-              <ThemedText
-                className="mb-0.5 uppercase tracking-wide"
-                size="xs"
-                tone="muted"
-                weight="semibold"
-              >
-                {group.category}
-              </ThemedText>
-              {group.items.map((item, index) => (
-                <Fragment key={item.id}>
-                  {index > 0 ? <View className="h-px bg-border" /> : null}
-                  <MenuItemRow item={item} />
-                </Fragment>
-              ))}
-            </View>
-          ))}
+          {groupByCategory(menu.items).map((group) => {
+            const showImages = group.items.some((item) => item.imageUrl);
+
+            return (
+              <View className="mb-2" key={`${menu.id}-${group.category}`}>
+                <ThemedText
+                  className="mb-0.5 uppercase tracking-wide"
+                  size="xs"
+                  tone="muted"
+                  weight="semibold"
+                >
+                  {group.category}
+                </ThemedText>
+                {group.items.map((item, index) => (
+                  <Fragment key={item.id}>
+                    {index > 0 ? <View className="h-px bg-border" /> : null}
+                    <MenuItemRow item={item} showImage={showImages} />
+                  </Fragment>
+                ))}
+              </View>
+            );
+          })}
         </View>
       ))}
     </View>

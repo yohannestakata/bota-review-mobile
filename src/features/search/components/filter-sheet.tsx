@@ -16,12 +16,11 @@ import {
 } from "react";
 import { Pressable, View } from "react-native";
 
-import { Button } from "@/components/ui/button";
+import { Button, ChipButton } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { Cuisine, Neighborhood, Tag } from "@/lib/api";
 import { colors } from "@/lib/theme";
 
-import { FilterChip } from "./filter-chip";
 import type { SearchSort } from "../api";
 
 const SNAP_POINTS = ["90%"];
@@ -156,7 +155,7 @@ export const FilterSheet = forwardRef<FilterSheetRef, FilterSheetProps>(
           <View className="gap-6">
             <Section title="Sort by">
               {SORT_OPTIONS.map((option) => (
-                <FilterChip
+                <ChipButton
                   key={option.value}
                   label={option.label}
                   onPress={() => onSelectSort(option.value)}
@@ -168,7 +167,7 @@ export const FilterSheet = forwardRef<FilterSheetRef, FilterSheetProps>(
             {neighborhoods.length > 0 ? (
               <Section title="Neighborhood">
                 {neighborhoods.map((neighborhood) => (
-                  <FilterChip
+                  <ChipButton
                     key={neighborhood.id}
                     label={neighborhood.name}
                     onPress={() => onSelectNeighborhood(neighborhood.id)}
@@ -181,7 +180,7 @@ export const FilterSheet = forwardRef<FilterSheetRef, FilterSheetProps>(
             {cuisines.length > 0 ? (
               <Section title="Cuisine">
                 {cuisines.map((cuisine) => (
-                  <FilterChip
+                  <ChipButton
                     key={cuisine.id}
                     label={cuisine.name}
                     onPress={() => onToggleCuisine(cuisine.id)}
@@ -201,7 +200,7 @@ export const FilterSheet = forwardRef<FilterSheetRef, FilterSheetProps>(
               return (
                 <Section key={group.category} title={group.label}>
                   {groupTags.map((tag) => (
-                    <FilterChip
+                    <ChipButton
                       key={tag.id}
                       label={tag.name}
                       onPress={() => onToggleTag(tag.id)}

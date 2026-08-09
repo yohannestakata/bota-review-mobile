@@ -49,8 +49,8 @@ export function BranchCard({
 
   const imageClass =
     layout === "portrait"
-      ? "aspect-[4/5] rounded-[22px]"
-      : "aspect-[4/3] rounded-[20px]";
+      ? "aspect-[4/5] rounded-2xl"
+      : "aspect-[4/3] rounded-2xl";
   const textInset = layout === "portrait" ? 4 : 3;
 
   return (
@@ -93,6 +93,20 @@ export function BranchCard({
             strokeWidth={isSaved ? 2.5 : 2}
           />
         </Pressable>
+
+        {branch.placeAvatarUrl ? (
+          <View
+            className="absolute bottom-3 left-3 size-11 overflow-hidden rounded-full border-2 border-surface bg-surface"
+            style={shadows.cardControl}
+          >
+            <Image
+              contentFit="cover"
+              source={branch.placeAvatarUrl}
+              style={{ width: "100%", height: "100%" }}
+              transition={150}
+            />
+          </View>
+        ) : null}
       </View>
 
       <View className="mt-3" style={{ paddingLeft: textInset }}>
@@ -127,7 +141,12 @@ export function BranchCard({
             </ThemedText>
           )}
           {price ? (
-            <ThemedText className="flex-1" numberOfLines={1} size="sm" tone="muted">
+            <ThemedText
+              className="flex-1"
+              numberOfLines={1}
+              size="sm"
+              tone="muted"
+            >
               {`· ${price}`}
             </ThemedText>
           ) : null}

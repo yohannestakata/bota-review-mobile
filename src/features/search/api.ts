@@ -1,10 +1,4 @@
-import {
-  apiFetch,
-  type BranchCard,
-  type Cuisine,
-  type Tag,
-  type TokenGetter,
-} from "@/lib/api";
+import { apiFetch, type BranchCard, type TokenGetter } from "@/lib/api";
 
 export type SearchSort =
   | "rating"
@@ -63,12 +57,4 @@ export function browseBranches(
     `/branches?page=${page}&limit=${limit}`,
     getToken,
   );
-}
-
-export function getCuisines(getToken: TokenGetter) {
-  return apiFetch<Cuisine[]>("/cuisines", getToken);
-}
-
-export function getTags(getToken: TokenGetter) {
-  return apiFetch<Tag[]>("/tags", getToken);
 }

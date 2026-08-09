@@ -1,7 +1,9 @@
 import { Image } from "expo-image";
+import { useAuth } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   Pressable,
@@ -25,6 +27,7 @@ function capitalize(value: string) {
 }
 
 export default function PhotoGalleryScreen() {
+  const { isSignedIn } = useAuth();
   const { id, index } = useLocalSearchParams<{ id: string; index?: string }>();
   const branch = useBranch(id);
   const insets = useSafeAreaInsets();
@@ -45,6 +48,24 @@ export default function PhotoGalleryScreen() {
   function goTo(target: number) {
     listRef.current?.scrollToIndex({ index: target, animated: true });
     setCurrent(target);
+  }
+
+  function reportCurrentPhoto() {
+    const photo = photos[current];
+    if (!photo) return;
+    if (!isSignedIn) {
+      router.push("/login");
+      return;
+    }
+    router.push({
+      pathname: "/suggest-edit/[branchId]",
+      params: {
+        branchId: id,
+        name: branch.data?.place.name ?? "",
+        photoId: photo.id,
+        photoUrl: photo.url,
+      },
+    });
   }
 
   const category = photos[current]?.category;
@@ -75,6 +96,20 @@ export default function PhotoGalleryScreen() {
         style={{ flex: 1 }}
       />
 
+      {photos.length === 0 ? (
+        <View className="absolute inset-0 items-center justify-center px-6">
+          {branch.isPending ? (
+            <ActivityIndicator color={colors.inverse} />
+          ) : (
+            <ThemedText className="text-center" tone="inverse">
+              {branch.isError
+                ? "Couldn't load photos. Try again."
+                : "No photos here yet."}
+            </ThemedText>
+          )}
+        </View>
+      ) : null}
+
       {/* Top bar: close + photo count */}
       <View
         className="absolute left-0 right-0 flex-row items-center justify-between px-4"
@@ -88,7 +123,19 @@ export default function PhotoGalleryScreen() {
             </ThemedText>
           </View>
         ) : null}
-        <View className="size-10" />
+        {photos[current] ? (
+          <Pressable
+            className="h-10 items-center justify-center px-2"
+            hitSlop={8}
+            onPress={reportCurrentPhoto}
+          >
+            <ThemedText size="sm" tone="inverse" weight="semibold">
+              Report
+            </ThemedText>
+          </Pressable>
+        ) : (
+          <View className="size-10" />
+        )}
       </View>
 
       {/* Bottom: category + thumbnail strip */}

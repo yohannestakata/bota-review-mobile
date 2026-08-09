@@ -1,15 +1,16 @@
 import { zodFormResolver } from "@/lib/zod-resolver";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { CloseButton } from "@/components/ui/close-button";
+import { Button, ChipButton } from "@/components/ui/button";
+import { ChipGroup } from "@/components/ui/chip-group";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import {
   ControlledTextArea,
   ControlledTextInput,
@@ -17,16 +18,16 @@ import {
 import { ControlledPhoneInput } from "@/components/ui/phone-input";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
-  HoursField,
-  MenuField,
-  useAmenities,
+  HoursSuggestionField,
+  MenuSuggestionField,
+  PhotoField,
   useCreateBranchSubmission,
-  useTags,
   type BranchSubmissionBody,
 } from "@/features/submissions";
-import { useBranch } from "@/features/branch/queries";
+import { useAmenities, useTags } from "@/features/taxonomy";
+import { useBranch, useBranchMenus } from "@/features/branch/queries";
 import { analytics } from "@/lib/analytics";
-import { cn } from "@/lib/cn";
+import { getErrorMessage } from "@/lib/api";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 
 type Kind = "field_correction" | "temporarily_closed" | "permanently_closed";
@@ -61,16 +62,63 @@ const suggestEditObject = z.object({
   fieldName: z.string(),
   suggestedValue: z.string(),
   note: z.string(),
-  hours: z.array(
-    z.object({
-      day: z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
-      open: z.string(),
-      close: z.string(),
-    }),
+  hourChanges: z.array(
+    z.discriminatedUnion("operation", [
+      z.object({
+        operation: z.literal("set"),
+        day: z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
+        open: z.string(),
+        close: z.string(),
+      }),
+      z.object({
+        operation: z.literal("close"),
+        day: z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
+      }),
+    ]),
   ),
-  menu: z.array(z.object({ name: z.string(), price: z.number().optional() })),
+  menuChanges: z.array(
+    z.discriminatedUnion("operation", [
+      z.object({
+        operation: z.literal("add"),
+        item: z.object({
+          name: z.string(),
+          category: z.string().optional(),
+          price: z.number().optional(),
+          imageUrl: z.string().optional(),
+          publicId: z.string().optional(),
+          photoIsNew: z.boolean().optional(),
+        }),
+      }),
+      z.object({
+        operation: z.literal("update"),
+        itemId: z.string(),
+        item: z.object({
+          name: z.string(),
+          category: z.string().optional(),
+          price: z.number().optional(),
+          imageUrl: z.string().optional(),
+          publicId: z.string().optional(),
+          photoIsNew: z.boolean().optional(),
+        }),
+      }),
+      z.object({
+        operation: z.literal("remove"),
+        itemId: z.string(),
+        itemName: z.string(),
+      }),
+    ]),
+  ),
   tags: z.array(z.string()),
   amenities: z.array(z.string()),
+  photos: z.array(
+    z.object({
+      publicId: z.string(),
+      url: z.string(),
+      width: z.number(),
+      height: z.number(),
+    }),
+  ),
+  reportedPhotoId: z.string(),
 });
 
 type SuggestEditValues = z.infer<typeof suggestEditObject>;
@@ -80,14 +128,23 @@ const DEFAULT_VALUES: SuggestEditValues = {
   fieldName: "",
   suggestedValue: "",
   note: "",
-  hours: [],
-  menu: [],
+  hourChanges: [],
+  menuChanges: [],
   tags: [],
   amenities: [],
+  photos: [],
+  reportedPhotoId: "",
 };
 
 function submissionNote(values: SuggestEditValues) {
   return values.note.trim();
+}
+
+function taxonomyChanges(selected: string[], current: string[]) {
+  return {
+    add: selected.filter((slug) => !current.includes(slug)),
+    remove: current.filter((slug) => !selected.includes(slug)),
+  };
 }
 
 const suggestEditSchema = suggestEditObject.superRefine((values, ctx) => {
@@ -100,50 +157,16 @@ const suggestEditSchema = suggestEditObject.superRefine((values, ctx) => {
   }
 });
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Something went wrong";
-}
-
-function Pill({
-  label,
-  selected,
-  onPress,
-  surface = "default",
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-  surface?: "default" | "muted";
-}) {
-  return (
-    <Pressable
-      className={cn(
-        "rounded-full px-4 py-2",
-        surface === "muted" && "border",
-        selected && "bg-primary",
-        !selected && surface === "default" && "bg-surface",
-        !selected && surface === "muted" && "border-placeholder bg-background",
-      )}
-      onPress={onPress}
-    >
-      <ThemedText
-        size="sm"
-        tone={selected ? "inverse" : "default"}
-        weight="medium"
-      >
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
-}
-
 export default function SuggestEditScreen() {
-  const { branchId, name } = useLocalSearchParams<{
+  const { branchId, name, photoId, photoUrl } = useLocalSearchParams<{
     branchId: string;
     name?: string;
+    photoId?: string;
+    photoUrl?: string;
   }>();
   const submit = useCreateBranchSubmission(branchId);
   const branch = useBranch(branchId);
+  const menus = useBranchMenus(branchId);
   const tagsQuery = useTags();
   const amenitiesQuery = useAmenities();
 
@@ -151,7 +174,11 @@ export default function SuggestEditScreen() {
     useForm<SuggestEditValues>({
       resolver: zodFormResolver(suggestEditSchema),
       mode: "onChange",
-      defaultValues: DEFAULT_VALUES,
+      defaultValues: {
+        ...DEFAULT_VALUES,
+        fieldName: photoId ? "Photos" : "",
+        reportedPhotoId: photoId ?? "",
+      },
     });
 
   const attemptClose = useDiscardConfirm(formState.isDirty);
@@ -166,16 +193,32 @@ export default function SuggestEditScreen() {
   const isHoursField = selectedField?.value === "Hours";
   const isMenuField = selectedField?.value === "Menu/prices";
   const isTagsField = selectedField?.value === "Tags/amenities";
+  const isPhotosField = selectedField?.value === "Photos";
+  const isPhotoReport = isPhotosField && Boolean(values.reportedPhotoId);
+  const currentTags = branch.data?.tags.map((item) => item.slug) ?? [];
+  const currentAmenities =
+    branch.data?.amenities.map((item) => item.slug) ?? [];
+  const tagChanges = taxonomyChanges(values.tags, currentTags);
+  const amenityChanges = taxonomyChanges(values.amenities, currentAmenities);
+  const hasTaxonomyChanges =
+    tagChanges.add.length > 0 ||
+    tagChanges.remove.length > 0 ||
+    amenityChanges.add.length > 0 ||
+    amenityChanges.remove.length > 0;
 
   const hasPrimaryCorrection = isValueCorrection
     ? values.suggestedValue.trim().length > 0
     : isHoursField
-      ? values.hours.length > 0
+      ? values.hourChanges.length > 0
       : isMenuField
-        ? values.menu.length > 0
+        ? values.menuChanges.length > 0
         : isTagsField
-          ? values.tags.length > 0 || values.amenities.length > 0
-          : values.note.trim().length > 0;
+          ? hasTaxonomyChanges
+          : isPhotosField
+            ? isPhotoReport
+              ? values.note.trim().length > 0
+              : values.photos.length > 0
+            : values.note.trim().length > 0;
   const canSubmit =
     !submit.isPending &&
     (!isCorrection || (Boolean(values.fieldName) && hasPrimaryCorrection));
@@ -183,10 +226,12 @@ export default function SuggestEditScreen() {
   function resetPrimaryFields() {
     setValue("suggestedValue", "");
     setValue("note", "");
-    setValue("hours", []);
-    setValue("menu", []);
+    setValue("hourChanges", []);
+    setValue("menuChanges", []);
     setValue("tags", []);
     setValue("amenities", []);
+    setValue("photos", []);
+    setValue("reportedPhotoId", "");
   }
 
   function resetContributionFields() {
@@ -200,13 +245,28 @@ export default function SuggestEditScreen() {
     const noteValue = submissionNote(formValues);
 
     const structuredDetails =
-      formValues.fieldName === "Hours" && formValues.hours.length
-        ? { hours: formValues.hours }
-        : formValues.fieldName === "Menu/prices" && formValues.menu.length
-          ? { menu: formValues.menu }
+      formValues.fieldName === "Hours" && formValues.hourChanges.length
+        ? { hourChanges: formValues.hourChanges }
+        : formValues.fieldName === "Menu/prices" &&
+            formValues.menuChanges.length
+          ? { menuChanges: formValues.menuChanges }
           : formValues.fieldName === "Tags/amenities"
-            ? { tags: formValues.tags, amenities: formValues.amenities }
-            : undefined;
+            ? {
+                ...(tagChanges.add.length || tagChanges.remove.length
+                  ? { tagChanges }
+                  : {}),
+                ...(amenityChanges.add.length || amenityChanges.remove.length
+                  ? { amenityChanges }
+                  : {}),
+              }
+            : formValues.fieldName === "Photos" && formValues.reportedPhotoId
+              ? {
+                  reportedPhotoId: formValues.reportedPhotoId,
+                  ...(photoUrl ? { reportedPhotoUrl: photoUrl } : {}),
+                }
+              : formValues.fieldName === "Photos" && formValues.photos.length
+                ? { photos: formValues.photos }
+                : undefined;
 
     const body: BranchSubmissionBody =
       formValues.kind === "field_correction"
@@ -240,13 +300,7 @@ export default function SuggestEditScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <CloseButton onPress={attemptClose} />
-        <ThemedText size="xl" weight="bold">
-          Suggest an edit
-        </ThemedText>
-        <View className="w-6" />
-      </View>
+      <ScreenHeader onClose={attemptClose} title="Suggest an edit" />
 
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
@@ -262,7 +316,7 @@ export default function SuggestEditScreen() {
 
           <View className="flex-row flex-wrap gap-2">
             {KINDS.map((option) => (
-              <Pill
+              <ChipButton
                 key={option.value}
                 label={option.label}
                 onPress={() => {
@@ -283,7 +337,7 @@ export default function SuggestEditScreen() {
                 </ThemedText>
                 <View className="flex-row flex-wrap gap-2">
                   {FIELDS.map((field) => (
-                    <Pill
+                    <ChipButton
                       key={field.value}
                       label={field.label}
                       onPress={() => {
@@ -335,22 +389,22 @@ export default function SuggestEditScreen() {
                 selectedField?.value === "Hours" ? (
                   <Controller
                     control={control}
-                    name="hours"
+                    name="hourChanges"
                     render={({ field }) => (
-                      <HoursField
+                      <HoursSuggestionField
+                        current={branch.data?.hours ?? null}
                         onChange={field.onChange}
-                        value={field.value ?? []}
                       />
                     )}
                   />
                 ) : selectedField?.value === "Menu/prices" ? (
                   <Controller
                     control={control}
-                    name="menu"
+                    name="menuChanges"
                     render={({ field }) => (
-                      <MenuField
+                      <MenuSuggestionField
+                        menus={menus.data ?? []}
                         onChange={field.onChange}
-                        value={field.value ?? []}
                       />
                     )}
                   />
@@ -365,24 +419,14 @@ export default function SuggestEditScreen() {
                           control={control}
                           name="tags"
                           render={({ field }) => (
-                            <View className="flex-row flex-wrap gap-2">
-                              {tagsQuery.data.map((tag) => (
-                                <Pill
-                                  key={tag.slug}
-                                  label={tag.name}
-                                  onPress={() =>
-                                    field.onChange(
-                                      field.value.includes(tag.slug)
-                                        ? field.value.filter(
-                                            (item) => item !== tag.slug,
-                                          )
-                                        : [...field.value, tag.slug],
-                                    )
-                                  }
-                                  selected={field.value.includes(tag.slug)}
-                                />
-                              ))}
-                            </View>
+                            <ChipGroup
+                              onChange={field.onChange}
+                              options={tagsQuery.data.map((tag) => ({
+                                value: tag.slug,
+                                label: tag.name,
+                              }))}
+                              value={field.value}
+                            />
                           )}
                         />
                       </View>
@@ -396,29 +440,69 @@ export default function SuggestEditScreen() {
                           control={control}
                           name="amenities"
                           render={({ field }) => (
-                            <View className="flex-row flex-wrap gap-2">
-                              {amenitiesQuery.data.map((amenity) => (
-                                <Pill
-                                  key={amenity.slug}
-                                  label={amenity.name}
-                                  onPress={() =>
-                                    field.onChange(
-                                      field.value.includes(amenity.slug)
-                                        ? field.value.filter(
-                                            (item) => item !== amenity.slug,
-                                          )
-                                        : [...field.value, amenity.slug],
-                                    )
-                                  }
-                                  selected={field.value.includes(amenity.slug)}
-                                />
-                              ))}
-                            </View>
+                            <ChipGroup
+                              onChange={field.onChange}
+                              options={amenitiesQuery.data.map((amenity) => ({
+                                value: amenity.slug,
+                                label: amenity.name,
+                              }))}
+                              value={field.value}
+                            />
                           )}
                         />
                       </View>
                     ) : null}
+                    {!tagsQuery.data?.length && !amenitiesQuery.data?.length ? (
+                      <ThemedText size="sm" tone="muted">
+                        {tagsQuery.isError || amenitiesQuery.isError
+                          ? "Couldn't load tags and amenities. Please try again in a moment."
+                          : "Loading tags and amenities…"}
+                      </ThemedText>
+                    ) : null}
                   </View>
+                ) : selectedField?.value === "Photos" ? (
+                  isPhotoReport ? (
+                    <View className="gap-4">
+                      {photoUrl ? (
+                        <Image
+                          contentFit="cover"
+                          source={photoUrl}
+                          style={{
+                            width: "100%",
+                            aspectRatio: 1,
+                            borderRadius: 16,
+                          }}
+                          transition={150}
+                        />
+                      ) : null}
+                      <ControlledTextArea
+                        control={control}
+                        inputClassName="min-h-28"
+                        label="What's wrong with this photo?"
+                        name="note"
+                        placeholder="Tell us why it should come down."
+                      />
+                    </View>
+                  ) : (
+                    <View className="gap-4">
+                      <Controller
+                        control={control}
+                        name="photos"
+                        render={({ field }) => (
+                          <PhotoField
+                            onChange={field.onChange}
+                            value={field.value ?? []}
+                          />
+                        )}
+                      />
+                      <ControlledTextArea
+                        control={control}
+                        label="A quick note (optional)"
+                        name="note"
+                        placeholder="What do these photos show?"
+                      />
+                    </View>
+                  )
                 ) : (
                   <ControlledTextArea
                     control={control}

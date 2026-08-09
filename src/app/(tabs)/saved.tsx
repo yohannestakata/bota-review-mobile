@@ -1,11 +1,12 @@
 import { useAuth } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { useCallback } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AuthRequiredScreen } from "@/components/auth/auth-required-screen";
 import { FlashList, ListGapLg } from "@/components/ui/flash-list";
+import { ListStatePlaceholder } from "@/components/ui/list-state-placeholder";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   BranchCard,
@@ -61,29 +62,21 @@ export default function SavedScreen() {
         ItemSeparatorComponent={ListGapLg}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
-          saves.isPending ? (
-            <BranchListSkeleton />
-          ) : (
-            <View className="mt-24 items-center px-6">
-              {saves.isError ? (
-                <View className="items-center gap-3">
-                  <ThemedText tone="muted">
-                    Couldn&apos;t grab your saves.
-                  </ThemedText>
-                  <Pressable onPress={() => saves.refetch()}>
-                    <ThemedText tone="brand" weight="semibold">
-                      Try again
-                    </ThemedText>
-                  </Pressable>
-                </View>
-              ) : (
+          <ListStatePlaceholder
+            empty={
+              <View className="mt-24 items-center px-6">
                 <ThemedText className="text-center" tone="muted">
                   No saves yet. Tap the heart on places you love and
                   they&apos;ll live here.
                 </ThemedText>
-              )}
-            </View>
-          )
+              </View>
+            }
+            errorText="Couldn't grab your saves."
+            isError={saves.isError}
+            isPending={saves.isPending}
+            onRetry={() => saves.refetch()}
+            skeleton={<BranchListSkeleton />}
+          />
         }
         onRefresh={() => saves.refetch()}
         refreshing={saves.isFetching && !saves.isPending}

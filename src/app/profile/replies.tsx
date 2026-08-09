@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Alert } from "@/components/ui/alert";
 import { BackButton } from "@/components/ui/back-button";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
+import { ListErrorState } from "@/components/ui/list-state-placeholder";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemedText } from "@/components/ui/themed-text";
 import { ReplyComposerModal, type ReplyTarget } from "@/features/branch";
@@ -18,7 +19,7 @@ import { getErrorMessage } from "@/lib/api";
 import { useState } from "react";
 
 function statusLabel(status: MyReply["moderationStatus"]): string | null {
-  if (status === "pending") return "Posted";
+  if (status === "pending") return "Under review";
   if (status === "rejected") return "Rejected";
   return null;
 }
@@ -140,6 +141,11 @@ export default function MyRepliesScreen() {
             <Skeleton className="h-32 w-full rounded-2xl" key={i} />
           ))}
         </View>
+      ) : replies.isError ? (
+        <ListErrorState
+          errorText="Couldn't load your replies."
+          onRetry={() => replies.refetch()}
+        />
       ) : items.length === 0 ? (
         <View className="flex-1 items-center justify-center px-6">
           <ThemedText className="text-center" tone="muted">

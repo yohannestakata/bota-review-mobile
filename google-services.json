@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "928202432421",
+    "project_id": "bota-e3552",
+    "storage_bucket": "bota-e3552.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:928202432421:android:8ea92bc25a9ea85656524c",
+        "android_client_info": {
+          "package_name": "com.botareview.bota"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "928202432421-4ua01npfb3h98fcma72jjos4mlq26feq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.botareview.bota",
+            "certificate_hash": "a6ab19f6e3cc8f60ce7d8aebbcde658d01faba90"
+          }
+        },
+        {
+          "client_id": "928202432421-tiqojihskf0s2jak170eco06lj27v1al.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSMn4vPWP7ur6E86sglaagV-UKhK5yT0M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "928202432421-tiqojihskf0s2jak170eco06lj27v1al.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "928202432421-te8cg88g0ur452cm4kdliadbddvndae3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.botareview.bota"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

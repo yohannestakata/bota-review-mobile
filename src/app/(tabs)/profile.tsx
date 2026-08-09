@@ -3,6 +3,7 @@ import {
   ArrowRight01Icon,
   Building01Icon,
   Comment01Icon,
+  FavouriteIcon,
   Logout01Icon,
   Share08Icon,
   StarIcon,
@@ -23,20 +24,39 @@ import { AuthRequiredScreen } from "@/components/auth/auth-required-screen";
 import { LegalLinks } from "@/components/legal-links";
 import { Avatar } from "@/components/ui/avatar";
 import { AppIcon } from "@/components/ui/huge-icon";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useOwnClaims } from "@/features/branch";
 import { useSavedBranchIds } from "@/features/home";
-import { useMe, useMyReplies, useMyReviews } from "@/features/profile";
+import {
+  ProfileCompletionCard,
+  useMe,
+  useMyReplies,
+  useMyReviews,
+} from "@/features/profile";
+import { clearPushRegistration } from "@/lib/push-registration";
 import { colors } from "@/lib/theme";
 
 type IconType = ComponentProps<typeof AppIcon>["icon"];
 
-function StatCard({ value, label }: { value: number; label: string }) {
+function StatCard({
+  value,
+  label,
+  loading = false,
+}: {
+  value: number;
+  label: string;
+  loading?: boolean;
+}) {
   return (
     <View className="flex-1 items-center justify-center gap-0.5 rounded-2xl border border-placeholder bg-surface py-3">
-      <ThemedText size="xl" weight="bold">
-        {value}
-      </ThemedText>
+      {loading ? (
+        <Skeleton className="my-1 h-5 w-8 rounded-md" />
+      ) : (
+        <ThemedText size="xl" weight="bold">
+          {value}
+        </ThemedText>
+      )}
       <ThemedText size="sm" tone="muted">
         {label}
       </ThemedText>
@@ -73,7 +93,11 @@ function MenuRow({
         icon={icon}
         size={20}
       />
-      <ThemedText className="flex-1" tone={muted ? "muted" : "default"} weight="medium">
+      <ThemedText
+        className="flex-1"
+        tone={muted ? "muted" : "default"}
+        weight="medium"
+      >
         {label}
       </ThemedText>
       {loading ? (
@@ -93,11 +117,11 @@ function RowDivider() {
 }
 
 export default function ProfileScreen() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
   const { signOut } = useClerk();
   const { user } = useUser();
   const me = useMe();
-  const { data: savedIds } = useSavedBranchIds();
+  const saved = useSavedBranchIds();
   const claims = useOwnClaims();
   const replies = useMyReplies();
   const reviews = useMyReviews();
@@ -108,7 +132,7 @@ export default function ProfileScreen() {
     user?.username ?? user?.primaryEmailAddress?.emailAddress ?? "";
   const trustLevel = me.data?.trustLevel;
   const role = me.data?.role;
-  const savedCount = savedIds?.size ?? 0;
+  const savedCount = saved.data?.size ?? 0;
   const reviewCount = reviews.data?.length ?? 0;
   const replyCount = replies.data?.length ?? 0;
   const claimCount = claims.data?.length ?? 0;
@@ -117,6 +141,8 @@ export default function ProfileScreen() {
     if (loggingOut) return;
     setLoggingOut(true);
     try {
+      // Drop this device's push token while we still have a valid auth token.
+      await clearPushRegistration(getToken);
       await signOut();
       router.replace("/login");
     } catch {
@@ -170,8 +196,16 @@ export default function ProfileScreen() {
 
           {/* Stats */}
           <View className="mt-5 flex-row gap-3">
-            <StatCard label="Reviews" value={reviewCount} />
-            <StatCard label="Saved" value={savedCount} />
+            <StatCard
+              label="Reviews"
+              loading={reviews.isPending}
+              value={reviewCount}
+            />
+            <StatCard
+              label="Saved"
+              loading={saved.isPending}
+              value={savedCount}
+            />
             <Pressable
               className="flex-1 items-center justify-center gap-1 rounded-2xl border border-placeholder bg-surface py-3"
               onPress={() =>
@@ -186,6 +220,8 @@ export default function ProfileScreen() {
               </ThemedText>
             </Pressable>
           </View>
+
+          <ProfileCompletionCard />
         </View>
 
         {/* Menu */}
@@ -209,6 +245,12 @@ export default function ProfileScreen() {
             icon={Building01Icon}
             label="My business"
             onPress={() => router.push("/profile/claims")}
+          />
+          <RowDivider />
+          <MenuRow
+            icon={FavouriteIcon}
+            label="Your tastes"
+            onPress={() => router.push("/profile/tastes")}
           />
           <RowDivider />
           <MenuRow

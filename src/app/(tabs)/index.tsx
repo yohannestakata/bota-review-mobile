@@ -15,19 +15,18 @@ import {
   HomeSection,
   homeGreeting,
   LocationPill,
+  TastePickerCard,
   useHomeFeed,
-  useSavedBranchIds,
-  useToggleSave,
+  useForYou,
+  useSaveHandler,
+  useTastePreferences,
 } from "@/features/home";
 import { Avatar } from "@/components/ui/avatar";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
-import { analytics } from "@/lib/analytics";
-import type { BranchCard as BranchCardData } from "@/lib/api";
 import { debugLog } from "@/lib/debug";
 import { useLocation } from "@/lib/use-location";
 
-const EMPTY_SAVED = new Set<string>();
 const GREETING_SEED = Math.random();
 
 export default function Index() {
@@ -35,9 +34,9 @@ export default function Index() {
   const { user } = useUser();
   const location = useLocation();
   const home = useHomeFeed(location.coords);
-  const saved = useSavedBranchIds();
-  const savedIds = saved.data;
-  const toggleSave = useToggleSave();
+  const forYou = useForYou();
+  const taste = useTastePreferences();
+  const { saved, savedIds, onToggleSave } = useSaveHandler();
 
   useEffect(() => {
     if (home.data) {
@@ -53,26 +52,11 @@ export default function Index() {
 
   const onRefresh = useCallback(() => {
     void home.refetch();
+    if (isSignedIn) void forYou.refetch();
     if (isSignedIn) {
       void saved.refetch();
     }
-  }, [home, isSignedIn, saved]);
-
-  const onToggleSave = useCallback(
-    (branch: BranchCardData) => {
-      if (!isSignedIn) {
-        router.push("/login");
-        return;
-      }
-
-      const wasSaved = (savedIds ?? EMPTY_SAVED).has(branch.id);
-      analytics.track(wasSaved ? "branch_unsaved" : "branch_saved", {
-        branch_id: branch.id,
-      });
-      toggleSave.mutate({ branchId: branch.id, isSaved: wasSaved });
-    },
-    [isSignedIn, savedIds, toggleSave],
-  );
+  }, [forYou, home, isSignedIn, saved]);
 
   const firstName = user?.firstName ?? "there";
   // Picked once per app launch — varies across opens, stable within a session.
@@ -83,11 +67,19 @@ export default function Index() {
   const allSections = home.data?.sections ?? [];
   const collections = allSections
     .filter((section) => section.type === "curated_collection")
-    .map((section) => ({
-      slug: section.slug ?? section.title,
-      title: section.title,
-      coverImageUrl: section.coverImageUrl,
-    }));
+    // A collection needs a real slug to navigate to — falling back to the title
+    // routes to /collection/<Title>, which 404s. Drop slugless collections.
+    .flatMap((section) =>
+      section.slug
+        ? [
+            {
+              slug: section.slug,
+              title: section.title,
+              coverImageUrl: section.coverImageUrl,
+            },
+          ]
+        : [],
+    );
   const branchSections = allSections.filter(
     (section): section is HomeBranchSection =>
       section.type !== "curated_collection",
@@ -95,6 +87,9 @@ export default function Index() {
   const highlyRated = branchSections.find(
     (section) => section.type === "highly_rated",
   );
+  // Gently boost the user's picked cuisines up the main feed (client-side, so
+  // the shared home cache stays intact).
+  const highlyRatedItems = highlyRated?.items ?? [];
   const railSections = branchSections.filter(
     (section) => section.type !== "highly_rated" && section.items.length > 0,
   );
@@ -155,7 +150,7 @@ export default function Index() {
               status={location.status}
             />
           </View>
-          <ThemedText className="mt-5" size="3xl" weight="bold">
+          <ThemedText className="mt-5" size="3xl" tone="heading" weight="bold">
             {greeting}
           </ThemedText>
         </View>
@@ -164,11 +159,19 @@ export default function Index() {
           <HomeSearchBar onPress={() => router.push("/search")} />
         </View>
 
+        {home.isSuccess && !isEmpty && isSignedIn ? (
+          <TastePickerCard
+            onToggle={taste.toggle}
+            picks={taste.tasteOptionIds}
+            ready={taste.ready}
+          />
+        ) : null}
+
         {home.isPending ? <HomeFeedSkeleton /> : null}
 
         {home.isError && !home.data ? (
           <View className="mt-24 items-center gap-3 px-6">
-            <ThemedText size="xl" weight="bold">
+            <ThemedText size="xl" tone="heading" weight="bold">
               Well, this is awkward
             </ThemedText>
             <ThemedText className="text-center" tone="muted">
@@ -190,6 +193,19 @@ export default function Index() {
           </View>
         ) : null}
 
+        {home.data && home.failureCount > 0 && !home.isFetching ? (
+          <View className="mx-6 mt-4 flex-row items-center justify-between gap-3 rounded-2xl bg-surface-muted px-4 py-3">
+            <ThemedText className="flex-1" size="sm" tone="muted">
+              Showing saved results — couldn&apos;t refresh.
+            </ThemedText>
+            <Pressable hitSlop={6} onPress={() => home.refetch()}>
+              <ThemedText size="sm" tone="brand" weight="semibold">
+                Retry
+              </ThemedText>
+            </Pressable>
+          </View>
+        ) : null}
+
         {home.isSuccess && collections.length > 0 ? (
           <View className="mt-6">
             <CollectionCircles
@@ -199,6 +215,17 @@ export default function Index() {
           </View>
         ) : null}
 
+        {forYou.data && forYou.data.items.length > 0 ? (
+          <HomeSection
+            onPressBranch={(branch) =>
+              router.push(`/branch/${branch.id}?source=home`)
+            }
+            onToggleSave={onToggleSave}
+            savedIds={savedIds}
+            section={forYou.data}
+          />
+        ) : null}
+
         {railSections.map((section) => (
           <HomeSection
             key={section.type}
@@ -206,20 +233,25 @@ export default function Index() {
               router.push(`/branch/${branch.id}?source=home`)
             }
             onToggleSave={onToggleSave}
-            savedIds={savedIds ?? EMPTY_SAVED}
+            savedIds={savedIds}
             section={section}
           />
         ))}
 
-        {home.isSuccess && highlyRated && highlyRated.items.length > 0 ? (
-          <View className="mt-12 gap-4 px-6">
-            <ThemedText size="xl" weight="bold">
-              Highly rated
-            </ThemedText>
-            {highlyRated.items.map((branch) => (
+        {home.isSuccess && highlyRatedItems.length > 0 ? (
+          <View className="mt-10 gap-4 px-6">
+            <View className="gap-1">
+              <ThemedText size="xl" tone="heading" weight="bold">
+                Highly rated
+              </ThemedText>
+              <ThemedText tone="muted">
+                Well-loved spots with the reviews to back it up.
+              </ThemedText>
+            </View>
+            {highlyRatedItems.map((branch) => (
               <BranchCard
                 branch={branch}
-                isSaved={(savedIds ?? EMPTY_SAVED).has(branch.id)}
+                isSaved={savedIds.has(branch.id)}
                 key={branch.id}
                 onPress={(b) => router.push(`/branch/${b.id}?source=home`)}
                 onToggleSave={onToggleSave}

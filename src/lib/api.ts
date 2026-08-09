@@ -116,12 +116,30 @@ export function getCurrentUser(getToken: TokenGetter) {
   return apiFetch<CurrentUser>("/me", getToken);
 }
 
+export function registerDeviceToken(
+  body: { token: string; platform?: "ios" | "android" },
+  getToken: TokenGetter,
+) {
+  return apiFetch<void>("/notifications/device-tokens", getToken, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function unregisterDeviceToken(token: string, getToken: TokenGetter) {
+  return apiFetch<void>("/notifications/device-tokens", getToken, {
+    method: "DELETE",
+    body: JSON.stringify({ token }),
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Shared domain types
 // ---------------------------------------------------------------------------
 
 export type Neighborhood = { id: string; name: string; slug: string };
 export type Cuisine = { id: string; name: string; slug: string };
+export type FoodCategory = { id: string; name: string; slug: string };
 export type Amenity = { id: string; name: string; slug: string };
 export type Tag = {
   id: string;
@@ -136,6 +154,7 @@ export type BranchCard = {
   slug: string;
   placeId: string;
   placeName: string;
+  placeAvatarUrl?: string | null;
   label: string | null;
   neighborhood: Neighborhood | null;
   coverPhotoUrl: string | null;
@@ -163,6 +182,10 @@ export function getAmenities(getToken: TokenGetter) {
 
 export function getCuisines(getToken: TokenGetter) {
   return apiFetch<Cuisine[]>("/cuisines", getToken);
+}
+
+export function getFoodCategories(getToken: TokenGetter) {
+  return apiFetch<FoodCategory[]>("/food-categories", getToken);
 }
 
 export function getTags(getToken: TokenGetter) {

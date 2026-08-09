@@ -3,8 +3,7 @@ import { Pressable, View } from "react-native";
 
 import { FormTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
-
-import { useNeighborhoods } from "../queries";
+import { useNeighborhoods } from "@/features/taxonomy";
 
 type NeighborhoodFieldProps = {
   value: string;

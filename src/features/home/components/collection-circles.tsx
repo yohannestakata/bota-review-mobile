@@ -27,20 +27,23 @@ export function CollectionCircles({ items, onPress }: CollectionCirclesProps) {
           key={item.slug}
           onPress={() => onPress(item.slug)}
         >
-          <View className="size-20 overflow-hidden rounded-full bg-placeholder">
-            {item.coverImageUrl ? (
-              <Image
-                contentFit="cover"
-                source={item.coverImageUrl}
-                style={{ width: "100%", height: "100%" }}
-                transition={150}
-              />
-            ) : null}
+          <View className="size-20 rounded-full bg-accent-soft p-1">
+            <View className="flex-1 overflow-hidden rounded-full bg-placeholder">
+              {item.coverImageUrl ? (
+                <Image
+                  contentFit="cover"
+                  source={item.coverImageUrl}
+                  style={{ width: "100%", height: "100%" }}
+                  transition={150}
+                />
+              ) : null}
+            </View>
           </View>
           <ThemedText
             className="text-center"
             numberOfLines={1}
             size="sm"
+            tone="brand"
             weight="medium"
           >
             {item.title}

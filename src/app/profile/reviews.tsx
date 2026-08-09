@@ -3,8 +3,9 @@ import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
-import { CloseButton } from "@/components/ui/close-button";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
+import { ListStatePlaceholder } from "@/components/ui/list-state-placeholder";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useDeleteReview } from "@/features/branch";
 import {
@@ -37,10 +38,19 @@ export default function MyReviewsScreen() {
         text: "Delete",
         style: "destructive",
         onPress: () =>
-          deleteReview.mutate({
-            reviewId: review.id,
-            branchId: review.branchId,
-          }),
+          deleteReview.mutate(
+            {
+              reviewId: review.id,
+              branchId: review.branchId,
+            },
+            {
+              onError: () =>
+                Alert.alert(
+                  "Couldn't delete",
+                  "That didn't go through. Try again in a moment.",
+                ),
+            },
+          ),
       },
     ]);
   }
@@ -49,13 +59,7 @@ export default function MyReviewsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <CloseButton onPress={() => router.back()} />
-        <ThemedText size="xl" weight="bold">
-          Your reviews
-        </ThemedText>
-        <View className="w-6" />
-      </View>
+      <ScreenHeader title="Your reviews" />
 
       <FlashList
         contentContainerClassName="px-6 pb-10 pt-2"
@@ -63,15 +67,20 @@ export default function MyReviewsScreen() {
         ItemSeparatorComponent={ListGapMd}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
-          reviews.isPending ? (
-            <ProfileReviewsSkeleton />
-          ) : (
-            <View className="mt-8 items-center px-6">
-              <ThemedText className="text-center" tone="muted">
-                No reviews yet — go share a hot take.
-              </ThemedText>
-            </View>
-          )
+          <ListStatePlaceholder
+            empty={
+              <View className="mt-8 items-center px-6">
+                <ThemedText className="text-center" tone="muted">
+                  No reviews yet — go share a hot take.
+                </ThemedText>
+              </View>
+            }
+            errorText="Couldn't load your reviews."
+            isError={reviews.isError}
+            isPending={reviews.isPending}
+            onRetry={() => reviews.refetch()}
+            skeleton={<ProfileReviewsSkeleton />}
+          />
         }
         onRefresh={() => reviews.refetch()}
         refreshing={reviews.isFetching && !reviews.isPending}

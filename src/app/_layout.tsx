@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
+import * as Notifications from "expo-notifications";
 import { ObserveRoot, useObserve } from "expo-observe";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -14,13 +15,24 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { AnalyticsProvider } from "@/components/analytics-provider";
+import { PushRegistration } from "@/components/push-registration";
 import { AlertProvider } from "@/components/ui/alert";
 import { debugLog } from "@/lib/debug";
+import { routeFromNotification } from "@/lib/notification-routing";
 import { queryClient } from "@/lib/query-client";
 import { colors } from "@/lib/theme";
 
 void SplashScreen.preventAutoHideAsync();
 void WebBrowser.maybeCompleteAuthSession();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 const clerkPublishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -65,6 +77,19 @@ function RootLayout() {
     };
   }, []);
 
+  useEffect(() => {
+    function openNotification(response: Notifications.NotificationResponse) {
+      routeFromNotification(response.notification.request.content.data);
+    }
+
+    void Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) openNotification(response);
+    });
+    const subscription =
+      Notifications.addNotificationResponseReceivedListener(openNotification);
+    return () => subscription.remove();
+  }, []);
+
   if (!fontsLoaded) {
     return null;
   }
@@ -82,6 +107,7 @@ function RootLayout() {
             <QueryClientProvider client={queryClient}>
               <BottomSheetModalProvider>
                 <AlertProvider>
+                  <PushRegistration />
                   <StatusBar barStyle="dark-content" />
                   <Stack
                     screenOptions={{

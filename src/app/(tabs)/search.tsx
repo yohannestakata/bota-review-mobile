@@ -3,9 +3,8 @@ import {
   FilterHorizontalIcon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
-import { useAuth } from "@clerk/clerk-expo";
 import { router } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -16,28 +15,24 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
+import { ChipButton } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { FlashList, ListGapLg } from "@/components/ui/flash-list";
-import { BranchCard, useSavedBranchIds, useToggleSave } from "@/features/home";
+import { BranchCard, useSaveHandler } from "@/features/home";
 import {
-  FilterChip,
   FilterSheet,
   type FilterSheetRef,
   SearchResultsSkeleton,
-  useCuisines,
-  useNeighborhoods,
   useSearch,
-  useTags,
   type SearchSort,
 } from "@/features/search";
+import { useCuisines, useNeighborhoods, useTags } from "@/features/taxonomy";
 import { analytics } from "@/lib/analytics";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 import { colors } from "@/lib/theme";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useLocation } from "@/lib/use-location";
-
-const EMPTY_SAVED = new Set<string>();
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value)
@@ -46,7 +41,6 @@ function toggle<T>(list: T[], value: T): T[] {
 }
 
 export default function SearchScreen() {
-  const { isSignedIn } = useAuth();
   const [text, setText] = useState("");
   const [neighborhoodId, setNeighborhoodId] = useState<string>();
   const [cuisineIds, setCuisineIds] = useState<string[]>([]);
@@ -61,13 +55,25 @@ export default function SearchScreen() {
   const cuisines = useCuisines();
   const tags = useTags();
   const { coords, status, request } = useLocation();
-  const { data: savedIds } = useSavedBranchIds();
-  const toggleSave = useToggleSave();
+  const { savedIds, onToggleSave } = useSaveHandler();
 
   // "Nearby" only sorts by distance once we actually have coordinates.
   const sortByDistance = nearby && coords != null;
   // Waiting on a granted-but-not-yet-resolved location fix.
   const nearbyPending = nearby && coords == null && status !== "denied";
+
+  // If location is revoked/unavailable with no usable fix, don't leave the
+  // "Nearby" chip looking active while the sort has quietly fallen back to
+  // rating — turn it off and say why. (Stale coords keep working as-is.)
+  useEffect(() => {
+    if (nearby && coords == null && status === "denied") {
+      setNearby(false);
+      Alert.alert(
+        "Location is off",
+        "Turn location back on to sort by distance.",
+      );
+    }
+  }, [nearby, coords, status]);
 
   const params = useMemo(
     () => ({
@@ -172,21 +178,6 @@ export default function SearchScreen() {
     sort,
   ]);
 
-  const onToggleSave = useCallback(
-    (branch: BranchCardData) => {
-      if (!isSignedIn) {
-        router.push("/login");
-        return;
-      }
-
-      const wasSaved = (savedIds ?? EMPTY_SAVED).has(branch.id);
-      analytics.track(wasSaved ? "branch_unsaved" : "branch_saved", {
-        branch_id: branch.id,
-      });
-      toggleSave.mutate({ branchId: branch.id, isSaved: wasSaved });
-    },
-    [isSignedIn, savedIds, toggleSave],
-  );
 
   function clearFilters() {
     setNeighborhoodId(undefined);
@@ -271,9 +262,9 @@ export default function SearchScreen() {
             </ThemedText>
           </Pressable>
 
-          <FilterChip label="Nearby" onPress={toggleNearby} selected={nearby} />
+          <ChipButton label="Nearby" onPress={toggleNearby} selected={nearby} />
 
-          <FilterChip
+          <ChipButton
             label="Open now"
             onPress={() => setOpenNow((v) => !v)}
             selected={openNow}
@@ -289,7 +280,7 @@ export default function SearchScreen() {
           >
             {activeChips.map((chip) => (
               <Pressable
-                className="flex-row items-center gap-1.5 rounded-full bg-surface-muted px-3 py-1.5"
+                className="flex-row items-center gap-1.5 rounded-full border border-placeholder bg-surface px-3 py-1.5"
                 hitSlop={4}
                 key={chip.key}
                 onPress={chip.onRemove}
@@ -346,9 +337,25 @@ export default function SearchScreen() {
         }
         ListHeaderComponent={
           results.length > 0 ? (
-            <ThemedText className="mb-5" size="xl" weight="bold">
-              {active ? "Results" : "Explore places"}
-            </ThemedText>
+            <View className="mb-5 gap-3">
+              {search.failureCount > 0 &&
+              !search.isFetching &&
+              !search.isFetchNextPageError ? (
+                <View className="flex-row items-center justify-between gap-3 rounded-2xl bg-surface-muted px-4 py-3">
+                  <ThemedText className="flex-1" size="sm" tone="muted">
+                    Showing saved results — couldn&apos;t refresh.
+                  </ThemedText>
+                  <Pressable hitSlop={6} onPress={() => search.refetch()}>
+                    <ThemedText size="sm" tone="brand" weight="semibold">
+                      Retry
+                    </ThemedText>
+                  </Pressable>
+                </View>
+              ) : null}
+              <ThemedText size="xl" weight="bold">
+                {active ? "Results" : "Explore places"}
+              </ThemedText>
+            </View>
           ) : null
         }
         ListFooterComponent={
@@ -384,7 +391,7 @@ export default function SearchScreen() {
         renderItem={({ item }) => (
           <BranchCard
             branch={item}
-            isSaved={(savedIds ?? EMPTY_SAVED).has(item.id)}
+            isSaved={savedIds.has(item.id)}
             onPress={(branch) =>
               router.push(`/branch/${branch.id}?source=search`)
             }
