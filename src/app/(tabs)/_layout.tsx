@@ -1,22 +1,25 @@
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth, useClerk } from "@clerk/clerk-expo";
 import { colors } from "@/lib/theme";
 import {
   FavouriteIcon,
   Home01Icon,
+  Logout01Icon,
   Note01Icon,
   Search01Icon,
   UserCircleIcon,
 } from "@hugeicons/core-free-icons";
-import { Tabs } from "expo-router";
+import { router, Tabs } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppIcon } from "@/components/ui/huge-icon";
+import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 import { AppLoadingSkeleton } from "@/components/app-loading-skeleton";
 import { getCurrentUser } from "@/lib/api";
 import { debugLog } from "@/lib/debug";
+import { clearPushRegistration } from "@/lib/push-registration";
 
 type SyncState = "pending" | "ready" | "error";
 
@@ -35,9 +38,11 @@ function TabsLoadingScreen() {
 
 export default function TabLayout() {
   const { getToken, isLoaded, isSignedIn, userId } = useAuth();
+  const { signOut } = useClerk();
   const getTokenRef = useRef(getToken);
   const [syncState, setSyncState] = useState<SyncState>("pending");
   const [retryKey, setRetryKey] = useState(0);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     getTokenRef.current = getToken;
@@ -47,6 +52,18 @@ export default function TabLayout() {
     setSyncState("pending");
     setRetryKey((key) => key + 1);
   }, []);
+
+  const logout = useCallback(async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await clearPushRegistration(getTokenRef.current);
+      await signOut();
+      router.replace("/login");
+    } catch {
+      setLoggingOut(false);
+    }
+  }, [loggingOut, signOut]);
 
   useEffect(() => {
     let isMounted = true;
@@ -112,11 +129,22 @@ export default function TabLayout() {
             You&apos;re signed in, but we couldn&apos;t load your profile. Mind
             checking your connection and trying again?
           </ThemedText>
-          <Pressable onPress={retry}>
-            <ThemedText tone="brand" weight="semibold">
-              Try again
-            </ThemedText>
-          </Pressable>
+          <View className="mt-2 w-full gap-1">
+            <Button
+              disabled={loggingOut}
+              label="Try again"
+              onPress={retry}
+              size="xs"
+            />
+            <Button
+              icon={Logout01Icon}
+              label="Log out"
+              loading={loggingOut}
+              onPress={() => void logout()}
+              size="xs"
+              variant="ghost"
+            />
+          </View>
         </View>
       </SafeAreaView>
     );
