@@ -164,10 +164,16 @@ export function createReview(
   body: CreateReviewBody,
   getToken: TokenGetter,
 ) {
-  return apiFetch<BranchReview>(`/branches/${branchId}/reviews`, getToken, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  // The create response is the raw review row, so it also carries the
+  // moderation status (pending unless the author is trusted).
+  return apiFetch<BranchReview & { moderationStatus: "pending" | "approved" }>(
+    `/branches/${branchId}/reviews`,
+    getToken,
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    },
+  );
 }
 
 export function reportReview(

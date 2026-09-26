@@ -2,6 +2,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import { zodFormResolver } from "@/lib/zod-resolver";
 import { Calendar03Icon } from "@hugeicons/core-free-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -17,14 +18,18 @@ import { ControlledTextArea } from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
+  branchKeys,
+  getBranch,
   PhotoGrid,
   RatingInput,
+  ReviewCelebration,
   uploadReviewPhoto,
   useCreateReview,
   useReview,
   useUpdateReview,
   type PickedPhoto,
 } from "@/features/branch";
+import { useSaves } from "@/features/home";
 import { getMyReviews } from "@/features/profile";
 import { analytics } from "@/lib/analytics";
 import { getErrorCode, getErrorMessage } from "@/lib/api";
@@ -73,6 +78,16 @@ const reviewSchema = z.object({
 
 type ReviewValues = z.infer<typeof reviewSchema>;
 
+type PostedReview = {
+  reviewId: string;
+  rating: number;
+  placeName?: string;
+  pendingModeration: boolean;
+  failed: PickedPhoto[];
+  reviewNumber?: number;
+  reviewedBranchIds: Set<string>;
+};
+
 export default function WriteReviewScreen() {
   const {
     branchId,
@@ -96,6 +111,10 @@ export default function WriteReviewScreen() {
 
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [posted, setPosted] = useState<PostedReview | null>(null);
+  const [retryingPhotos, setRetryingPhotos] = useState(false);
+  const queryClient = useQueryClient();
+  const saves = useSaves();
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const { control, handleSubmit, formState, reset, setValue } =
@@ -138,7 +157,7 @@ export default function WriteReviewScreen() {
   }, [branchId]);
 
   const attemptClose = useDiscardConfirm(
-    formState.isDirty || photos.length > 0,
+    !posted && (formState.isDirty || photos.length > 0),
   );
 
   async function pickPhotos() {
@@ -197,7 +216,34 @@ export default function WriteReviewScreen() {
       // First review is a meaningful action — a good moment to ask about push.
       void promptAndRegisterPush(getToken);
 
-      await uploadPhotosWithRetry(review.id, photos);
+      // Upload photos and count the user's reviews in parallel — both feed the
+      // celebration screen. A failed count just drops the "#N" from the copy.
+      setUploading(true);
+      const [failed, mine, branch] = await Promise.all([
+        uploadPhotos(review.id, photos),
+        getMyReviews(getToken).catch(() => undefined),
+        // Usually cached from the branch page; fetched when arriving by link.
+        queryClient
+          .ensureQueryData({
+            queryKey: branchKeys.detail(branchId),
+            queryFn: () => getBranch(branchId, getToken),
+          })
+          .catch(() => undefined),
+      ]);
+      const active = mine?.filter(
+        (r) =>
+          r.moderationStatus !== "archived" &&
+          r.moderationStatus !== "rejected",
+      );
+      setPosted({
+        reviewId: review.id,
+        rating: values.rating,
+        placeName: branch?.place.name,
+        pendingModeration: review.moderationStatus !== "approved",
+        failed,
+        reviewNumber: active?.length || undefined,
+        reviewedBranchIds: new Set(active?.map((r) => r.branchId) ?? []),
+      });
     } catch (err) {
       // The user already has a review for this branch — send them to edit it
       // rather than leaving them stuck on a create form that can't succeed.
@@ -215,46 +261,28 @@ export default function WriteReviewScreen() {
     }
   });
 
-  // The review itself is already saved at this point, so a photo failure never
-  // loses the review — we just offer to retry the photos that didn't make it.
-  async function uploadPhotosWithRetry(
-    newReviewId: string,
+  // Returns the photos that failed. The review itself is already saved, so a
+  // photo failure never loses it — the celebration offers a retry instead.
+  async function uploadPhotos(
+    reviewIdToAttach: string,
     pending: PickedPhoto[],
   ) {
-    let failed: PickedPhoto[] = [];
-    if (pending.length > 0) {
-      setUploading(true);
-      const results = await Promise.allSettled(
-        pending.map((photo) =>
-          uploadReviewPhoto(branchId, newReviewId, photo, getToken),
-        ),
-      );
-      failed = pending.filter((_, i) => results[i].status === "rejected");
-      setUploading(false);
-    }
-
-    if (failed.length === 0) {
-      haptics.success();
-      Alert.alert("You're a star!", "Your review is live.");
-      router.back();
-      return;
-    }
-
-    Alert.alert(
-      "Your review is live",
-      `${failed.length === 1 ? "1 photo" : `${failed.length} photos`} didn't upload. Check your connection and give ${failed.length === 1 ? "it" : "them"} another go.`,
-      [
-        {
-          text: "Skip photos",
-          style: "cancel",
-          onPress: () => router.back(),
-        },
-        {
-          text: "Retry",
-          onPress: () => void uploadPhotosWithRetry(newReviewId, failed),
-        },
-      ],
+    if (pending.length === 0) return [];
+    const results = await Promise.allSettled(
+      pending.map((photo) =>
+        uploadReviewPhoto(branchId, reviewIdToAttach, photo, getToken),
+      ),
     );
+    return pending.filter((_, i) => results[i].status === "rejected");
+  }
+
+  async function retryFailedPhotos() {
+    if (!posted) return;
+    setRetryingPhotos(true);
+    const failed = await uploadPhotos(posted.reviewId, posted.failed);
+    setRetryingPhotos(false);
+    setPosted((prev) => (prev ? { ...prev, failed } : prev));
+    if (failed.length === 0) haptics.success();
   }
 
   async function routeToExistingReview() {
@@ -284,6 +312,33 @@ export default function WriteReviewScreen() {
     Alert.alert(
       "Already reviewed",
       "One review per spot keeps things tidy. You can edit yours from your profile.",
+    );
+  }
+
+  if (posted) {
+    const suggestions = (saves.data ?? [])
+      .filter((b) => b.id !== branchId && !posted.reviewedBranchIds.has(b.id))
+      .slice(0, 3);
+
+    return (
+      <ReviewCelebration
+        failedPhotoCount={posted.failed.length}
+        onDone={() => router.back()}
+        onFindAnother={() => router.navigate("/search")}
+        onPickSuggestion={(branch) =>
+          router.replace({
+            pathname: "/review/[branchId]",
+            params: { branchId: branch.id },
+          })
+        }
+        onRetryPhotos={() => void retryFailedPhotos()}
+        pendingModeration={posted.pendingModeration}
+        placeName={posted.placeName}
+        rating={posted.rating}
+        retryingPhotos={retryingPhotos}
+        reviewNumber={posted.reviewNumber}
+        suggestions={suggestions}
+      />
     );
   }
 

@@ -413,11 +413,7 @@ export function useCreateReview(branchId: string) {
   return useMutation({
     mutationFn: (body: CreateReviewBody) =>
       createReview(branchId, body, getToken),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: branchKeys.detail(branchId),
-      });
-    },
+    onSuccess: () => invalidateAfterReviewChange(queryClient, branchId),
   });
 }
 

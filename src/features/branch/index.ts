@@ -16,6 +16,7 @@ export { PhotoGrid } from "./components/photo-grid";
 export { PhotoViewer } from "./components/photo-viewer";
 export { QuickActions } from "./components/quick-actions";
 export { RatingInput } from "./components/rating-input";
+export { ReviewCelebration } from "./components/review-celebration";
 export { CollapsibleReviewText, ReviewRow } from "./components/review-row";
 export { SiblingCard } from "./components/sibling-card";
 export {
