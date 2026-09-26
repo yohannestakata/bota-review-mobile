@@ -1,7 +1,7 @@
-import { Image } from "expo-image";
 import { Pressable } from "react-native";
 
 import { colors } from "@/lib/theme";
+import { Photo } from "@/components/ui/photo";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -52,12 +52,7 @@ export function BranchHero({ imageUrl, scrollY, onPress }: BranchHeroProps) {
     >
       <Pressable disabled={!onPress} onPress={onPress} style={{ flex: 1 }}>
         {imageUrl ? (
-          <Image
-            contentFit="cover"
-            source={imageUrl}
-            style={{ width: "100%", height: "100%" }}
-            transition={150}
-          />
+          <Photo style={{ width: "100%", height: "100%" }} uri={imageUrl} />
         ) : null}
       </Pressable>
     </Animated.View>

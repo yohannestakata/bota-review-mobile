@@ -2,6 +2,7 @@ import { shadows } from "@/lib/theme";
 import { Image } from "expo-image";
 import { View } from "react-native";
 
+import { Photo } from "@/components/ui/photo";
 import { FilledStar } from "@/components/ui/filled-star";
 import { SaveHeartButton } from "@/components/ui/save-heart-button";
 import { ThemedText } from "@/components/ui/themed-text";
@@ -57,11 +58,9 @@ export function BranchCard({
     <PressableScale className="w-full" onPress={() => onPress?.(branch)}>
       <View className={`w-full overflow-hidden bg-placeholder ${imageClass}`}>
         {branch.coverPhotoUrl ? (
-          <Image
-            contentFit="cover"
-            source={branch.coverPhotoUrl}
+          <Photo
             style={{ width: "100%", height: "100%" }}
-            transition={150}
+            uri={branch.coverPhotoUrl}
           />
         ) : null}
 

@@ -1,6 +1,6 @@
-import { Image } from "expo-image";
 import { View } from "react-native";
 
+import { Photo } from "@/components/ui/photo";
 import { FilledStar } from "@/components/ui/filled-star";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { BranchCard as BranchCardData } from "@/lib/api";
@@ -29,11 +29,9 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
     <PressableScale className="w-56" onPress={() => onPress(branch)}>
       <View className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-placeholder">
         {branch.coverPhotoUrl ? (
-          <Image
-            contentFit="cover"
-            source={branch.coverPhotoUrl}
+          <Photo
             style={{ width: "100%", height: "100%" }}
-            transition={150}
+            uri={branch.coverPhotoUrl}
           />
         ) : null}
 

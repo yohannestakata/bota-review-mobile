@@ -1,6 +1,6 @@
-import { Image } from "expo-image";
 import { ScrollView, View } from "react-native";
 
+import { Photo } from "@/components/ui/photo";
 import { ThemedText } from "@/components/ui/themed-text";
 import { PressableScale } from "@/components/ui/pressable-scale";
 
@@ -31,11 +31,9 @@ export function CollectionCircles({ items, onPress }: CollectionCirclesProps) {
           <View className="size-20 rounded-full bg-accent-soft p-1">
             <View className="flex-1 overflow-hidden rounded-full bg-placeholder">
               {item.coverImageUrl ? (
-                <Image
-                  contentFit="cover"
-                  source={item.coverImageUrl}
+                <Photo
                   style={{ width: "100%", height: "100%" }}
-                  transition={150}
+                  uri={item.coverImageUrl}
                 />
               ) : null}
             </View>

@@ -1,8 +1,8 @@
 import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
-import { Image } from "expo-image";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
+import { Photo } from "@/components/ui/photo";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { Stars } from "@/components/ui/stars";
 import { ThemedText } from "@/components/ui/themed-text";
@@ -71,11 +71,9 @@ export function PublicReviewRow({
                 key={photo.id}
                 onPress={() => setViewerIndex(index)}
               >
-                <Image
-                  contentFit="cover"
-                  source={photo.url}
+                <Photo
                   style={{ width: 96, height: 96, borderRadius: 12 }}
-                  transition={150}
+                  uri={photo.url}
                 />
               </PressableScale>
             ))}
