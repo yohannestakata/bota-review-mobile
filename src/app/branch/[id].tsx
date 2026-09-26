@@ -24,7 +24,6 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
-import { FilledStar } from "@/components/ui/filled-star";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { SectionTitle } from "@/components/ui/section-title";
 import { Stars } from "@/components/ui/stars";
@@ -45,6 +44,7 @@ import {
   ReplyComposerModal,
   ReviewRow,
   SiblingCard,
+  TapToRate,
   totalItemCount,
   useBranch,
   useBranchMenus,
@@ -60,6 +60,7 @@ import { analytics } from "@/lib/analytics";
 import { getErrorMessage } from "@/lib/api";
 import { formatMenuPriceRange } from "@/lib/price";
 import { useLocation } from "@/lib/use-location";
+import { useRecentlyViewed } from "@/lib/use-recently-viewed";
 
 function Chip({ label }: { label: string }) {
   return (
@@ -132,6 +133,7 @@ export default function BranchDetailScreen() {
     source?: string;
   }>();
   const branch = useBranch(id);
+  const recentlyViewed = useRecentlyViewed();
   const { coords } = useLocation();
   const siblings = useBranchSiblings(id, coords ?? undefined);
   const menus = useBranchMenus(id);
@@ -172,6 +174,16 @@ export default function BranchDetailScreen() {
 
   // branch_viewed — once per branch entry; `source` carries the originating
   // screen (home, search, saved, collection, …), defaulting to "unknown".
+  // Remember the visit so Home can later ask "Been to X lately?".
+  const placeName = branch.data?.place.name;
+  useEffect(() => {
+    if (id && placeName) {
+      recentlyViewed.add({ id, name: placeName, viewedAt: Date.now() });
+    }
+    // Record once per branch, not on every recentlyViewed identity change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, placeName]);
+
   useEffect(() => {
     if (id) {
       analytics.track("branch_viewed", {
@@ -665,8 +677,6 @@ export default function BranchDetailScreen() {
                 No reviews yet. They&apos;ll show up here as guests weigh in.
               </ThemedText>
             ) : (
-              // Plain Pressables rather than RatingInput: its pan gesture would
-              // fire on the first touch of a scroll and navigate by accident.
               <View className="items-center rounded-2xl bg-surface-muted px-4 py-5">
                 <ThemedText weight="semibold">
                   Be the first to review
@@ -674,22 +684,14 @@ export default function BranchDetailScreen() {
                 <ThemedText className="mt-1 text-center" size="sm" tone="muted">
                   Tap a star to rate your visit.
                 </ThemedText>
-                <View className="mt-3 flex-row gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Pressable
-                      accessibilityLabel={`Rate ${star} star${star === 1 ? "" : "s"}`}
-                      accessibilityRole="button"
-                      hitSlop={4}
-                      key={star}
-                      onPress={() =>
-                        requireSignIn(() =>
-                          router.push(`/review/${data.id}?rating=${star}`),
-                        )
-                      }
-                    >
-                      <FilledStar color={colors.subtle} size={32} />
-                    </Pressable>
-                  ))}
+                <View className="mt-3">
+                  <TapToRate
+                    onRate={(star) =>
+                      requireSignIn(() =>
+                        router.push(`/review/${data.id}?rating=${star}`),
+                      )
+                    }
+                  />
                 </View>
               </View>
             )}

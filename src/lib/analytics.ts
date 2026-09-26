@@ -26,6 +26,8 @@ export type AnalyticsEvents = {
   share_clicked: { branch_id: string };
   review_started: { branch_id: string };
   review_submitted: { branch_id: string; rating: number };
+  rate_nudge_tapped: { branch_id: string; rating: number };
+  rate_nudge_dismissed: { branch_id: string };
   edit_suggested: { branch_id: string; submission_type: string };
   claim_submitted: { branch_id: string };
 };

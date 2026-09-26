@@ -27,6 +27,7 @@ import {
   FilterSheet,
   type FilterSheetRef,
   SearchResultsSkeleton,
+  SearchSuggestions,
   useSearch,
   type SearchSort,
 } from "@/features/search";
@@ -36,6 +37,7 @@ import type { BranchCard as BranchCardData } from "@/lib/api";
 import { haptics } from "@/lib/haptics";
 import { colors } from "@/lib/theme";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
+import { useDeviceList } from "@/lib/use-device-list";
 import { useLocation } from "@/lib/use-location";
 
 function toggle<T>(list: T[], value: T): T[] {
@@ -60,6 +62,12 @@ export default function SearchScreen() {
   const tags = useTags();
   const { coords, status, request } = useLocation();
   const { savedIds, onToggleSave } = useSaveHandler();
+  // Only committed searches are remembered (a result opened, or the search key
+  // pressed) — never half-typed prefixes like "Tom".
+  const recentSearches = useDeviceList<string>("recent-searches", {
+    max: 6,
+    idOf: (query) => query.toLowerCase(),
+  });
 
   // "Nearby" only sorts by distance once we actually have coordinates.
   const sortByDistance = nearby && coords != null;
@@ -236,6 +244,10 @@ export default function SearchScreen() {
             className="flex-1 font-outfit text-md text-foreground"
             onChangeText={setText}
             placeholder="Coffee? Injera?"
+            onSubmitEditing={() => {
+              const query = text.trim();
+              if (query.length >= 2) recentSearches.add(query);
+            }}
             placeholderTextColor={colors.muted}
             returnKeyType="search"
             value={text}
@@ -373,9 +385,25 @@ export default function SearchScreen() {
           )
         }
         ListHeaderComponent={
-          results.length > 0 ? (
+          !active || results.length > 0 ? (
             <View className="mb-5 gap-3">
-              {search.failureCount > 0 &&
+              {!active ? (
+                <SearchSuggestions
+                  cuisines={(cuisines.data ?? []).slice(0, 8)}
+                  onClearRecent={recentSearches.clear}
+                  onPickCuisine={(id) => {
+                    analytics.track("filter_applied", {
+                      filter_type: "cuisine",
+                      filter_value: id,
+                    });
+                    setCuisineIds([id]);
+                  }}
+                  onPickRecent={setText}
+                  recent={recentSearches.items}
+                />
+              ) : null}
+              {results.length > 0 &&
+              search.failureCount > 0 &&
               !search.isFetching &&
               !search.isFetchNextPageError ? (
                 <View className="flex-row items-center justify-between gap-3 rounded-2xl bg-surface-muted px-4 py-3">
@@ -389,9 +417,11 @@ export default function SearchScreen() {
                   </Pressable>
                 </View>
               ) : null}
-              <ThemedText size="xl" weight="bold">
-                {active ? "Results" : "Explore places"}
-              </ThemedText>
+              {results.length > 0 ? (
+                <ThemedText size="xl" weight="bold">
+                  {active ? "Results" : "Explore places"}
+                </ThemedText>
+              ) : null}
             </View>
           ) : null
         }
@@ -429,9 +459,10 @@ export default function SearchScreen() {
           <BranchCard
             branch={item}
             isSaved={savedIds.has(item.id)}
-            onPress={(branch) =>
-              router.push(`/branch/${branch.id}?source=search`)
-            }
+            onPress={(branch) => {
+              if (debouncedQ.length >= 2) recentSearches.add(debouncedQ);
+              router.push(`/branch/${branch.id}?source=search`);
+            }}
             onToggleSave={onToggleSave}
           />
         )}

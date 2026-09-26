@@ -14,3 +14,4 @@ export {
   BranchCardSkeleton,
   BranchListSkeleton,
 } from "./components/branch-list-skeleton";
+export { RateRecentVisitCard } from "./components/rate-recent-visit-card";

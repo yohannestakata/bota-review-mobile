@@ -15,6 +15,7 @@ import {
   HomeSection,
   homeGreeting,
   LocationPill,
+  RateRecentVisitCard,
   TastePickerCard,
   useHomeFeed,
   useForYou,
@@ -166,6 +167,8 @@ export default function Index() {
             ready={taste.ready}
           />
         ) : null}
+
+        {home.isSuccess && isSignedIn ? <RateRecentVisitCard /> : null}
 
         {home.isPending ? <HomeFeedSkeleton /> : null}
 
