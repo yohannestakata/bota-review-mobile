@@ -40,8 +40,81 @@ export function getErrorCode(error: unknown): string | undefined {
   return error instanceof ApiError ? error.code : undefined;
 }
 
+const SIGN_IN_AGAIN =
+  "Your session timed out. Sign in again to pick up where you left off.";
+const GONE = "This isn't available anymore. Go back and pull down to refresh.";
+
+// Backend messages are written for developers ("User already has an active
+// review for this branch"), so map known codes to copy that tells the user what
+// to do next. Unmapped codes fall through to the status-based fallbacks below.
+const MESSAGE_BY_CODE: Record<string, string> = {
+  UNAUTHORIZED: SIGN_IN_AGAIN,
+  INVALID_TOKEN: SIGN_IN_AGAIN,
+  TOKEN_EXPIRED: SIGN_IN_AGAIN,
+  ACCOUNT_SUSPENDED:
+    "Your account is suspended. If you think that's a mistake, reach out to support.",
+  FORBIDDEN: "You don't have access to do that with this account.",
+  RATE_LIMITED: "You're moving fast! Wait a few seconds, then try again.",
+  VALIDATION_ERROR:
+    "Something in there didn't look right. Double-check your entries and try again.",
+  NOT_FOUND: GONE,
+  PLACE_NOT_FOUND: GONE,
+  BRANCH_NOT_FOUND: GONE,
+  COLLECTION_NOT_FOUND: GONE,
+  MENU_NOT_FOUND: GONE,
+  MENU_ITEM_NOT_FOUND: GONE,
+  PHOTO_NOT_FOUND: GONE,
+  REVIEW_NOT_FOUND: "That review was removed. Pull down to refresh the list.",
+  REPLY_NOT_FOUND: "That reply was removed. Pull down to refresh the list.",
+  REVIEW_ALREADY_EXISTS:
+    "You've already reviewed this place. Edit it anytime from Profile → Your reviews.",
+  REVIEW_CANNOT_REPORT_OWN:
+    "That's your own review. You can edit or delete it from Profile → Your reviews.",
+  REPLY_ALREADY_EXISTS:
+    "You've already replied here. Edit your reply from Profile → Your replies.",
+  REPLY_CANNOT_REPORT_OWN:
+    "That's your own reply. You can edit or delete it from Profile → Your replies.",
+  REPLY_CANNOT_REPLY_OWN:
+    "You can't reply to your own review, but you can edit it to add more.",
+  PHOTO_LIMIT_REACHED:
+    "This place has hit its photo limit. Remove one before adding another.",
+  CLAIM_ALREADY_PENDING:
+    "A claim for this business is already being reviewed. We'll let you know once it's done.",
+  CLAIM_ALREADY_VERIFIED:
+    "This business has already been claimed and verified.",
+};
+
+// Turns any thrown error into copy that says what went wrong and how to fix it.
+// Never surfaces raw backend/developer text.
 export function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Something went wrong";
+  if (error instanceof ApiError) {
+    const mapped = error.code ? MESSAGE_BY_CODE[error.code] : undefined;
+    if (mapped) return mapped;
+    if (error.status === 401) return SIGN_IN_AGAIN;
+    if (error.status === 404) return GONE;
+    if (error.status === 413) {
+      return "That's too large to upload. Try a smaller photo.";
+    }
+    if (error.status === 429) return MESSAGE_BY_CODE.RATE_LIMITED;
+    if (error.status >= 500) {
+      return "Our servers hit a bump. Give it a minute and try again.";
+    }
+    return "That didn't go through. Try again, and if it keeps happening, restart the app.";
+  }
+
+  // React Native's fetch rejects with a TypeError when there's no connection.
+  if (
+    error instanceof TypeError &&
+    /network request failed/i.test(error.message)
+  ) {
+    return "You seem to be offline. Check your connection and try again.";
+  }
+
+  if (error instanceof Error && /cloudinary/i.test(error.message)) {
+    return "A photo couldn't upload. Check your connection or try a different photo.";
+  }
+
+  return "Something went wrong on our end. Try again in a moment.";
 }
 
 export async function apiFetch<T>(

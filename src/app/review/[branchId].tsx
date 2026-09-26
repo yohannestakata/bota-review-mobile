@@ -195,24 +195,7 @@ export default function WriteReviewScreen() {
       // First review is a meaningful action — a good moment to ask about push.
       void promptAndRegisterPush(getToken);
 
-      let failed = 0;
-      if (photos.length > 0) {
-        setUploading(true);
-        const results = await Promise.allSettled(
-          photos.map((photo) =>
-            uploadReviewPhoto(branchId, review.id, photo, getToken),
-          ),
-        );
-        failed = results.filter((r) => r.status === "rejected").length;
-      }
-
-      Alert.alert(
-        "You're a star!",
-        failed > 0
-          ? `Your review is in. ${failed} photo(s) had a wobble and didn't upload.`
-          : "Your review is live.",
-      );
-      router.back();
+      await uploadPhotosWithRetry(review.id, photos);
     } catch (err) {
       // The user already has a review for this branch — send them to edit it
       // rather than leaving them stuck on a create form that can't succeed.
@@ -220,11 +203,56 @@ export default function WriteReviewScreen() {
         await routeToExistingReview();
         return;
       }
-      Alert.alert("Review hit a snag", getErrorMessage(err));
+      // The form stays mounted, so the draft is intact — offer a one-tap retry.
+      Alert.alert("Review hit a snag", getErrorMessage(err), [
+        { text: "Keep editing", style: "cancel" },
+        { text: "Try again", onPress: () => void onSubmit() },
+      ]);
     } finally {
       setUploading(false);
     }
   });
+
+  // The review itself is already saved at this point, so a photo failure never
+  // loses the review — we just offer to retry the photos that didn't make it.
+  async function uploadPhotosWithRetry(
+    newReviewId: string,
+    pending: PickedPhoto[],
+  ) {
+    let failed: PickedPhoto[] = [];
+    if (pending.length > 0) {
+      setUploading(true);
+      const results = await Promise.allSettled(
+        pending.map((photo) =>
+          uploadReviewPhoto(branchId, newReviewId, photo, getToken),
+        ),
+      );
+      failed = pending.filter((_, i) => results[i].status === "rejected");
+      setUploading(false);
+    }
+
+    if (failed.length === 0) {
+      Alert.alert("You're a star!", "Your review is live.");
+      router.back();
+      return;
+    }
+
+    Alert.alert(
+      "Your review is live",
+      `${failed.length === 1 ? "1 photo" : `${failed.length} photos`} didn't upload. Check your connection and give ${failed.length === 1 ? "it" : "them"} another go.`,
+      [
+        {
+          text: "Skip photos",
+          style: "cancel",
+          onPress: () => router.back(),
+        },
+        {
+          text: "Retry",
+          onPress: () => void uploadPhotosWithRetry(newReviewId, failed),
+        },
+      ],
+    );
+  }
 
   async function routeToExistingReview() {
     try {
