@@ -4,10 +4,10 @@ import { useEffect } from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { BackHeader } from "@/components/ui/screen-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FlashList, ListGapLg } from "@/components/ui/flash-list";
 import { ListErrorState } from "@/components/ui/list-state-placeholder";
-import { BackButton } from "@/components/ui/back-button";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   BranchCard,
@@ -30,12 +30,7 @@ export default function CollectionScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View className="flex-row items-center gap-3 px-4 py-3">
-        <BackButton onPress={() => router.back()} />
-        <ThemedText numberOfLines={1} size="xl" weight="bold">
-          {collection.data?.name ?? "Collection"}
-        </ThemedText>
-      </View>
+      <BackHeader title={collection.data?.name ?? "Collection"} />
 
       {collection.isPending ? (
         <View className="px-6 pt-2">

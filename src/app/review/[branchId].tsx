@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, TextButton } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { ControlledTextArea } from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
@@ -360,11 +360,10 @@ export default function WriteReviewScreen() {
               <ThemedText size="sm" tone="danger" weight="medium">
                 Couldn&apos;t load your saved review.
               </ThemedText>
-              <Pressable onPress={() => existingReview.refetch()}>
-                <ThemedText size="sm" tone="brand" weight="semibold">
-                  Try again
-                </ThemedText>
-              </Pressable>
+              <TextButton
+                label="Try again"
+                onPress={() => void existingReview.refetch()}
+              />
             </View>
           ) : null}
 
@@ -421,16 +420,14 @@ export default function WriteReviewScreen() {
                 </ThemedText>
               </Pressable>
               {visitDate ? (
-                <Pressable
-                  hitSlop={8}
+                <TextButton
+                  accessibilityLabel="Clear visit date"
+                  label="Clear"
                   onPress={() =>
                     setValue("visitDate", undefined, { shouldDirty: true })
                   }
-                >
-                  <ThemedText tone="muted" weight="medium">
-                    Clear
-                  </ThemedText>
-                </Pressable>
+                  tone="muted"
+                />
               ) : null}
             </View>
             {showDatePicker ? (

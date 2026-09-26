@@ -3,6 +3,7 @@ import {
   ArrowRight01Icon,
   Location01Icon,
   PencilEdit02Icon,
+  SpoonAndForkIcon,
 } from "@hugeicons/core-free-icons";
 import { useAuth } from "@clerk/clerk-expo";
 import { colors } from "@/lib/theme";
@@ -21,8 +22,12 @@ import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
 } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { SectionTitle } from "@/components/ui/section-title";
@@ -243,19 +248,16 @@ export default function BranchDetailScreen() {
 
   if (branch.isError || !branch.data) {
     return (
-      <View className="flex-1 items-center justify-center gap-3 bg-background px-6">
-        <ThemedText size="xl" weight="bold">
-          Hmm, couldn&apos;t load this spot
-        </ThemedText>
-        <Pressable onPress={() => branch.refetch()}>
-          <ThemedText tone="brand" weight="semibold">
-            Try again
-          </ThemedText>
-        </Pressable>
-        <Pressable onPress={() => router.back()}>
-          <ThemedText tone="muted">Go back</ThemedText>
-        </Pressable>
-      </View>
+      <SafeAreaView className="flex-1 justify-center bg-background">
+        <EmptyState
+          action={{ label: "Try again", onPress: () => void branch.refetch() }}
+          body="Check your connection and try again. If the place was removed, head back and pick another."
+          className=""
+          icon={SpoonAndForkIcon}
+          secondaryAction={{ label: "Go back", onPress: () => router.back() }}
+          title="Hmm, couldn't load this spot"
+        />
+      </SafeAreaView>
     );
   }
 
@@ -340,7 +342,7 @@ export default function BranchDetailScreen() {
               ) : null}
               {data.hours ? (
                 <ThemedText
-                  className={openNow ? "text-success" : "text-danger"}
+                  tone={openNow ? "success" : "danger"}
                   weight="medium"
                 >
                   {`·  ${openNow ? "Open" : "Closed"}`}

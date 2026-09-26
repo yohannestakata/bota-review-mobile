@@ -5,8 +5,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { BackHeader } from "@/components/ui/screen-header";
 import { Alert } from "@/components/ui/alert";
-import { BackButton } from "@/components/ui/back-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -71,12 +71,7 @@ export default function PublicProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View className="flex-row items-center gap-3 px-4 py-3">
-        <BackButton onPress={() => router.back()} />
-        <ThemedText size="xl" weight="bold">
-          Reviewer
-        </ThemedText>
-      </View>
+      <BackHeader title="Reviewer" />
 
       {isLoading ? (
         <View className="gap-5 px-6 pt-4">

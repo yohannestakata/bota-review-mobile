@@ -16,10 +16,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
-import { ChipButton } from "@/components/ui/button";
+import { ChipButton, TextButton } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { AppIcon } from "@/components/ui/huge-icon";
-import { ListErrorState } from "@/components/ui/list-state-placeholder";
+import {
+  ListErrorState,
+  StaleDataBanner,
+} from "@/components/ui/list-state-placeholder";
 import { ThemedText } from "@/components/ui/themed-text";
 import { FlashList, ListGapLg } from "@/components/ui/flash-list";
 import { BranchCard, useSaveHandler } from "@/features/home";
@@ -253,27 +256,39 @@ export default function SearchScreen() {
             value={text}
           />
           {text.length > 0 ? (
-            <Pressable hitSlop={8} onPress={() => setText("")}>
+            <Pressable
+              accessibilityLabel="Clear search"
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={() => setText("")}
+            >
               <AppIcon color={colors.muted} icon={Cancel01Icon} size={18} />
             </Pressable>
           ) : null}
         </View>
 
         <View className="flex-row gap-2">
+          {/* Styled to match ChipButton (selected = filled) so it reads as part
+              of the same row as Nearby / Open now. */}
           <Pressable
-            className={`flex-row items-center gap-2 rounded-full border px-4 py-2 ${
+            accessibilityRole="button"
+            className={`flex-row items-center gap-2 rounded-full px-4 py-2 ${
               filterCount > 0
-                ? "border-foreground"
-                : "border-placeholder bg-surface"
+                ? "bg-primary"
+                : "border border-placeholder bg-surface"
             }`}
             onPress={() => filterSheetRef.current?.present()}
           >
             <AppIcon
-              color={colors.foreground}
+              color={filterCount > 0 ? colors.inverse : colors.foreground}
               icon={FilterHorizontalIcon}
               size={16}
             />
-            <ThemedText size="sm" weight="medium">
+            <ThemedText
+              size="sm"
+              tone={filterCount > 0 ? "inverse" : "default"}
+              weight="medium"
+            >
               {filterCount > 0 ? `Filters · ${filterCount}` : "Filters"}
             </ThemedText>
           </Pressable>
@@ -306,7 +321,9 @@ export default function SearchScreen() {
           >
             {activeChips.map((chip) => (
               <Pressable
-                className="flex-row items-center gap-1.5 rounded-full border border-placeholder bg-surface px-3 py-1.5"
+                accessibilityLabel={`Remove ${chip.label} filter`}
+                accessibilityRole="button"
+                className="flex-row items-center gap-1.5 rounded-full border border-placeholder bg-surface px-4 py-2"
                 hitSlop={4}
                 key={chip.key}
                 onPress={chip.onRemove}
@@ -406,16 +423,7 @@ export default function SearchScreen() {
               search.failureCount > 0 &&
               !search.isFetching &&
               !search.isFetchNextPageError ? (
-                <View className="flex-row items-center justify-between gap-3 rounded-2xl bg-surface-muted px-4 py-3">
-                  <ThemedText className="flex-1" size="sm" tone="muted">
-                    Showing saved results — couldn&apos;t refresh.
-                  </ThemedText>
-                  <Pressable hitSlop={6} onPress={() => search.refetch()}>
-                    <ThemedText size="sm" tone="brand" weight="semibold">
-                      Retry
-                    </ThemedText>
-                  </Pressable>
-                </View>
+                <StaleDataBanner onRetry={() => search.refetch()} />
               ) : null}
               {results.length > 0 ? (
                 <ThemedText size="xl" weight="bold">
@@ -435,11 +443,10 @@ export default function SearchScreen() {
               <ThemedText size="sm" tone="muted">
                 Couldn&apos;t load more places.
               </ThemedText>
-              <Pressable onPress={() => search.fetchNextPage()}>
-                <ThemedText tone="brand" weight="semibold">
-                  Try again
-                </ThemedText>
-              </Pressable>
+              <TextButton
+                label="Try again"
+                onPress={() => void search.fetchNextPage()}
+              />
             </View>
           ) : null
         }

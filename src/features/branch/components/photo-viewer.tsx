@@ -1,12 +1,5 @@
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { useState } from "react";
-import {
-  Dimensions,
-  FlatList,
-  Modal,
-  Pressable,
-  StyleSheet,
-} from "react-native";
+import { Dimensions, FlatList, Modal, StyleSheet, View } from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -22,8 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AppIcon } from "@/components/ui/huge-icon";
-import { colors } from "@/lib/theme";
+import { CloseButton } from "@/components/ui/close-button";
 
 import { ZoomableImage } from "./zoomable-image";
 
@@ -127,14 +119,9 @@ export function PhotoViewer({
           </Animated.View>
         </GestureDetector>
 
-        <Pressable
-          className="absolute left-4 size-10 items-center justify-center rounded-full bg-white/20"
-          hitSlop={8}
-          onPress={onClose}
-          style={{ top: insets.top + 8 }}
-        >
-          <AppIcon color={colors.inverse} icon={Cancel01Icon} size={22} />
-        </Pressable>
+        <View className="absolute left-4" style={{ top: insets.top + 8 }}>
+          <CloseButton onPress={onClose} overlay />
+        </View>
       </GestureHandlerRootView>
     </Modal>
   );

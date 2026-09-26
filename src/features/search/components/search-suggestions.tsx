@@ -1,6 +1,7 @@
 import { Clock01Icon } from "@hugeicons/core-free-icons";
 import { Pressable, View } from "react-native";
 
+import { ChipButton, TextButton } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { haptics } from "@/lib/haptics";
@@ -31,18 +32,19 @@ export function SearchSuggestions({
             <ThemedText size="lg" weight="semibold">
               Recent
             </ThemedText>
-            <Pressable hitSlop={8} onPress={onClearRecent}>
-              <ThemedText size="sm" tone="muted" weight="medium">
-                Clear
-              </ThemedText>
-            </Pressable>
+            <TextButton
+              accessibilityLabel="Clear recent searches"
+              label="Clear"
+              onPress={onClearRecent}
+              tone="muted"
+            />
           </View>
           <View className="flex-row flex-wrap gap-2">
             {recent.map((query) => (
               <Pressable
                 accessibilityLabel={`Search ${query} again`}
                 accessibilityRole="button"
-                className="flex-row items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-2"
+                className="flex-row items-center gap-1.5 rounded-full border border-placeholder bg-surface px-4 py-2"
                 key={query}
                 onPress={() => onPickRecent(query)}
               >
@@ -63,18 +65,15 @@ export function SearchSuggestions({
           </ThemedText>
           <View className="flex-row flex-wrap gap-2">
             {cuisines.map((cuisine) => (
-              <Pressable
-                className="rounded-full bg-surface-muted px-4 py-2"
+              <ChipButton
                 key={cuisine.id}
+                label={cuisine.name}
                 onPress={() => {
                   haptics.select();
                   onPickCuisine(cuisine.id);
                 }}
-              >
-                <ThemedText size="sm" weight="medium">
-                  {cuisine.name}
-                </ThemedText>
-              </Pressable>
+                selected={false}
+              />
             ))}
           </View>
         </View>

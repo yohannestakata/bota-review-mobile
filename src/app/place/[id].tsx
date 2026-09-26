@@ -5,8 +5,9 @@ import { useCallback } from "react";
 import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { ListErrorState } from "@/components/ui/list-state-placeholder";
+import { BackHeader } from "@/components/ui/screen-header";
 import { FlashList, ListGapLg } from "@/components/ui/flash-list";
-import { BackButton } from "@/components/ui/back-button";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { colors } from "@/lib/theme";
@@ -47,33 +48,17 @@ export default function PlaceOverviewScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View className="flex-row items-center gap-3 px-4 py-3">
-        <BackButton onPress={() => router.back()} />
-        <ThemedText
-          className="shrink"
-          numberOfLines={1}
-          size="lg"
-          weight="semibold"
-        >
-          {place.data?.name ?? "Locations"}
-        </ThemedText>
-      </View>
+      <BackHeader title={place.data?.name ?? "Locations"} />
 
       {place.isPending ? (
         <View className="px-6 pt-2">
           <BranchListSkeleton />
         </View>
       ) : place.isError || !place.data ? (
-        <View className="mt-24 items-center gap-3 px-6">
-          <ThemedText tone="muted">
-            Couldn&apos;t load these locations.
-          </ThemedText>
-          <Pressable onPress={() => place.refetch()}>
-            <ThemedText tone="brand" weight="semibold">
-              Try again
-            </ThemedText>
-          </Pressable>
-        </View>
+        <ListErrorState
+          errorText="Couldn't load these locations. Check your connection and try again."
+          onRetry={() => place.refetch()}
+        />
       ) : (
         <FlashList
           contentContainerClassName="px-6 pb-10 pt-2"

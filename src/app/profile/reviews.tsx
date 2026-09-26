@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ScreenHeader } from "@/components/ui/screen-header";
+import { BackHeader } from "@/components/ui/screen-header";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
 import { ListStatePlaceholder } from "@/components/ui/list-state-placeholder";
 import { useDeleteReview } from "@/features/branch";
@@ -59,7 +59,7 @@ export default function MyReviewsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <ScreenHeader title="Your reviews" />
+      <BackHeader title="Your reviews" />
 
       <FlashList
         contentContainerClassName="px-6 pb-10 pt-2"

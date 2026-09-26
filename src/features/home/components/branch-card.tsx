@@ -1,4 +1,4 @@
-import { colors, shadows } from "@/lib/theme";
+import { shadows } from "@/lib/theme";
 import { Image } from "expo-image";
 import { Pressable, View } from "react-native";
 
@@ -67,11 +67,8 @@ export function BranchCard({
         {branch.isOpenNow !== undefined ? (
           <View className="absolute left-3 top-3 rounded-full bg-surface px-3 py-1">
             <ThemedText
-              className={branch.isOpenNow ? "text-success" : "text-danger"}
               size="xs"
-              style={{
-                color: branch.isOpenNow ? colors.success : colors.danger,
-              }}
+              tone={branch.isOpenNow ? "success" : "danger"}
               weight="medium"
             >
               {branch.isOpenNow ? "Open" : "Closed"}

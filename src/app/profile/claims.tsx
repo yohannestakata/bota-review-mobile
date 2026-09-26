@@ -3,8 +3,8 @@ import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { BackHeader } from "@/components/ui/screen-header";
 import { FlashList, ListGapSm } from "@/components/ui/flash-list";
-import { BackButton } from "@/components/ui/back-button";
 import { ListErrorState } from "@/components/ui/list-state-placeholder";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -27,7 +27,7 @@ const STATUS_TONE: Record<OwnClaim["status"], "muted" | "brand" | "danger"> = {
 function ClaimCard({ claim }: { claim: OwnClaim }) {
   return (
     <Pressable
-      className="gap-1.5 rounded-2xl border border-placeholder p-4"
+      className="gap-1.5 rounded-2xl border border-placeholder bg-surface p-4"
       onPress={() => router.push(`/branch/${claim.branchId}`)}
     >
       <ThemedText weight="medium">
@@ -51,12 +51,7 @@ export default function MyClaimsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View className="flex-row items-center gap-3 px-4 py-3">
-        <BackButton onPress={() => router.back()} />
-        <ThemedText size="xl" weight="bold">
-          My Claims
-        </ThemedText>
-      </View>
+      <BackHeader title="My business" />
 
       {claims.isPending ? (
         <View className="gap-3 px-6 pt-2">

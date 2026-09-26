@@ -64,7 +64,7 @@ export function RateRecentVisitCard() {
   if (!place) return null;
 
   return (
-    <View className="mx-6 mt-6 rounded-2xl bg-personalized p-4">
+    <View className="mt-6 bg-personalized px-6 py-5">
       <View className="flex-row items-start gap-3">
         <View className="flex-1">
           <ThemedText size="lg" weight="semibold">

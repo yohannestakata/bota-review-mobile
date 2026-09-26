@@ -1,5 +1,9 @@
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import { UserCircleIcon } from "@hugeicons/core-free-icons";
+import {
+  SpoonAndForkIcon,
+  UserCircleIcon,
+  Wifi01Icon,
+} from "@hugeicons/core-free-icons";
 import { colors } from "@/lib/theme";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo } from "react";
@@ -22,6 +26,8 @@ import {
   useSaveHandler,
   useTastePreferences,
 } from "@/features/home";
+import { StaleDataBanner } from "@/components/ui/list-state-placeholder";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Avatar } from "@/components/ui/avatar";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
@@ -173,40 +179,31 @@ export default function Index() {
         {home.isPending ? <HomeFeedSkeleton /> : null}
 
         {home.isError && !home.data ? (
-          <View className="mt-24 items-center gap-3 px-6">
-            <ThemedText size="xl" tone="heading" weight="bold">
-              Well, this is awkward
-            </ThemedText>
-            <ThemedText className="text-center" tone="muted">
-              The feed didn&apos;t load. Mind giving it another go?
-            </ThemedText>
-            <Pressable onPress={() => home.refetch()}>
-              <ThemedText tone="brand" weight="semibold">
-                Try again
-              </ThemedText>
-            </Pressable>
-          </View>
+          <EmptyState
+            action={{ label: "Try again", onPress: () => void home.refetch() }}
+            body="The feed didn't load. Check your connection and give it another go."
+            icon={Wifi01Icon}
+            title="Well, this is awkward"
+          />
         ) : null}
 
         {home.isSuccess && isEmpty ? (
-          <View className="mt-24 items-center px-6">
-            <ThemedText tone="muted">
-              It&apos;s a little quiet here — tasty spots are on the way.
-            </ThemedText>
-          </View>
+          <EmptyState
+            action={{
+              label: "Suggest a place",
+              onPress: () => router.navigate("/submissions"),
+            }}
+            body="Tasty spots are on the way. Know a great one? Add it and we'll get it listed."
+            icon={SpoonAndForkIcon}
+            title="It's a little quiet here"
+          />
         ) : null}
 
         {home.data && home.failureCount > 0 && !home.isFetching ? (
-          <View className="mx-6 mt-4 flex-row items-center justify-between gap-3 rounded-2xl bg-surface-muted px-4 py-3">
-            <ThemedText className="flex-1" size="sm" tone="muted">
-              Showing saved results — couldn&apos;t refresh.
-            </ThemedText>
-            <Pressable hitSlop={6} onPress={() => home.refetch()}>
-              <ThemedText size="sm" tone="brand" weight="semibold">
-                Retry
-              </ThemedText>
-            </Pressable>
-          </View>
+          <StaleDataBanner
+            className="mx-6 mt-4"
+            onRetry={() => home.refetch()}
+          />
         ) : null}
 
         {home.isSuccess && collections.length > 0 ? (

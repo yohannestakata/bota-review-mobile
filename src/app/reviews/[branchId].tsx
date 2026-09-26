@@ -4,13 +4,12 @@ import { router, type Href, useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { BackHeader } from "@/components/ui/screen-header";
 import { Alert } from "@/components/ui/alert";
-import { BackButton } from "@/components/ui/back-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FlashList } from "@/components/ui/flash-list";
 import { ListErrorState } from "@/components/ui/list-state-placeholder";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ThemedText } from "@/components/ui/themed-text";
 import {
   ReplyComposerModal,
   ReviewRow,
@@ -59,19 +58,7 @@ export default function BranchReviewsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View className="flex-row items-center gap-3 px-4 py-3">
-        <BackButton onPress={() => router.back()} />
-        <View className="flex-1">
-          <ThemedText size="xl" weight="bold">
-            Reviews
-          </ThemedText>
-          {name ? (
-            <ThemedText numberOfLines={1} size="sm" tone="muted">
-              {name}
-            </ThemedText>
-          ) : null}
-        </View>
-      </View>
+      <BackHeader subtitle={name} title="Reviews" />
 
       {reviews.isPending ? (
         <View className="gap-3 px-6 pt-2">

@@ -14,9 +14,9 @@ import {
   useImperativeHandle,
   useRef,
 } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
-import { Button, ChipButton } from "@/components/ui/button";
+import { Button, ChipButton, TextButton } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { Cuisine, Neighborhood, Tag } from "@/lib/api";
 import { colors } from "@/lib/theme";
@@ -138,11 +138,12 @@ export const FilterSheet = forwardRef<FilterSheetRef, FilterSheetProps>(
           <ThemedText size="lg" weight="semibold">
             Filters
           </ThemedText>
-          <Pressable hitSlop={8} onPress={onClear}>
-            <ThemedText tone="muted" weight="medium">
-              Clear
-            </ThemedText>
-          </Pressable>
+          <TextButton
+            accessibilityLabel="Clear all filters"
+            label="Clear"
+            onPress={onClear}
+            tone="muted"
+          />
         </View>
 
         <BottomSheetScrollView

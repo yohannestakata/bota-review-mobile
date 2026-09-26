@@ -5,7 +5,6 @@ import { FilledStar } from "@/components/ui/filled-star";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 import { formatMenuPriceRange } from "@/lib/price";
-import { colors } from "@/lib/theme";
 
 type SiblingCardProps = {
   branch: BranchCardData;
@@ -40,11 +39,8 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
         {branch.isOpenNow !== undefined ? (
           <View className="absolute left-2 top-2 rounded-full bg-surface px-2 py-0.5">
             <ThemedText
-              className={branch.isOpenNow ? "text-success" : "text-danger"}
               size="xs"
-              style={{
-                color: branch.isOpenNow ? colors.success : colors.danger,
-              }}
+              tone={branch.isOpenNow ? "success" : "danger"}
               weight="medium"
             >
               {branch.isOpenNow ? "Open" : "Closed"}

@@ -17,7 +17,9 @@ type TextTone =
   | "muted"
   | "brand"
   | "inverse"
-  | "danger";
+  | "danger"
+  | "success"
+  | "warning";
 type TextWeight = "normal" | "medium" | "semibold" | "bold";
 
 type ThemedTextProps = ComponentProps<typeof Text> & {
@@ -45,6 +47,8 @@ const toneClass: Record<TextTone, string> = {
   brand: "text-primary",
   inverse: "text-inverse",
   danger: "text-danger",
+  success: "text-success",
+  warning: "text-warning",
 };
 
 const weightClass: Record<TextWeight, string> = {

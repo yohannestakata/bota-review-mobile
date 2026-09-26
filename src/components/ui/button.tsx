@@ -118,6 +118,41 @@ export function Button({
   );
 }
 
+// An inline text action ("Try again", "Clear", "Edit"). One size, weight and
+// hit area everywhere so these links stop drifting screen to screen. Use
+// `Button variant="ghost"` instead when the action needs button height.
+export function TextButton({
+  label,
+  onPress,
+  tone = "brand",
+  size = "sm",
+  disabled = false,
+  accessibilityLabel,
+}: {
+  label: string;
+  onPress: () => void;
+  /** `inverse` is for dark surfaces such as the photo viewer. */
+  tone?: "brand" | "muted" | "danger" | "inverse";
+  size?: "sm" | "md";
+  disabled?: boolean;
+  accessibilityLabel?: string;
+}) {
+  return (
+    <Pressable
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityRole="button"
+      className={disabled ? "opacity-40" : ""}
+      disabled={disabled}
+      hitSlop={8}
+      onPress={onPress}
+    >
+      <ThemedText size={size} tone={tone} weight="semibold">
+        {label}
+      </ThemedText>
+    </Pressable>
+  );
+}
+
 export function IconButton({
   icon,
   onPress,

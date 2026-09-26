@@ -1,8 +1,7 @@
-import { router } from "expo-router";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { CloseButton } from "@/components/ui/close-button";
+import { BackHeader } from "@/components/ui/screen-header";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useTasteOptionsQuery, useTastePreferences } from "@/features/home";
 import { cn } from "@/lib/cn";
@@ -15,13 +14,7 @@ export default function TastePreferencesScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-row items-center justify-between px-4 py-3">
-        <CloseButton onPress={() => router.back()} />
-        <ThemedText size="xl" weight="bold">
-          Your tastes
-        </ThemedText>
-        <View className="w-6" />
-      </View>
+      <BackHeader title="Your tastes" />
 
       <View className="px-6 pt-3">
         <ThemedText size="xl" tone="heading" weight="bold">

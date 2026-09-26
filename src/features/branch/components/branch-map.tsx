@@ -4,7 +4,9 @@ import {
   TransformRequestManager,
   ViewAnnotation,
 } from "@maplibre/maplibre-react-native";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+
+import { ThemedText } from "@/components/ui/themed-text";
 import Svg, { Circle, Path } from "react-native-svg";
 
 import { colors } from "@/lib/theme";
@@ -17,7 +19,7 @@ function MapPin() {
         d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20C24 5.373 18.627 0 12 0z"
         fill={colors.primary}
       />
-      <Circle cx="12" cy="12" r="4.5" fill="#ffffff" />
+      <Circle cx="12" cy="12" r="4.5" fill={colors.inverse} />
     </Svg>
   );
 }
@@ -80,7 +82,9 @@ export function BranchMap({ latitude, longitude }: BranchMapProps) {
         className="absolute bottom-1.5 right-1.5 rounded bg-background/80 px-1.5 py-0.5"
         pointerEvents="none"
       >
-        <Text style={{ color: colors.muted, fontSize: 10 }}>© Gebeta Maps</Text>
+        <ThemedText size="xs" tone="muted">
+          © Gebeta Maps
+        </ThemedText>
       </View>
     </View>
   );

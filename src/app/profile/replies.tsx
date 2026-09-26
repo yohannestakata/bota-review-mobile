@@ -3,8 +3,9 @@ import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { TextButton } from "@/components/ui/button";
+import { BackHeader } from "@/components/ui/screen-header";
 import { Alert } from "@/components/ui/alert";
-import { BackButton } from "@/components/ui/back-button";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
 import { ListErrorState } from "@/components/ui/list-state-placeholder";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,7 +38,7 @@ function ReplyRow({
 }) {
   const status = statusLabel(reply.moderationStatus);
   return (
-    <View className="gap-2 rounded-2xl border border-placeholder p-4">
+    <View className="gap-2 rounded-2xl border border-placeholder bg-surface p-4">
       <Pressable
         onPress={() => router.push(`/branch/${reply.branchId}`)}
         className="flex-row items-center justify-between gap-2"
@@ -72,16 +73,17 @@ function ReplyRow({
           </ThemedText>
         ) : null}
         <View className="flex-1" />
-        <Pressable hitSlop={6} onPress={() => onEdit(reply)}>
-          <ThemedText size="sm" tone="brand" weight="medium">
-            Edit
-          </ThemedText>
-        </Pressable>
-        <Pressable hitSlop={6} onPress={() => onDelete(reply)}>
-          <ThemedText size="sm" tone="danger" weight="medium">
-            Delete
-          </ThemedText>
-        </Pressable>
+        <TextButton
+          accessibilityLabel="Edit reply"
+          label="Edit"
+          onPress={() => onEdit(reply)}
+        />
+        <TextButton
+          accessibilityLabel="Delete reply"
+          label="Delete"
+          onPress={() => onDelete(reply)}
+          tone="danger"
+        />
       </View>
     </View>
   );
@@ -130,12 +132,7 @@ export default function MyRepliesScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View className="flex-row items-center gap-3 px-4 py-3">
-        <BackButton onPress={() => router.back()} />
-        <ThemedText size="xl" weight="bold">
-          Your replies
-        </ThemedText>
-      </View>
+      <BackHeader title="Your replies" />
 
       {replies.isPending ? (
         <View className="gap-3 px-6 pt-2">

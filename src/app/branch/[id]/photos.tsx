@@ -14,6 +14,7 @@ import {
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { TextButton } from "@/components/ui/button";
 import { CloseButton } from "@/components/ui/close-button";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useBranch } from "@/features/branch";
@@ -101,11 +102,21 @@ export default function PhotoGalleryScreen() {
           {branch.isPending ? (
             <ActivityIndicator color={colors.inverse} />
           ) : (
-            <ThemedText className="text-center" tone="inverse">
-              {branch.isError
-                ? "Couldn't load photos. Try again."
-                : "No photos here yet."}
-            </ThemedText>
+            <View className="items-center gap-3">
+              <ThemedText className="text-center" tone="inverse">
+                {branch.isError
+                  ? "Couldn't load photos. Check your connection."
+                  : "No photos here yet."}
+              </ThemedText>
+              {branch.isError ? (
+                <TextButton
+                  label="Try again"
+                  onPress={() => void branch.refetch()}
+                  size="md"
+                  tone="inverse"
+                />
+              ) : null}
+            </View>
           )}
         </View>
       ) : null}

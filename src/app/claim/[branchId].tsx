@@ -154,11 +154,11 @@ function ClaimStatusScreen({ verified }: { verified: boolean }) {
             ? "You're verified as the owner of this listing."
             : "Your claim is being reviewed. We'll contact you to verify your ownership."}
         </ThemedText>
-        <Pressable className="mt-2" onPress={() => router.back()}>
-          <ThemedText tone="brand" weight="semibold">
-            Done
-          </ThemedText>
-        </Pressable>
+        <Button
+          className="mt-4 self-stretch"
+          label="Done"
+          onPress={() => router.back()}
+        />
       </View>
     </SafeAreaView>
   );

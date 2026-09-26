@@ -34,7 +34,7 @@ export function MenuItemRow({
 
       <View className="flex-1 gap-0.5">
         <ThemedText
-          className={item.isAvailable ? "" : "text-muted"}
+          tone={item.isAvailable ? "default" : "muted"}
           weight="medium"
         >
           {item.name}
@@ -45,7 +45,7 @@ export function MenuItemRow({
           </ThemedText>
         ) : null}
         {!item.isAvailable ? (
-          <ThemedText className="text-danger" size="xs" weight="medium">
+          <ThemedText size="xs" tone="danger" weight="medium">
             Currently unavailable
           </ThemedText>
         ) : null}

@@ -1,5 +1,6 @@
 import { Pressable, View } from "react-native";
 
+import { TextButton } from "@/components/ui/button";
 import { Stars } from "@/components/ui/stars";
 import { ThemedText } from "@/components/ui/themed-text";
 
@@ -7,19 +8,23 @@ import type { MyReview } from "../api";
 
 const STATUS_STYLES: Record<
   MyReview["moderationStatus"],
-  { label: string; bg: string; text: string }
+  {
+    label: string;
+    bg: string;
+    tone: "warning" | "success" | "danger" | "muted";
+  }
 > = {
-  pending: { label: "Posted", bg: "bg-warning-soft", text: "text-warning" },
-  approved: { label: "Published", bg: "bg-success-soft", text: "text-success" },
-  rejected: { label: "Rejected", bg: "bg-danger-soft", text: "text-danger" },
-  archived: { label: "Archived", bg: "bg-surface-muted", text: "text-muted" },
+  pending: { label: "Posted", bg: "bg-warning-soft", tone: "warning" },
+  approved: { label: "Published", bg: "bg-success-soft", tone: "success" },
+  rejected: { label: "Rejected", bg: "bg-danger-soft", tone: "danger" },
+  archived: { label: "Archived", bg: "bg-surface-muted", tone: "muted" },
 };
 
 function StatusBadge({ status }: { status: MyReview["moderationStatus"] }) {
   const style = STATUS_STYLES[status];
   return (
     <View className={`rounded-full px-2.5 py-1 ${style.bg}`}>
-      <ThemedText className={style.text} size="xs" weight="medium">
+      <ThemedText size="xs" tone={style.tone} weight="medium">
         {style.label}
       </ThemedText>
     </View>
@@ -59,16 +64,17 @@ export function MyReviewRow({
 
       {canManage ? (
         <View className="flex-row gap-5 pt-1">
-          <Pressable hitSlop={6} onPress={() => onEdit(review)}>
-            <ThemedText size="sm" tone="brand" weight="medium">
-              Edit
-            </ThemedText>
-          </Pressable>
-          <Pressable hitSlop={6} onPress={() => onDelete(review)}>
-            <ThemedText className="text-danger" size="sm" weight="medium">
-              Delete
-            </ThemedText>
-          </Pressable>
+          <TextButton
+            accessibilityLabel="Edit review"
+            label="Edit"
+            onPress={() => onEdit(review)}
+          />
+          <TextButton
+            accessibilityLabel="Delete review"
+            label="Delete"
+            onPress={() => onDelete(review)}
+            tone="danger"
+          />
         </View>
       ) : null}
     </Pressable>
