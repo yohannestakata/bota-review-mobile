@@ -6,7 +6,12 @@ import {
 import { Image } from "expo-image";
 import { useEffect, type ComponentProps } from "react";
 import { Pressable, ScrollView, View } from "react-native";
-import Animated, { FadeIn, FadeInDown, ZoomIn } from "react-native-reanimated";
+import Animated, {
+  Easing,
+  FadeIn,
+  Keyframe,
+  useReducedMotion,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
@@ -19,10 +24,43 @@ import { colors } from "@/lib/theme";
 
 type IconType = ComponentProps<typeof AppIcon>["icon"];
 
-const STAR_STAGGER_MS = 110;
-// Copy and actions land just after the last star, so the moment reads in order:
-// stars fill → headline → what's next.
-const CONTENT_DELAY_MS = 5 * STAR_STAGGER_MS + 150;
+// Rare-tier moment (once per posted review), purpose: confirmation. Kept
+// restrained: no springs (nothing was thrown), nothing scales from zero, every
+// piece is in within ~450ms so "Done" is never waiting on the animation.
+const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
+const ENTER_MS = 250;
+const STAR_STAGGER_MS = 40;
+
+// Built once at module scope — an inline builder chain in JSX rebuilds on
+// every render.
+const STAR_ENTERING = [0, 1, 2, 3, 4].map((index) =>
+  new Keyframe({
+    0: { opacity: 0, transform: [{ scale: 0.9 }] },
+    100: { opacity: 1, transform: [{ scale: 1 }], easing: EASE_OUT },
+  })
+    .duration(ENTER_MS)
+    .delay(index * STAR_STAGGER_MS),
+);
+const HEADLINE_ENTERING = new Keyframe({
+  0: { opacity: 0, transform: [{ translateY: 8 }] },
+  100: { opacity: 1, transform: [{ translateY: 0 }], easing: EASE_OUT },
+})
+  .duration(ENTER_MS)
+  .delay(120);
+const BADGE_ENTERING = new Keyframe({
+  0: { opacity: 0, transform: [{ scale: 0.97 }] },
+  100: { opacity: 1, transform: [{ scale: 1 }], easing: EASE_OUT },
+})
+  .duration(ENTER_MS)
+  .delay(200);
+const CONTENT_ENTERING = new Keyframe({
+  0: { opacity: 0 },
+  100: { opacity: 1, easing: EASE_OUT },
+})
+  .duration(ENTER_MS)
+  .delay(200);
+// Reduced motion: fewer and gentler — keep the fade, drop scale and movement.
+const REDUCED_ENTERING = FadeIn.duration(200);
 
 // The payoff after posting a review: stars fill in one by one, then the user is
 // offered a natural next step (another place they've saved) instead of being
@@ -55,6 +93,9 @@ export function ReviewCelebration({
   onFindAnother: () => void;
   onDone: () => void;
 }) {
+  const reduced = useReducedMotion();
+
+  // Same frame as the visual: the success tap lands as the stars appear.
   useEffect(() => {
     haptics.success();
   }, []);
@@ -77,9 +118,7 @@ export function ReviewCelebration({
           <View className="flex-row gap-2">
             {[1, 2, 3, 4, 5].map((star) => (
               <Animated.View
-                entering={ZoomIn.delay(star * STAR_STAGGER_MS)
-                  .springify()
-                  .damping(9)}
+                entering={reduced ? REDUCED_ENTERING : STAR_ENTERING[star - 1]}
                 key={star}
               >
                 <FilledStar
@@ -92,7 +131,7 @@ export function ReviewCelebration({
 
           <Animated.View
             className="mt-8 items-center"
-            entering={FadeInDown.delay(CONTENT_DELAY_MS).duration(350)}
+            entering={reduced ? REDUCED_ENTERING : HEADLINE_ENTERING}
           >
             <ThemedText className="text-center" size="3xl" weight="bold">
               {headline}
@@ -105,14 +144,12 @@ export function ReviewCelebration({
 
         <Animated.View
           className="mt-8 gap-6"
-          entering={FadeIn.delay(CONTENT_DELAY_MS + 200).duration(350)}
+          entering={reduced ? REDUCED_ENTERING : CONTENT_ENTERING}
         >
           {newBadge ? (
             <Animated.View
               className="flex-row items-center gap-4 rounded-2xl bg-accent-soft p-4"
-              entering={ZoomIn.delay(CONTENT_DELAY_MS + 350)
-                .springify()
-                .damping(12)}
+              entering={reduced ? REDUCED_ENTERING : BADGE_ENTERING}
             >
               <View className="size-12 items-center justify-center rounded-full bg-surface">
                 <AppIcon color={colors.accent} icon={newBadge.icon} size={24} />
@@ -173,7 +210,7 @@ export function ReviewCelebration({
 
       <Animated.View
         className="gap-1 px-6 pb-2 pt-2"
-        entering={FadeIn.delay(CONTENT_DELAY_MS + 200).duration(350)}
+        entering={reduced ? REDUCED_ENTERING : CONTENT_ENTERING}
       >
         <Button label="Done" onPress={onDone} />
         {suggestions.length === 0 ? (
