@@ -5,3 +5,5 @@ export { ProfileCompletionCard } from "./components/profile-completion-card";
 export { ProfileReviewsSkeleton } from "./components/profile-reviews-skeleton";
 export { useProfileCompletion } from "./use-profile-completion";
 export { PublicReviewRow } from "./components/public-review-row";
+export { MilestoneBadges, ProfileBadges } from "./components/milestone-badges";
+export { milestoneIcon, useSeenMilestones } from "./milestone-meta";

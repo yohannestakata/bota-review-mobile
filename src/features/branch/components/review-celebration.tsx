@@ -4,7 +4,7 @@ import {
   StarIcon,
 } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
-import { useEffect } from "react";
+import { useEffect, type ComponentProps } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import Animated, { FadeIn, FadeInDown, ZoomIn } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,6 +17,8 @@ import type { BranchCard } from "@/lib/api";
 import { haptics } from "@/lib/haptics";
 import { colors } from "@/lib/theme";
 
+type IconType = ComponentProps<typeof AppIcon>["icon"];
+
 const STAR_STAGGER_MS = 110;
 // Copy and actions land just after the last star, so the moment reads in order:
 // stars fill → headline → what's next.
@@ -27,6 +29,7 @@ const CONTENT_DELAY_MS = 5 * STAR_STAGGER_MS + 150;
 // dropped back where they started.
 export function ReviewCelebration({
   rating,
+  newBadge,
   placeName,
   reviewNumber,
   pendingModeration,
@@ -39,6 +42,8 @@ export function ReviewCelebration({
   onDone,
 }: {
   rating: number;
+  /** A badge this review just unlocked — the unexpected reward. */
+  newBadge?: { title: string; description: string; icon: IconType };
   placeName?: string;
   reviewNumber?: number;
   pendingModeration: boolean;
@@ -102,6 +107,30 @@ export function ReviewCelebration({
           className="mt-8 gap-6"
           entering={FadeIn.delay(CONTENT_DELAY_MS + 200).duration(350)}
         >
+          {newBadge ? (
+            <Animated.View
+              className="flex-row items-center gap-4 rounded-2xl bg-accent-soft p-4"
+              entering={ZoomIn.delay(CONTENT_DELAY_MS + 350)
+                .springify()
+                .damping(12)}
+            >
+              <View className="size-12 items-center justify-center rounded-full bg-surface">
+                <AppIcon color={colors.accent} icon={newBadge.icon} size={24} />
+              </View>
+              <View className="flex-1">
+                <ThemedText size="xs" tone="muted" weight="semibold">
+                  NEW BADGE UNLOCKED
+                </ThemedText>
+                <ThemedText size="lg" weight="bold">
+                  {newBadge.title}
+                </ThemedText>
+                <ThemedText size="sm" tone="muted">
+                  {newBadge.description}
+                </ThemedText>
+              </View>
+            </Animated.View>
+          ) : null}
+
           {failedPhotoCount > 0 ? (
             <View className="flex-row items-center gap-3 rounded-2xl bg-warning-soft p-4">
               <AppIcon

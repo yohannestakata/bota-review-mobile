@@ -4,7 +4,7 @@ import { Calendar03Icon } from "@hugeicons/core-free-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ComponentProps } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Pressable, ScrollView, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
@@ -30,7 +30,12 @@ import {
   type PickedPhoto,
 } from "@/features/branch";
 import { useSaves } from "@/features/home";
-import { getMyReviews } from "@/features/profile";
+import {
+  getMyMilestones,
+  getMyReviews,
+  milestoneIcon,
+  useSeenMilestones,
+} from "@/features/profile";
 import { analytics } from "@/lib/analytics";
 import { getErrorCode, getErrorMessage } from "@/lib/api";
 import { haptics } from "@/lib/haptics";
@@ -43,6 +48,14 @@ const MIN_CHARS = 20;
 const MAX_CHARS = 2000;
 const MAX_PHOTOS = 3;
 const REVIEW_ALREADY_EXISTS = "REVIEW_ALREADY_EXISTS";
+// Badges that writing a review can unlock (see backend milestones.ts).
+const REVIEW_MILESTONES = new Set([
+  "first_review",
+  "first_photo",
+  "reviews_5",
+  "neighborhoods_3",
+  "reviews_10",
+]);
 
 // Local midnight today — the latest selectable visit date (visits are past).
 function startOfToday(): Date {
@@ -80,6 +93,7 @@ type ReviewValues = z.infer<typeof reviewSchema>;
 
 type PostedReview = {
   reviewId: string;
+  newBadge?: ComponentProps<typeof ReviewCelebration>["newBadge"];
   rating: number;
   placeName?: string;
   pendingModeration: boolean;
@@ -115,6 +129,7 @@ export default function WriteReviewScreen() {
   const [retryingPhotos, setRetryingPhotos] = useState(false);
   const queryClient = useQueryClient();
   const saves = useSaves();
+  const seenMilestones = useSeenMilestones();
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const { control, handleSubmit, formState, reset, setValue } =
@@ -235,7 +250,24 @@ export default function WriteReviewScreen() {
           r.moderationStatus !== "archived" &&
           r.moderationStatus !== "rejected",
       );
+      // After the uploads, since the photo badge depends on them. Only badges a
+      // review can earn are announced here; others surface on Profile.
+      const milestones = await getMyMilestones(getToken).catch(() => undefined);
+      const unlocked = (milestones ?? []).filter(
+        (m) => REVIEW_MILESTONES.has(m.id) && seenMilestones.isNew(m),
+      );
+      if (unlocked.length > 0) {
+        seenMilestones.markSeen(unlocked.map((m) => m.id));
+      }
+      const badge = unlocked[0];
       setPosted({
+        newBadge: badge
+          ? {
+              title: badge.title,
+              description: badge.description,
+              icon: milestoneIcon(badge.id),
+            }
+          : undefined,
         reviewId: review.id,
         rating: values.rating,
         placeName: branch?.place.name,
@@ -336,6 +368,7 @@ export default function WriteReviewScreen() {
         placeName={posted.placeName}
         rating={posted.rating}
         retryingPhotos={retryingPhotos}
+        newBadge={posted.newBadge}
         reviewNumber={posted.reviewNumber}
         suggestions={suggestions}
       />

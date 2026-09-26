@@ -14,6 +14,7 @@ import {
 import { getCurrentUser } from "@/lib/api";
 
 import {
+  getMyMilestones,
   getMyReplies,
   getMyReviews,
   getPublicProfile,
@@ -31,6 +32,8 @@ export const profileKeys = {
     [...profileKeys.all, "reviews", userId ?? "anonymous"] as const,
   replies: (userId: string | null | undefined) =>
     [...profileKeys.all, "replies", userId ?? "anonymous"] as const,
+  milestones: (userId: string | null | undefined) =>
+    [...profileKeys.all, "milestones", userId ?? "anonymous"] as const,
   publicProfile: (id: string) => [...profileKeys.all, "public", id] as const,
   publicReviews: (id: string) =>
     [...profileKeys.publicProfile(id), "reviews"] as const,
@@ -52,6 +55,16 @@ export function useMyReviews() {
   return useQuery({
     queryKey: profileKeys.reviews(userId),
     queryFn: () => getMyReviews(getToken),
+    enabled: isSignedIn === true,
+  });
+}
+
+export function useMilestones() {
+  const { getToken, isSignedIn, userId } = useAuth();
+
+  return useQuery({
+    queryKey: profileKeys.milestones(userId),
+    queryFn: () => getMyMilestones(getToken),
     enabled: isSignedIn === true,
   });
 }

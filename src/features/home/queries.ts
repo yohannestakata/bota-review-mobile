@@ -178,6 +178,11 @@ export function useToggleSave() {
     onSettled: () => {
       // Refresh the saved-branches list so the Saved tab reflects the change.
       void queryClient.invalidateQueries({ queryKey: savesKey });
+      // Saves count toward a badge. Literal key (profileKeys.milestones) —
+      // importing features/profile here would create a require cycle.
+      void queryClient.invalidateQueries({
+        queryKey: ["profile", "milestones"],
+      });
     },
   });
 }

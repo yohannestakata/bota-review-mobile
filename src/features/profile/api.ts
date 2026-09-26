@@ -19,6 +19,20 @@ export function getMyReviews(getToken: TokenGetter) {
   return apiFetch<MyReview[]>("/me/reviews", getToken);
 }
 
+// Badges derived server-side from the user's activity (GET /me/milestones).
+export type Milestone = {
+  id: string;
+  title: string;
+  description: string;
+  hint: string;
+  earned: boolean;
+  progress: { current: number; target: number };
+};
+
+export function getMyMilestones(getToken: TokenGetter) {
+  return apiFetch<Milestone[]>("/me/milestones", getToken);
+}
+
 export type MyReply = {
   id: string;
   reviewId: string;

@@ -29,6 +29,7 @@ import { ThemedText } from "@/components/ui/themed-text";
 import { useOwnClaims } from "@/features/branch";
 import { useSavedBranchIds } from "@/features/home";
 import {
+  ProfileBadges,
   ProfileCompletionCard,
   useMe,
   useMyReplies,
@@ -222,6 +223,10 @@ export default function ProfileScreen() {
           </View>
 
           <ProfileCompletionCard />
+
+          <View className="mt-6">
+            <ProfileBadges />
+          </View>
         </View>
 
         {/* Menu */}

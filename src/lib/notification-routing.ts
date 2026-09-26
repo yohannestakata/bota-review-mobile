@@ -21,7 +21,8 @@ export type NotificationType =
   | "owner_response" // 6 an owner responded to your feedback
   | "saved_place_update" // 7 a saved place added a location / reopened
   | "report_resolved" // 8 a reported issue was resolved
-  | "new_collection"; // 10 a newly curated collection
+  | "new_collection" // 10 a newly curated collection
+  | "place_live"; // 11 a place you suggested was published
 
 /**
  * Send the user to the right screen for a tapped notification. Safe to call
@@ -37,6 +38,7 @@ export function routeFromNotification(data: NotificationData | undefined) {
     case "owner_response":
     case "saved_place_update":
     case "report_resolved":
+    case "place_live":
       if (data.branchId) router.push(`/branch/${data.branchId}`);
       return;
 
