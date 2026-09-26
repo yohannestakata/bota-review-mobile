@@ -1,10 +1,17 @@
 import { useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
+import Animated, {
+  Easing,
+  FadeIn,
+  FadeOut,
+  Keyframe,
+  useReducedMotion,
+} from "react-native-reanimated";
 
-import { Alert } from "@/components/ui/alert";
 import { ThemedText } from "@/components/ui/themed-text";
 import { haptics } from "@/lib/haptics";
+import { shadows, useColors } from "@/lib/theme";
 
 import type { Milestone } from "../api";
 import { useSeenMilestones } from "../milestone-meta";
@@ -53,7 +60,19 @@ export function ProfileBadges() {
 
 // Profile's badge shelf: just the row of medallions (earned first, then the
 // locked ones closest to done). No heading or counter — the medallions speak
-// for themselves; tapping one explains it or how to earn it.
+// for themselves. Tapping one shows a small tooltip explaining it (or how to
+// earn it) that fades on its own — informational, nothing to dismiss.
+const BADGE_WIDTH = 68;
+const BADGE_GAP = 16;
+const EDGE = 24;
+const TIP_MAX_WIDTH = 260;
+const TIP_MS = 3500;
+const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
+const TIP_ENTER = new Keyframe({
+  0: { opacity: 0, transform: [{ translateY: -4 }] },
+  100: { opacity: 1, transform: [{ translateY: 0 }], easing: EASE_OUT },
+}).duration(160);
+
 export function MilestoneBadges({
   milestones,
   newIds,
@@ -61,48 +80,140 @@ export function MilestoneBadges({
   milestones: Milestone[];
   newIds: Set<string>;
 }) {
+  const colors = useColors();
+  const reduced = useReducedMotion();
   const ratio = (m: Milestone) => m.progress.current / m.progress.target;
   const ordered = [
     ...milestones.filter((m) => m.earned),
     ...milestones.filter((m) => !m.earned).sort((a, b) => ratio(b) - ratio(a)),
   ];
 
+  const [tip, setTip] = useState<{
+    milestone: Milestone;
+    center: number;
+  } | null>(null);
+  const [rowWidth, setRowWidth] = useState(0);
+  const scrollX = useRef(0);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!tip) return;
+    timer.current = setTimeout(() => setTip(null), TIP_MS);
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, [tip]);
+
+  function toggleTip(milestone: Milestone, index: number) {
+    if (tip?.milestone.id === milestone.id) {
+      setTip(null);
+      return;
+    }
+    haptics.select();
+    // Badge center relative to this row (the ScrollView bleeds EDGE past it).
+    const center =
+      index * (BADGE_WIDTH + BADGE_GAP) + BADGE_WIDTH / 2 - scrollX.current;
+    setTip({ milestone, center });
+  }
+
+  const tipWidth = Math.min(TIP_MAX_WIDTH, rowWidth);
+  const tipLeft = tip
+    ? Math.min(Math.max(tip.center - tipWidth / 2, 0), rowWidth - tipWidth)
+    : 0;
+
   return (
-    <View>
+    <View
+      onLayout={(e) => setRowWidth(e.nativeEvent.layout.width)}
+      style={{ zIndex: 1 }}
+    >
       {/* Bleeds to the screen edges so the row reads as scrollable. */}
       <ScrollView
-        contentContainerStyle={{ gap: 16, paddingHorizontal: 24 }}
-        style={{ marginHorizontal: -24 }}
+        contentContainerStyle={{ gap: BADGE_GAP, paddingHorizontal: EDGE }}
         horizontal
+        onScroll={(e) => {
+          scrollX.current = e.nativeEvent.contentOffset.x;
+          if (tip) setTip(null);
+        }}
+        scrollEventThrottle={32}
         showsHorizontalScrollIndicator={false}
+        style={{ marginHorizontal: -EDGE }}
       >
-        {ordered.map((milestone) => (
+        {ordered.map((milestone, index) => (
           <Badge
             isNew={newIds.has(milestone.id)}
             key={milestone.id}
             milestone={milestone}
+            onPress={() => toggleTip(milestone, index)}
           />
         ))}
       </ScrollView>
+
+      {tip ? (
+        <Animated.View
+          entering={reduced ? FadeIn.duration(120) : TIP_ENTER}
+          exiting={FadeOut.duration(120)}
+          key={tip.milestone.id}
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            top: "100%",
+            left: tipLeft,
+            width: tipWidth,
+            marginTop: 6,
+          }}
+        >
+          {/* Caret pointing up at the badge. */}
+          <View
+            style={{
+              marginLeft: Math.min(
+                Math.max(tip.center - tipLeft - 6, 14),
+                tipWidth - 26,
+              ),
+              width: 12,
+              height: 12,
+              backgroundColor: colors.pill,
+              transform: [{ rotate: "45deg" }],
+              marginBottom: -6,
+              borderRadius: 2,
+            }}
+          />
+          <View
+            className="rounded-2xl px-4 py-3"
+            style={[shadows.navigation, { backgroundColor: colors.pill }]}
+          >
+            <ThemedText size="sm" tone="inverse" weight="semibold">
+              {tip.milestone.title}
+            </ThemedText>
+            <ThemedText className="opacity-80" size="sm" tone="inverse">
+              {tip.milestone.earned
+                ? tip.milestone.description
+                : `${tip.milestone.hint} ${tip.milestone.progress.current} of ${tip.milestone.progress.target} so far.`}
+            </ThemedText>
+          </View>
+        </Animated.View>
+      ) : null}
     </View>
   );
 }
 
-function Badge({ milestone, isNew }: { milestone: Milestone; isNew: boolean }) {
+function Badge({
+  milestone,
+  isNew,
+  onPress,
+}: {
+  milestone: Milestone;
+  isNew: boolean;
+  onPress: () => void;
+}) {
   const { earned, progress } = milestone;
-
-  function explain() {
-    haptics.select();
-    Alert.alert(
-      milestone.title,
-      earned
-        ? milestone.description
-        : `${milestone.hint} ${progress.current} of ${progress.target} so far.`,
-    );
-  }
 
   return (
     <Pressable
+      accessibilityHint={
+        earned
+          ? milestone.description
+          : `${milestone.hint} ${progress.current} of ${progress.target} so far.`
+      }
       accessibilityLabel={
         earned
           ? `${milestone.title} badge, earned`
@@ -110,8 +221,8 @@ function Badge({ milestone, isNew }: { milestone: Milestone; isNew: boolean }) {
       }
       accessibilityRole="button"
       className="items-center gap-2"
-      onPress={explain}
-      style={{ width: 68 }}
+      onPress={onPress}
+      style={{ width: BADGE_WIDTH }}
     >
       <MilestoneMedallion milestone={milestone} showNewDot={isNew} />
       <ThemedText
