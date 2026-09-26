@@ -21,10 +21,14 @@ export function ProfileBadges() {
 
   // Profile is a tab and stays mounted, so re-snapshot on every focus to pick
   // up badges earned elsewhere (e.g. saving a 10th place).
+  // A failed fetch (e.g. offline) would otherwise leave the row empty until
+  // the app restarts — retry it whenever Profile comes back into view.
+  const { isError, refetch } = milestones;
   useFocusEffect(
     useCallback(() => {
       setNewIds(null);
-    }, []),
+      if (isError) void refetch();
+    }, [isError, refetch]),
   );
 
   if (newIds === null && milestones.isSuccess && seen.ready) {
@@ -47,9 +51,9 @@ export function ProfileBadges() {
   );
 }
 
-// Profile's badge shelf: one horizontal row of medallions (earned first, then
-// the locked ones closest to done), plus a "Next up" line naming the single
-// most reachable badge. Tapping a medallion explains it or how to earn it.
+// Profile's badge shelf: just the row of medallions (earned first, then the
+// locked ones closest to done). No heading or counter — the medallions speak
+// for themselves; tapping one explains it or how to earn it.
 export function MilestoneBadges({
   milestones,
   newIds,
@@ -57,25 +61,14 @@ export function MilestoneBadges({
   milestones: Milestone[];
   newIds: Set<string>;
 }) {
-  const earnedCount = milestones.filter((m) => m.earned).length;
   const ratio = (m: Milestone) => m.progress.current / m.progress.target;
   const ordered = [
     ...milestones.filter((m) => m.earned),
     ...milestones.filter((m) => !m.earned).sort((a, b) => ratio(b) - ratio(a)),
   ];
-  const nextUp = ordered.find((m) => !m.earned);
 
   return (
-    <View className="gap-3">
-      <View className="flex-row items-baseline justify-between">
-        <ThemedText size="lg" weight="semibold">
-          Badges
-        </ThemedText>
-        <ThemedText size="sm" tone="muted">
-          {earnedCount} of {milestones.length}
-        </ThemedText>
-      </View>
-
+    <View>
       {/* Bleeds to the screen edges so the row reads as scrollable. */}
       <ScrollView
         contentContainerStyle={{ gap: 16, paddingHorizontal: 24 }}
@@ -91,19 +84,6 @@ export function MilestoneBadges({
           />
         ))}
       </ScrollView>
-
-      {nextUp ? (
-        <ThemedText size="sm" tone="muted">
-          <ThemedText size="sm" weight="semibold">
-            Next up: {nextUp.title}
-          </ThemedText>
-          {` · ${nextUp.hint.replace(/\.$/, "")}`}
-        </ThemedText>
-      ) : (
-        <ThemedText size="sm" tone="muted">
-          You found every badge. Legend.
-        </ThemedText>
-      )}
     </View>
   );
 }
