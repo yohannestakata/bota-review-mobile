@@ -73,6 +73,15 @@
       ],
       "expo-image",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Bota to use your camera so you can take photos for reviews and listings.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": false
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "Allow Bota to access your photos so you can add them to your reviews."

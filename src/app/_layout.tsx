@@ -19,6 +19,7 @@ import { PushRegistration } from "@/components/push-registration";
 import { AlertProvider } from "@/components/ui/alert";
 import { ToastProvider } from "@/components/ui/toast";
 import { OfflineBanner } from "@/components/offline-banner";
+import { PhotoSourceHost } from "@/components/photo-source-host";
 import { debugLog } from "@/lib/debug";
 import { routeFromNotification } from "@/lib/notification-routing";
 import { queryClient } from "@/lib/query-client";
@@ -137,6 +138,7 @@ function RootLayout() {
                       />
                     </Stack>
                     <OfflineBanner />
+                    <PhotoSourceHost />
                   </ToastProvider>
                 </AlertProvider>
               </BottomSheetModalProvider>
