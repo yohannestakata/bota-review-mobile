@@ -22,9 +22,9 @@ const ART: Record<string, number> = {
   reviews_10: require("@/assets/icons3d/reviews_10.png"),
 };
 
-// A badge as a collectible object. Earned: a solid brand disc with the icon in
-// white. Locked: the icon as a faint silhouette inside a progress ring, so the
-// user sees what it is and how close they are — not a wall of padlocks.
+// A badge as a collectible object. Earned: the 3D art on its own. Locked: the
+// same shape as a flat silhouette inside a progress ring, so the user sees
+// what it is and how close they are — not a wall of padlocks.
 export function MilestoneMedallion({
   milestone,
   size = 60,
@@ -40,27 +40,32 @@ export function MilestoneMedallion({
   const circumference = 2 * Math.PI * radius;
   const ratio = progress.target > 0 ? progress.current / progress.target : 0;
   const iconSize = Math.round(size * 0.4);
+  // Without a disc the art fills most of the slot; inside the ring it's smaller.
+  const artSize = Math.round(size * 0.74);
+  const lockedArtSize = Math.round(size * 0.5);
 
   const art = ART[milestone.id];
   if (earned) {
     return (
-      <View style={{ width: size, height: size }}>
-        {/* A thin inner highlight gives the disc a little depth. */}
-        <View
-          className="flex-1 items-center justify-center rounded-full bg-primary"
-          style={{ borderWidth: 2, borderColor: "rgba(255,255,255,0.18)" }}
-        >
-          {art ? (
-            // 3D art replaces the line icon at the same size; disc unchanged.
-            <Image
-              contentFit="contain"
-              source={art}
-              style={{ width: iconSize, height: iconSize }}
-            />
-          ) : (
+      <View
+        className="items-center justify-center"
+        style={{ width: size, height: size }}
+      >
+        {art ? (
+          // 3D art stands on the page on its own — no disc, for contrast.
+          <Image
+            contentFit="contain"
+            source={art}
+            style={{ width: artSize, height: artSize }}
+          />
+        ) : (
+          <View
+            className="size-full items-center justify-center rounded-full bg-primary"
+            style={{ borderWidth: 2, borderColor: "rgba(255,255,255,0.18)" }}
+          >
             <AppIcon color={colors.inverse} icon={icon} size={iconSize} />
-          )}
-        </View>
+          </View>
+        )}
         {showNewDot ? (
           <View
             className="absolute right-0 top-0 size-3.5 rounded-full border-2 border-background bg-favorite"
@@ -84,7 +89,7 @@ export function MilestoneMedallion({
         <Circle
           cx={size / 2}
           cy={size / 2}
-          fill={colors.surfaceMuted}
+          fill="none"
           r={radius}
           stroke={colors.border}
           strokeWidth={RING_WIDTH}
@@ -108,7 +113,7 @@ export function MilestoneMedallion({
         <Image
           contentFit="contain"
           source={art}
-          style={{ width: iconSize, height: iconSize }}
+          style={{ width: lockedArtSize, height: lockedArtSize }}
           tintColor={colors.subtle}
         />
       ) : (
