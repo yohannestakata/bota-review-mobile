@@ -1,22 +1,28 @@
 import { FavouriteIcon } from "@hugeicons/core-free-icons";
 import type { StyleProp, ViewStyle } from "react-native";
-import { Pressable } from "react-native";
 import Animated, {
+  Easing,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withSequence,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
 
 import { AppIcon } from "@/components/ui/huge-icon";
+import { PressableScale } from "@/components/ui/pressable-scale";
 import { haptics } from "@/lib/haptics";
 import { colors } from "@/lib/theme";
 
-// The one save/unsave heart. Saving pops the heart and fills it; unsaving gives
-// a small dip. The animation is driven by the tap (not by `isSaved` changing) so
-// hearts never bounce when a list loads or recycles rows. Reanimated honours the
-// system Reduce Motion setting by default.
+const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
+const EASE_IN_OUT = Easing.bezier(0.77, 0, 0.175, 1);
+
+// The one save/unsave heart (animate-expo: toggle, tens of times a day, so
+// near-imperceptible). Press-in gets the shared 0.97 press feedback. Saving
+// adds a small swell (1 → 1.15 → 1, ~200ms, ease-out, no spring — a tap isn't
+// thrown, so nothing overshoots) with the haptic on the same frame; unsaving
+// is just the colour change. Driven by the tap, not by `isSaved` changing, so
+// hearts never animate when a list loads. Reduce Motion drops the swell.
 export function SaveHeartButton({
   isSaved,
   onPress,
@@ -31,28 +37,26 @@ export function SaveHeartButton({
   style?: StyleProp<ViewStyle>;
 }) {
   const scale = useSharedValue(1);
+  const reduced = useReducedMotion();
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.get() }],
   }));
 
   function handlePress() {
     haptics.tap();
-    scale.set(
-      isSaved
-        ? withSequence(
-            withTiming(0.85, { duration: 90 }),
-            withTiming(1, { duration: 120 }),
-          )
-        : withSequence(
-            withTiming(0.8, { duration: 80 }),
-            withSpring(1, { damping: 7, stiffness: 320, mass: 0.6 }),
-          ),
-    );
+    if (!isSaved && !reduced) {
+      scale.set(
+        withSequence(
+          withTiming(1.15, { duration: 90, easing: EASE_OUT }),
+          withTiming(1, { duration: 110, easing: EASE_IN_OUT }),
+        ),
+      );
+    }
     onPress();
   }
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityLabel={isSaved ? "Remove from saved" : "Save place"}
       accessibilityRole="button"
       accessibilityState={{ selected: isSaved }}
@@ -69,6 +73,6 @@ export function SaveHeartButton({
           size={iconSize}
         />
       </Animated.View>
-    </Pressable>
+    </PressableScale>
   );
 }
