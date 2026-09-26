@@ -261,21 +261,21 @@ export default function SubmissionsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View className="px-6 pb-1 pt-2">
-        <ThemedText size="3xl" weight="bold">
-          Spotted a gem?
-        </ThemedText>
-        <ThemedText className="mt-1" tone="muted">
-          Place name is enough. Add the area or details only if you know them.
-        </ThemedText>
-      </View>
-
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
           className="flex-1"
-          contentContainerClassName="gap-4 px-6 pt-4"
+          contentContainerClassName="gap-4 px-6 pt-2"
           keyboardShouldPersistTaps="handled"
         >
+          <View className="pb-1">
+            <ThemedText size="3xl" weight="bold">
+              Spotted a gem?
+            </ThemedText>
+            <ThemedText className="mt-1" tone="muted">
+              Place name is enough. Add the area or details only if you know
+              them.
+            </ThemedText>
+          </View>
           <Controller
             control={control}
             name="placeName"
