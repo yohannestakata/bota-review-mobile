@@ -1,16 +1,14 @@
-import { LockIcon } from "@hugeicons/core-free-icons";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 
 import { Alert } from "@/components/ui/alert";
-import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { haptics } from "@/lib/haptics";
-import { colors } from "@/lib/theme";
 
 import type { Milestone } from "../api";
-import { milestoneIcon, useSeenMilestones } from "../milestone-meta";
+import { useSeenMilestones } from "../milestone-meta";
+import { MilestoneMedallion } from "./milestone-medallion";
 import { useMilestones } from "../queries";
 
 // Profile's badges section. Each time Profile comes into focus it snapshots
@@ -49,9 +47,9 @@ export function ProfileBadges() {
   );
 }
 
-// Profile's badge shelf. Earned badges show their icon; locked ones stay a
-// mystery (lock + progress) so there's something left to discover. Tapping any
-// badge explains it — what you did, or how to earn it.
+// Profile's badge shelf: one horizontal row of medallions (earned first, then
+// the locked ones closest to done), plus a "Next up" line naming the single
+// most reachable badge. Tapping a medallion explains it or how to earn it.
 export function MilestoneBadges({
   milestones,
   newIds,
@@ -60,6 +58,12 @@ export function MilestoneBadges({
   newIds: Set<string>;
 }) {
   const earnedCount = milestones.filter((m) => m.earned).length;
+  const ratio = (m: Milestone) => m.progress.current / m.progress.target;
+  const ordered = [
+    ...milestones.filter((m) => m.earned),
+    ...milestones.filter((m) => !m.earned).sort((a, b) => ratio(b) - ratio(a)),
+  ];
+  const nextUp = ordered.find((m) => !m.earned);
 
   return (
     <View className="gap-3">
@@ -68,18 +72,38 @@ export function MilestoneBadges({
           Badges
         </ThemedText>
         <ThemedText size="sm" tone="muted">
-          {earnedCount} of {milestones.length} found
+          {earnedCount} of {milestones.length}
         </ThemedText>
       </View>
-      <View className="flex-row flex-wrap gap-3">
-        {milestones.map((milestone) => (
+
+      {/* Bleeds to the screen edges so the row reads as scrollable. */}
+      <ScrollView
+        contentContainerStyle={{ gap: 16, paddingHorizontal: 24 }}
+        style={{ marginHorizontal: -24 }}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      >
+        {ordered.map((milestone) => (
           <Badge
             isNew={newIds.has(milestone.id)}
             key={milestone.id}
             milestone={milestone}
           />
         ))}
-      </View>
+      </ScrollView>
+
+      {nextUp ? (
+        <ThemedText size="sm" tone="muted">
+          <ThemedText size="sm" weight="semibold">
+            Next up: {nextUp.title}
+          </ThemedText>
+          {` · ${nextUp.hint.replace(/\.$/, "")}`}
+        </ThemedText>
+      ) : (
+        <ThemedText size="sm" tone="muted">
+          You found every badge. Legend.
+        </ThemedText>
+      )}
     </View>
   );
 }
@@ -90,10 +114,10 @@ function Badge({ milestone, isNew }: { milestone: Milestone; isNew: boolean }) {
   function explain() {
     haptics.select();
     Alert.alert(
-      earned ? milestone.title : "Locked badge",
+      milestone.title,
       earned
         ? milestone.description
-        : `${milestone.hint} (${progress.current}/${progress.target})`,
+        : `${milestone.hint} ${progress.current} of ${progress.target} so far.`,
     );
   }
 
@@ -102,42 +126,23 @@ function Badge({ milestone, isNew }: { milestone: Milestone; isNew: boolean }) {
       accessibilityLabel={
         earned
           ? `${milestone.title} badge, earned`
-          : `Locked badge, ${progress.current} of ${progress.target}`
+          : `${milestone.title} badge, ${progress.current} of ${progress.target}`
       }
       accessibilityRole="button"
-      className="items-center gap-1.5 rounded-2xl border border-placeholder bg-surface px-2 py-3"
+      className="items-center gap-2"
       onPress={explain}
-      // Three per row: 3 × 30% plus two 12px gaps fits every phone width, and
-      // a fixed width keeps tiles equal no matter the label length.
-      style={{ width: "30%" }}
+      style={{ width: 68 }}
     >
-      <View
-        className={`size-12 items-center justify-center rounded-full ${
-          earned ? "bg-accent-soft" : "bg-surface-muted"
-        }`}
-      >
-        <AppIcon
-          color={earned ? colors.accent : colors.subtle}
-          icon={earned ? milestoneIcon(milestone.id) : LockIcon}
-          size={22}
-        />
-      </View>
+      <MilestoneMedallion milestone={milestone} showNewDot={isNew} />
       <ThemedText
         className="text-center"
-        numberOfLines={1}
+        numberOfLines={2}
         size="xs"
         tone={earned ? "default" : "muted"}
-        weight="semibold"
+        weight={earned ? "semibold" : "medium"}
       >
-        {earned ? milestone.title : `${progress.current}/${progress.target}`}
+        {milestone.title}
       </ThemedText>
-      {isNew ? (
-        <View className="absolute -right-1 -top-1 rounded-full bg-primary px-1.5 py-0.5">
-          <ThemedText size="xs" tone="inverse" weight="semibold">
-            New
-          </ThemedText>
-        </View>
-      ) : null}
     </Pressable>
   );
 }
