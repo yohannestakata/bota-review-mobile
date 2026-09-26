@@ -19,12 +19,14 @@ import {
 } from "@/features/home";
 import { analytics } from "@/lib/analytics";
 import type { BranchCard as BranchCardData } from "@/lib/api";
+import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 
 const EMPTY_SAVED = new Set<string>();
 
 export default function SavedScreen() {
   const { isSignedIn } = useAuth();
   const saves = useSaves();
+  const pull = usePullToRefresh(() => saves.refetch());
   const { data: savedIds } = useSavedBranchIds();
   const toggleSave = useToggleSave();
 
@@ -87,8 +89,8 @@ export default function SavedScreen() {
             skeleton={<BranchListSkeleton />}
           />
         }
-        onRefresh={() => saves.refetch()}
-        refreshing={saves.isFetching && !saves.isPending}
+        onRefresh={pull.onRefresh}
+        refreshing={pull.refreshing}
         renderItem={({ item }) => (
           <BranchCard
             branch={item}

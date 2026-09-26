@@ -8,6 +8,7 @@ import { BackHeader } from "@/components/ui/screen-header";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
 import { ListStatePlaceholder } from "@/components/ui/list-state-placeholder";
 import { useDeleteReview } from "@/features/branch";
+import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 import {
   MyReviewRow,
   ProfileReviewsSkeleton,
@@ -17,6 +18,7 @@ import {
 
 export default function MyReviewsScreen() {
   const reviews = useMyReviews();
+  const pull = usePullToRefresh(() => reviews.refetch());
   const deleteReview = useDeleteReview();
 
   function onEdit(review: MyReview) {
@@ -91,8 +93,8 @@ export default function MyReviewsScreen() {
             skeleton={<ProfileReviewsSkeleton />}
           />
         }
-        onRefresh={() => reviews.refetch()}
-        refreshing={reviews.isFetching && !reviews.isPending}
+        onRefresh={pull.onRefresh}
+        refreshing={pull.refreshing}
         renderItem={({ item }: { item: MyReview }) => (
           <MyReviewRow
             onDelete={onDelete}

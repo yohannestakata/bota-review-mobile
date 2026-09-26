@@ -42,6 +42,7 @@ import { colors } from "@/lib/theme";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useDeviceList } from "@/lib/use-device-list";
 import { useLocation } from "@/lib/use-location";
+import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value)
@@ -71,6 +72,18 @@ export default function SearchScreen() {
     max: 6,
     idOf: (query) => query.toLowerCase(),
   });
+  // A refined search replaces its own prefixes ("Enrico" supersedes "En" and
+  // "Enri"), so Recent doesn't fill up with half-typed variants.
+  function rememberSearch(query: string) {
+    const q = query.trim();
+    if (q.length < 3) return;
+    const lower = q.toLowerCase();
+    recentSearches.items
+      .map((item) => item.toLowerCase())
+      .filter((item) => lower.startsWith(item) || item.startsWith(lower))
+      .forEach((item) => recentSearches.remove(item));
+    recentSearches.add(q);
+  }
 
   // "Nearby" only sorts by distance once we actually have coordinates.
   const sortByDistance = nearby && coords != null;
@@ -132,6 +145,7 @@ export default function SearchScreen() {
   }
 
   const search = useSearch(params);
+  const pull = usePullToRefresh(() => search.refetch());
   const filterCount =
     (neighborhoodId ? 1 : 0) +
     cuisineIds.length +
@@ -249,7 +263,7 @@ export default function SearchScreen() {
             placeholder="Coffee? Injera?"
             onSubmitEditing={() => {
               const query = text.trim();
-              if (query.length >= 2) recentSearches.add(query);
+              rememberSearch(query);
             }}
             placeholderTextColor={colors.muted}
             returnKeyType="search"
@@ -460,14 +474,14 @@ export default function SearchScreen() {
           }
         }}
         onEndReachedThreshold={0.4}
-        onRefresh={() => search.refetch()}
-        refreshing={search.isRefetching && !search.isFetchingNextPage}
+        onRefresh={pull.onRefresh}
+        refreshing={pull.refreshing}
         renderItem={({ item }) => (
           <BranchCard
             branch={item}
             isSaved={savedIds.has(item.id)}
             onPress={(branch) => {
-              if (debouncedQ.length >= 2) recentSearches.add(debouncedQ);
+              rememberSearch(debouncedQ);
               router.push(`/branch/${branch.id}?source=search`);
             }}
             onToggleSave={onToggleSave}

@@ -20,6 +20,7 @@ import {
 } from "@/features/home";
 import { analytics } from "@/lib/analytics";
 import type { BranchCard as BranchCardData } from "@/lib/api";
+import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 
 const EMPTY_SAVED = new Set<string>();
 
@@ -27,6 +28,7 @@ export default function PlaceOverviewScreen() {
   const { isSignedIn } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const place = usePlace(id);
+  const pull = usePullToRefresh(() => place.refetch());
   const { data: savedIds } = useSavedBranchIds();
   const toggleSave = useToggleSave();
 
@@ -100,8 +102,8 @@ export default function PlaceOverviewScreen() {
               </View>
             </Pressable>
           }
-          onRefresh={() => place.refetch()}
-          refreshing={place.isRefetching}
+          onRefresh={pull.onRefresh}
+          refreshing={pull.refreshing}
           renderItem={({ item }) => (
             <BranchCard
               branch={item}

@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useOwnClaims, type OwnClaim } from "@/features/branch";
 import { formatRelativeDate } from "@/lib/format-date";
+import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 
 const STATUS_LABEL: Record<OwnClaim["status"], string> = {
   pending: "Pending",
@@ -47,6 +48,7 @@ function ClaimCard({ claim }: { claim: OwnClaim }) {
 
 export default function MyClaimsScreen() {
   const claims = useOwnClaims();
+  const pull = usePullToRefresh(() => claims.refetch());
   const data = claims.data ?? [];
 
   return (
@@ -80,8 +82,8 @@ export default function MyClaimsScreen() {
           data={data}
           ItemSeparatorComponent={ListGapSm}
           keyExtractor={(item) => item.id}
-          onRefresh={() => claims.refetch()}
-          refreshing={claims.isFetching && !claims.isPending}
+          onRefresh={pull.onRefresh}
+          refreshing={pull.refreshing}
           renderItem={({ item }) => <ClaimCard claim={item} />}
           showsVerticalScrollIndicator={false}
         />

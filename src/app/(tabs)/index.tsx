@@ -6,7 +6,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { colors } from "@/lib/theme";
 import { router } from "expo-router";
-import { useCallback, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -33,6 +33,7 @@ import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { debugLog } from "@/lib/debug";
 import { useLocation } from "@/lib/use-location";
+import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 
 const GREETING_SEED = Math.random();
 
@@ -57,13 +58,12 @@ export default function Index() {
     }
   }, [home.data, location.coords]);
 
-  const onRefresh = useCallback(() => {
-    void home.refetch();
-    if (isSignedIn) void forYou.refetch();
-    if (isSignedIn) {
-      void saved.refetch();
-    }
-  }, [forYou, home, isSignedIn, saved]);
+  const pull = usePullToRefresh(() =>
+    Promise.all([
+      home.refetch(),
+      ...(isSignedIn ? [forYou.refetch(), saved.refetch()] : []),
+    ]),
+  );
 
   const firstName = user?.firstName ?? "there";
   // Picked once per app launch — varies across opens, stable within a session.
@@ -114,10 +114,8 @@ export default function Index() {
         contentContainerClassName="pb-10"
         refreshControl={
           <RefreshControl
-            onRefresh={onRefresh}
-            refreshing={
-              home.isRefetching || (isSignedIn === true && saved.isRefetching)
-            }
+            onRefresh={() => void pull.onRefresh()}
+            refreshing={pull.refreshing}
             tintColor={colors.primary}
           />
         }

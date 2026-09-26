@@ -19,6 +19,7 @@ import {
   type MyReply,
 } from "@/features/profile";
 import { getErrorMessage } from "@/lib/api";
+import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 import { useState } from "react";
 
 function statusLabel(status: MyReply["moderationStatus"]): string | null {
@@ -91,6 +92,7 @@ function ReplyRow({
 
 export default function MyRepliesScreen() {
   const replies = useMyReplies();
+  const pull = usePullToRefresh(() => replies.refetch());
   const update = useUpdateMyReply();
   const remove = useDeleteMyReply();
   const [editTarget, setEditTarget] = useState<ReplyTarget | null>(null);
@@ -161,8 +163,8 @@ export default function MyRepliesScreen() {
           data={items}
           ItemSeparatorComponent={ListGapMd}
           keyExtractor={(item) => item.id}
-          onRefresh={() => replies.refetch()}
-          refreshing={replies.isFetching && !replies.isPending}
+          onRefresh={pull.onRefresh}
+          refreshing={pull.refreshing}
           renderItem={({ item }: { item: MyReply }) => (
             <ReplyRow onDelete={onDelete} onEdit={onEdit} reply={item} />
           )}

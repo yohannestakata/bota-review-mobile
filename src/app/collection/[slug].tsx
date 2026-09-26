@@ -16,10 +16,12 @@ import {
   useSaveHandler,
 } from "@/features/home";
 import { analytics } from "@/lib/analytics";
+import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 
 export default function CollectionScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const collection = useCollection(slug);
+  const pull = usePullToRefresh(() => collection.refetch());
   const { savedIds, onToggleSave } = useSaveHandler();
 
   useEffect(() => {
@@ -65,8 +67,8 @@ export default function CollectionScreen() {
               </ThemedText>
             ) : null
           }
-          onRefresh={() => collection.refetch()}
-          refreshing={collection.isRefetching}
+          onRefresh={pull.onRefresh}
+          refreshing={pull.refreshing}
           renderItem={({ item }) => (
             <BranchCard
               branch={item}

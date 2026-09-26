@@ -66,6 +66,7 @@ import { getErrorMessage } from "@/lib/api";
 import { formatMenuPriceRange } from "@/lib/price";
 import { useLocation } from "@/lib/use-location";
 import { useRecentlyViewed } from "@/lib/use-recently-viewed";
+import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 
 function Chip({ label }: { label: string }) {
   return (
@@ -158,13 +159,6 @@ export default function BranchDetailScreen() {
   const isOwnBranch =
     ownClaims.data?.some((c) => c.branchId === id && c.status === "verified") ??
     false;
-  const refreshing =
-    branch.isRefetching ||
-    siblings.isRefetching ||
-    menus.isRefetching ||
-    (isSignedIn === true &&
-      (saved.isRefetching || ownClaims.isRefetching || me.isRefetching));
-
   const refresh = useCallback(async () => {
     const tasks: Promise<unknown>[] = [
       branch.refetch(),
@@ -176,9 +170,8 @@ export default function BranchDetailScreen() {
     }
     await Promise.all(tasks);
   }, [branch, isSignedIn, me, menus, ownClaims, saved, siblings]);
+  const pull = usePullToRefresh(refresh);
 
-  // branch_viewed — once per branch entry; `source` carries the originating
-  // screen (home, search, saved, collection, …), defaulting to "unknown".
   // Remember the visit so Home can later ask "Been to X lately?".
   const placeName = branch.data?.place.name;
   useEffect(() => {
@@ -189,6 +182,8 @@ export default function BranchDetailScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, placeName]);
 
+  // branch_viewed — once per branch entry; `source` carries the originating
+  // screen (home, search, saved, collection, …), defaulting to "unknown".
   useEffect(() => {
     if (id) {
       analytics.track("branch_viewed", {
@@ -292,10 +287,8 @@ export default function BranchDetailScreen() {
         refreshControl={
           <RefreshControl
             colors={[colors.primary]}
-            onRefresh={() => {
-              void refresh();
-            }}
-            refreshing={refreshing}
+            onRefresh={() => void pull.onRefresh()}
+            refreshing={pull.refreshing}
             tintColor={colors.primary}
           />
         }

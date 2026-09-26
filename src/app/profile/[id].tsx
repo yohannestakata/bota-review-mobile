@@ -19,6 +19,7 @@ import {
 } from "@/features/profile";
 import { useReportReview } from "@/features/branch";
 import { getErrorMessage } from "@/lib/api";
+import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 
 function memberSince(date: string) {
   return new Date(date).toLocaleDateString(undefined, {
@@ -39,10 +40,8 @@ export default function PublicProfileScreen() {
   const isError = profile.isError || reviews.isError;
   const canReport = !isSignedIn || (me.data != null && me.data.id !== id);
 
-  const refresh = () => {
-    void profile.refetch();
-    void reviews.refetch();
-  };
+  const refresh = () => Promise.all([profile.refetch(), reviews.refetch()]);
+  const pull = usePullToRefresh(refresh);
 
   function onReportReview(reviewId: string) {
     if (!isSignedIn) {
@@ -152,8 +151,8 @@ export default function PublicProfileScreen() {
             }
           }}
           onEndReachedThreshold={0.4}
-          onRefresh={refresh}
-          refreshing={profile.isRefetching || reviews.isRefetching}
+          onRefresh={pull.onRefresh}
+          refreshing={pull.refreshing}
           renderItem={({ item }) => (
             <PublicReviewRow
               onPress={(review) =>
