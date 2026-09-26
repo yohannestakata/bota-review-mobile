@@ -683,7 +683,7 @@ export default function BranchDetailScreen() {
                   Be the first to review
                 </ThemedText>
                 <ThemedText className="mt-1 text-center" size="sm" tone="muted">
-                  Tap a star to rate your visit.
+                  Tap or slide to rate your visit.
                 </ThemedText>
                 <View className="mt-3">
                   <TapToRate

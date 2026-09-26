@@ -72,7 +72,7 @@ export function RateRecentVisitCard() {
             Been to {place.name} lately?
           </ThemedText>
           <ThemedText className="mt-0.5" size="sm" tone="muted">
-            Tap a star to rate your visit.
+            Tap or slide to rate your visit.
           </ThemedText>
         </View>
         <Pressable
