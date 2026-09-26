@@ -22,23 +22,36 @@ import type { BranchCard } from "@/lib/api";
 import { haptics } from "@/lib/haptics";
 import { colors } from "@/lib/theme";
 
-// Rare-tier moment (once per posted review), purpose: confirmation. All five
-// stars sit grey from the first frame; the ones the user gave fill in green one
-// after another, like the rating being stamped. Ease-out, no springs (nothing
-// was thrown), done in ~650ms so "Done" is never waiting on it.
+// Rare-tier moment (once per posted review), purpose: delight. All five stars
+// sit grey from the first frame; the ones the user gave are stamped in green one
+// after another — each pops past full size with a small twist, then settles —
+// with a haptic tick on each landing and a success buzz on the last. Timing, no
+// springs (nothing was thrown); done in well under a second.
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
+const EASE_IN_OUT = Easing.bezier(0.77, 0, 0.175, 1);
 const ENTER_MS = 250;
-const FILL_MS = 320;
-const FILL_START_MS = 120;
-const FILL_STAGGER_MS = 80;
+const FILL_MS = 420;
+const FILL_START_MS = 150;
+const FILL_STAGGER_MS = 110;
+// The stamp lands (reaches full size) at this point of the fill.
+const LAND_AT = 0.55;
 
 // Built once at module scope — an inline builder chain in JSX rebuilds on
-// every render. The fill starts at 0.6 over a grey star already in place, so
-// it reads as filling, not appearing from nothing.
+// every render. The fill grows over a grey star already in place, so it reads
+// as filling, not appearing from nothing.
 const STAR_FILL = [0, 1, 2, 3, 4].map((index) =>
   new Keyframe({
-    0: { opacity: 0, transform: [{ scale: 0.6 }] },
-    100: { opacity: 1, transform: [{ scale: 1 }], easing: EASE_OUT },
+    0: { opacity: 0, transform: [{ scale: 0.4 }, { rotate: "-24deg" }] },
+    [LAND_AT * 100]: {
+      opacity: 1,
+      transform: [{ scale: 1.18 }, { rotate: "6deg" }],
+      easing: EASE_OUT,
+    },
+    100: {
+      opacity: 1,
+      transform: [{ scale: 1 }, { rotate: "0deg" }],
+      easing: EASE_IN_OUT,
+    },
   })
     .duration(FILL_MS)
     .delay(FILL_START_MS + index * FILL_STAGGER_MS),
@@ -48,7 +61,7 @@ const HEADLINE_ENTERING = new Keyframe({
   100: { opacity: 1, transform: [{ translateY: 0 }], easing: EASE_OUT },
 })
   .duration(ENTER_MS)
-  .delay(120);
+  .delay(200);
 const BADGE_ENTERING = new Keyframe({
   0: { opacity: 0, transform: [{ scale: 0.97 }] },
   100: { opacity: 1, transform: [{ scale: 1 }], easing: EASE_OUT },
@@ -98,9 +111,22 @@ export function ReviewCelebration({
 }) {
   const reduced = useReducedMotion();
 
-  // Same frame as the visual: the success tap lands as the stars appear.
+  // Same frame as the visual: a tick as each star lands, and the success buzz
+  // on the last one. Reduced motion has no stamps, so just the buzz.
   useEffect(() => {
-    haptics.success();
+    if (reduced || rating < 1) {
+      haptics.success();
+      return;
+    }
+    const timers = Array.from({ length: rating }, (_, index) =>
+      setTimeout(
+        index === rating - 1 ? haptics.success : haptics.select,
+        FILL_START_MS + index * FILL_STAGGER_MS + FILL_MS * LAND_AT,
+      ),
+    );
+    return () => timers.forEach(clearTimeout);
+    // Once per celebration — not again if Reduce Motion flips mid-way.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const headline = reviewNumber
