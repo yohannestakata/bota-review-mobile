@@ -41,6 +41,10 @@ export const PressableScale = forwardRef<
         onPressOut?.(e);
       }}
       pressRetentionOffset={pressRetentionOffset ?? 16}
+      // Like iOS's delaysContentTouches: wait a beat before showing the press so
+      // a touch that turns into a scroll never shrinks the card. A quick tap
+      // still gets press-in → press-out, so taps keep their feedback.
+      unstable_pressDelay={props.unstable_pressDelay ?? 90}
       ref={ref}
       style={[
         style as object,
