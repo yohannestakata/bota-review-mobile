@@ -1,62 +1,32 @@
 import { View } from "react-native";
 
-import { Skeleton } from "@/components/ui/skeleton";
-import { BranchCardSkeleton } from "@/features/home";
+import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
+import { CircleRowSkeleton, RailSkeleton } from "@/features/home";
 
-// Mirrors CollectionCircles: a size-20 circle with a label below.
-function CircleSkeleton() {
-  return (
-    <View className="w-20 items-center gap-2">
-      <Skeleton className="size-20 rounded-full" />
-      <Skeleton className="h-3.5 w-14 rounded-full" />
-    </View>
-  );
-}
-
-// Boot placeholder — mirrors the home screen's initial view: header (avatar +
-// location, two-line greeting, search bar), collection circles, then a rail.
+// Boot placeholder — mirrors the home screen's initial view with the same
+// spacing: avatar + location pill, a two-line 3xl greeting, the search bar,
+// collection circles, then a rail.
 export function AppLoadingSkeleton() {
   return (
     <View className="flex-1">
-      <View className="mt-6 px-6">
+      <View className="mt-5 px-6">
         <View className="flex-row items-center justify-between">
           <Skeleton className="size-10 rounded-full" />
-          <Skeleton className="h-9 w-28 rounded-full" />
+          {/* LocationPill: py-2 around a md line, plus the 1px border. */}
+          <Skeleton className="w-36 rounded-full" style={{ height: 42 }} />
         </View>
-
-        {/* "Hey {name}, what are you craving?" — two lines of text-3xl, whose
-            line-height is 40px each, so each line reserves a 40px box to avoid
-            layout shift when the real header loads. */}
-        <View className="mt-4">
-          <View className="h-10 justify-center">
-            <Skeleton className="h-7 w-4/5 rounded-full" />
-          </View>
-          <View className="h-10 justify-center">
-            <Skeleton className="h-7 w-1/2 rounded-full" />
-          </View>
-        </View>
-
-        <Skeleton className="mt-6 h-16 w-full rounded-full" />
-      </View>
-
-      <View className="mt-6 flex-row gap-4 overflow-hidden pl-6">
-        <CircleSkeleton />
-        <CircleSkeleton />
-        <CircleSkeleton />
-        <CircleSkeleton />
-      </View>
-
-      <View className="mt-8 gap-3">
-        <Skeleton className="ml-6 h-6 w-40 rounded-full" />
-        <View className="flex-row gap-4 overflow-hidden pl-6">
-          <View className="w-64">
-            <BranchCardSkeleton />
-          </View>
-          <View className="w-64">
-            <BranchCardSkeleton />
-          </View>
+        <View className="mt-5">
+          <SkeletonText className="w-4/5" size="3xl" />
+          <SkeletonText className="w-1/3" size="3xl" />
         </View>
       </View>
+
+      <View className="mt-6 px-6">
+        <Skeleton className="h-16 w-full rounded-full" />
+      </View>
+
+      <CircleRowSkeleton />
+      <RailSkeleton />
     </View>
   );
 }

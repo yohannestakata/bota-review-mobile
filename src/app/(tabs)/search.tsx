@@ -367,7 +367,7 @@ export default function SearchScreen() {
               </ThemedText>
             </View>
           ) : search.isPending ? (
-            <SearchResultsSkeleton />
+            <SearchResultsSkeleton belowSuggestions={!active} />
           ) : search.isError ? (
             <ListErrorState
               errorText="Couldn't load places. Check your connection and try again."
