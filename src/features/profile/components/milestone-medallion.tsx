@@ -22,9 +22,9 @@ const ART: Record<string, number> = {
   reviews_10: require("@/assets/icons3d/reviews_10.png"),
 };
 
-// A badge as a collectible object. Earned: the 3D art on its own. Locked: the
-// same shape as a flat silhouette inside a progress ring, so the user sees
-// what it is and how close they are — not a wall of padlocks.
+// A badge as a collectible object: its 3D art inside a progress ring. The ring
+// fills as the user gets closer and closes fully once earned; locked art is a
+// flat grey silhouette so they see what it is without it looking won.
 export function MilestoneMedallion({
   milestone,
   size = 60,
@@ -40,42 +40,32 @@ export function MilestoneMedallion({
   const circumference = 2 * Math.PI * radius;
   const ratio = progress.target > 0 ? progress.current / progress.target : 0;
   const iconSize = Math.round(size * 0.4);
-  // Without a disc the art fills most of the slot; inside the ring it's smaller.
-  const artSize = Math.round(size * 0.74);
-  const lockedArtSize = Math.round(size * 0.5);
+  const artSize = Math.round(size * 0.56);
 
   const art = ART[milestone.id];
-  if (earned) {
+  const newDot = showNewDot ? (
+    <View
+      accessibilityElementsHidden
+      className="absolute right-0 top-0 size-3.5 rounded-full border-2 border-background bg-favorite"
+    />
+  ) : null;
+  // Badges without 3D art keep the original solid disc when earned.
+  if (earned && !art) {
     return (
-      <View
-        className="items-center justify-center"
-        style={{ width: size, height: size }}
-      >
-        {art ? (
-          // 3D art stands on the page on its own — no disc, for contrast.
-          <Image
-            contentFit="contain"
-            source={art}
-            style={{ width: artSize, height: artSize }}
-          />
-        ) : (
-          <View
-            className="size-full items-center justify-center rounded-full bg-primary"
-            style={{ borderWidth: 2, borderColor: "rgba(255,255,255,0.18)" }}
-          >
-            <AppIcon color={colors.inverse} icon={icon} size={iconSize} />
-          </View>
-        )}
-        {showNewDot ? (
-          <View
-            className="absolute right-0 top-0 size-3.5 rounded-full border-2 border-background bg-favorite"
-            accessibilityElementsHidden
-          />
-        ) : null}
+      <View style={{ width: size, height: size }}>
+        <View
+          className="size-full items-center justify-center rounded-full bg-primary"
+          style={{ borderWidth: 2, borderColor: "rgba(255,255,255,0.18)" }}
+        >
+          <AppIcon color={colors.inverse} icon={icon} size={iconSize} />
+        </View>
+        {newDot}
       </View>
     );
   }
 
+  // The ring is the progress: a closed green ring means earned.
+  const fill = earned ? 1 : ratio;
   return (
     <View
       className="items-center justify-center"
@@ -94,7 +84,7 @@ export function MilestoneMedallion({
           stroke={colors.border}
           strokeWidth={RING_WIDTH}
         />
-        {ratio > 0 ? (
+        {fill > 0 ? (
           <Circle
             cx={size / 2}
             cy={size / 2}
@@ -102,23 +92,25 @@ export function MilestoneMedallion({
             r={radius}
             stroke={colors.primary}
             strokeDasharray={circumference}
-            strokeDashoffset={circumference * (1 - ratio)}
+            strokeDashoffset={circumference * (1 - fill)}
             strokeLinecap="round"
             strokeWidth={RING_WIDTH}
           />
         ) : null}
       </Svg>
       {art ? (
-        // Locked: the 3D shape as a flat silhouette — recognisable, not earned.
+        // Earned: full-colour 3D art. Locked: the same shape as a flat grey
+        // silhouette — recognisable, clearly not yet earned.
         <Image
           contentFit="contain"
           source={art}
-          style={{ width: lockedArtSize, height: lockedArtSize }}
-          tintColor={colors.subtle}
+          style={{ width: artSize, height: artSize }}
+          tintColor={earned ? undefined : colors.subtle}
         />
       ) : (
         <AppIcon color={colors.subtle} icon={icon} size={iconSize} />
       )}
+      {newDot}
     </View>
   );
 }
