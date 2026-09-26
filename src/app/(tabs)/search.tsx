@@ -2,6 +2,7 @@ import {
   Cancel01Icon,
   FilterHorizontalIcon,
   Search01Icon,
+  SpoonAndForkIcon,
 } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -16,7 +17,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
 import { ChipButton } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { AppIcon } from "@/components/ui/huge-icon";
+import { ListErrorState } from "@/components/ui/list-state-placeholder";
 import { ThemedText } from "@/components/ui/themed-text";
 import { FlashList, ListGapLg } from "@/components/ui/flash-list";
 import { BranchCard, useSaveHandler } from "@/features/home";
@@ -122,6 +125,7 @@ export default function SearchScreen() {
     cuisineIds.length +
     tagIds.length +
     (sort === "rating" ? 0 : 1);
+  const hasFilters = filterCount > 0 || openNow || nearby;
   const active =
     debouncedQ.length >= 2 || filterCount > 0 || openNow || sortByDistance;
   const resultPages = search.data?.pages;
@@ -177,7 +181,6 @@ export default function SearchScreen() {
     openNow,
     sort,
   ]);
-
 
   function clearFilters() {
     setNeighborhoodId(undefined);
@@ -311,28 +314,51 @@ export default function SearchScreen() {
           ) : search.isPending ? (
             <SearchResultsSkeleton />
           ) : search.isError ? (
-            <View className="mt-24 items-center gap-3 px-6">
-              <ThemedText className="text-center" tone="muted">
-                Couldn&apos;t load places right now.
-              </ThemedText>
-              <Pressable onPress={() => search.refetch()}>
-                <ThemedText tone="brand" weight="semibold">
-                  Try again
-                </ThemedText>
-              </Pressable>
-            </View>
+            <ListErrorState
+              errorText="Couldn't load places. Check your connection and try again."
+              onRetry={() => search.refetch()}
+            />
           ) : !active ? (
-            <View className="mt-24 items-center px-6">
-              <ThemedText className="text-center" tone="muted">
-                No places are available yet.
-              </ThemedText>
-            </View>
+            <EmptyState
+              action={{
+                label: "Suggest a place",
+                onPress: () => router.navigate("/submissions"),
+              }}
+              body="Know a great spot? Add it and we'll get it listed."
+              icon={SpoonAndForkIcon}
+              title="No places yet"
+            />
           ) : (
-            <View className="mt-24 items-center px-6">
-              <ThemedText className="text-center" tone="muted">
-                Nothing matched — try different filters.
-              </ThemedText>
-            </View>
+            <EmptyState
+              action={
+                hasFilters
+                  ? { label: "Clear filters", onPress: clearFilters }
+                  : undefined
+              }
+              body={
+                debouncedQ.length >= 2
+                  ? "Check the spelling, or if it's not on Bota yet, add it and help everyone find it."
+                  : "Try loosening a filter or two."
+              }
+              icon={Search01Icon}
+              secondaryAction={
+                debouncedQ.length >= 2
+                  ? {
+                      label: `Add "${debouncedQ}" to Bota`,
+                      onPress: () =>
+                        router.navigate({
+                          pathname: "/submissions",
+                          params: { placeName: debouncedQ },
+                        }),
+                    }
+                  : undefined
+              }
+              title={
+                debouncedQ.length >= 2
+                  ? `No matches for "${debouncedQ}"`
+                  : "No places match these filters"
+              }
+            />
           )
         }
         ListHeaderComponent={

@@ -1,11 +1,13 @@
+import { PencilEdit02Icon, UserCircleIcon } from "@hugeicons/core-free-icons";
 import { useAuth } from "@clerk/clerk-expo";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
 import { BackButton } from "@/components/ui/back-button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemedText } from "@/components/ui/themed-text";
@@ -91,19 +93,13 @@ export default function PublicProfileScreen() {
           ))}
         </View>
       ) : isError || !profile.data ? (
-        <View className="flex-1 items-center justify-center gap-3 px-6">
-          <ThemedText size="xl" weight="bold">
-            User not found
-          </ThemedText>
-          <ThemedText className="text-center" tone="muted">
-            We couldn&apos;t load this reviewer&apos;s profile.
-          </ThemedText>
-          <Pressable onPress={refresh}>
-            <ThemedText tone="brand" weight="semibold">
-              Try again
-            </ThemedText>
-          </Pressable>
-        </View>
+        <EmptyState
+          action={{ label: "Try again", onPress: refresh }}
+          body="Check your connection and try again. If this reviewer deleted their account, their profile won't load."
+          icon={UserCircleIcon}
+          secondaryAction={{ label: "Go back", onPress: () => router.back() }}
+          title="Couldn't load this profile"
+        />
       ) : (
         <FlashList
           contentContainerClassName="px-6 pb-12 pt-4"
@@ -111,9 +107,12 @@ export default function PublicProfileScreen() {
           ItemSeparatorComponent={ListGapMd}
           keyExtractor={(item) => item.id}
           ListEmptyComponent={
-            <View className="mt-10 items-center">
-              <ThemedText tone="muted">No reviews yet.</ThemedText>
-            </View>
+            <EmptyState
+              body="This reviewer hasn't shared any takes yet."
+              className="mt-10"
+              icon={PencilEdit02Icon}
+              title="No reviews yet"
+            />
           }
           ListFooterComponent={
             reviews.isFetchingNextPage ? (

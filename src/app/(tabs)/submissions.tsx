@@ -175,16 +175,19 @@ export default function SubmissionsScreen() {
 
   const existingPlaceId = useWatch({ control, name: "existingPlaceId" });
 
-  // Deep-link from a place's "Add a location" — preselect the place so this
-  // submission becomes a new branch of it (not a duplicate place). The param is
-  // consumed once seeded so re-navigating (even to the same place) works again.
+  // Deep-links: a place's "Add a location" passes placeId (+ name) so this
+  // submission becomes a new branch of it (not a duplicate place); a no-results
+  // search passes just placeName to prefill a new place. Params are consumed
+  // once seeded so re-navigating (even with the same values) works again.
   const { placeId, placeName } = useLocalSearchParams<{
     placeId?: string;
     placeName?: string;
   }>();
   useEffect(() => {
-    if (!placeId) return;
-    setValue("existingPlaceId", placeId, { shouldValidate: true });
+    if (!placeId && !placeName) return;
+    if (placeId) {
+      setValue("existingPlaceId", placeId, { shouldValidate: true });
+    }
     if (placeName) {
       setValue("placeName", placeName, { shouldValidate: true });
     }

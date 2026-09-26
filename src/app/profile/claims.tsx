@@ -1,3 +1,4 @@
+import { CheckmarkBadge01Icon } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -6,6 +7,7 @@ import { FlashList, ListGapSm } from "@/components/ui/flash-list";
 import { BackButton } from "@/components/ui/back-button";
 import { ListErrorState } from "@/components/ui/list-state-placeholder";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useOwnClaims, type OwnClaim } from "@/features/branch";
 import { formatRelativeDate } from "@/lib/format-date";
@@ -68,11 +70,15 @@ export default function MyClaimsScreen() {
           onRetry={() => claims.refetch()}
         />
       ) : data.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-6">
-          <ThemedText className="text-center" tone="muted">
-            You haven&apos;t claimed any businesses yet.
-          </ThemedText>
-        </View>
+        <EmptyState
+          action={{
+            label: "Find your business",
+            onPress: () => router.navigate("/search"),
+          }}
+          body="Own a spot? Find it on Bota and tap the claim card near the bottom of its page to manage the listing and reply as the owner."
+          icon={CheckmarkBadge01Icon}
+          title="No businesses claimed"
+        />
       ) : (
         <FlashList
           contentContainerClassName="px-6 pb-12 pt-2"

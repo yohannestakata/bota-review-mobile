@@ -1,9 +1,12 @@
+import { SpoonAndForkIcon } from "@hugeicons/core-free-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { FlashList, ListGapLg } from "@/components/ui/flash-list";
+import { ListErrorState } from "@/components/ui/list-state-placeholder";
 import { BackButton } from "@/components/ui/back-button";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
@@ -39,16 +42,10 @@ export default function CollectionScreen() {
           <BranchListSkeleton />
         </View>
       ) : collection.isError || !collection.data ? (
-        <View className="mt-24 items-center gap-3 px-6">
-          <ThemedText tone="muted">
-            Couldn&apos;t load this collection.
-          </ThemedText>
-          <Pressable onPress={() => collection.refetch()}>
-            <ThemedText tone="brand" weight="semibold">
-              Try again
-            </ThemedText>
-          </Pressable>
-        </View>
+        <ListErrorState
+          errorText="Couldn't load this collection. Check your connection and try again."
+          onRetry={() => collection.refetch()}
+        />
       ) : (
         <FlashList
           contentContainerClassName="px-6 pb-10 pt-2"
@@ -56,11 +53,15 @@ export default function CollectionScreen() {
           ItemSeparatorComponent={ListGapLg}
           keyExtractor={(item) => item.id}
           ListEmptyComponent={
-            <View className="mt-24 items-center px-6">
-              <ThemedText className="text-center" tone="muted">
-                Nothing in this collection yet — check back soon.
-              </ThemedText>
-            </View>
+            <EmptyState
+              action={{
+                label: "Explore other picks",
+                onPress: () => router.navigate("/"),
+              }}
+              body="We're still filling this one up. In the meantime, there's plenty more to discover."
+              icon={SpoonAndForkIcon}
+              title="Coming together"
+            />
           }
           ListHeaderComponent={
             collection.data.description ? (

@@ -1,12 +1,12 @@
+import { PencilEdit02Icon } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
-import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
 import { ListStatePlaceholder } from "@/components/ui/list-state-placeholder";
-import { ThemedText } from "@/components/ui/themed-text";
 import { useDeleteReview } from "@/features/branch";
 import {
   MyReviewRow,
@@ -69,11 +69,20 @@ export default function MyReviewsScreen() {
         ListEmptyComponent={
           <ListStatePlaceholder
             empty={
-              <View className="mt-8 items-center px-6">
-                <ThemedText className="text-center" tone="muted">
-                  No reviews yet — go share a hot take.
-                </ThemedText>
-              </View>
+              <EmptyState
+                action={{
+                  label: "Find a place you've been",
+                  onPress: () => router.navigate("/search"),
+                }}
+                body="Your takes help the next person decide where to eat. Start with somewhere you loved (or didn't)."
+                className="mt-8"
+                icon={PencilEdit02Icon}
+                secondaryAction={{
+                  label: "Pick from your saved places",
+                  onPress: () => router.navigate("/saved"),
+                }}
+                title="No reviews yet"
+              />
             }
             errorText="Couldn't load your reviews."
             isError={reviews.isError}

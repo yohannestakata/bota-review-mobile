@@ -1,10 +1,12 @@
 import { useAuth } from "@clerk/clerk-expo";
+import { FavouriteIcon } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { useCallback } from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AuthRequiredScreen } from "@/components/auth/auth-required-screen";
+import { EmptyState } from "@/components/ui/empty-state";
 import { FlashList, ListGapLg } from "@/components/ui/flash-list";
 import { ListStatePlaceholder } from "@/components/ui/list-state-placeholder";
 import { ThemedText } from "@/components/ui/themed-text";
@@ -64,12 +66,19 @@ export default function SavedScreen() {
         ListEmptyComponent={
           <ListStatePlaceholder
             empty={
-              <View className="mt-24 items-center px-6">
-                <ThemedText className="text-center" tone="muted">
-                  No saves yet. Tap the heart on places you love and
-                  they&apos;ll live here.
-                </ThemedText>
-              </View>
+              <EmptyState
+                action={{
+                  label: "Find places to save",
+                  onPress: () => router.navigate("/"),
+                }}
+                body="Tap the heart on any place and it'll wait for you here."
+                icon={FavouriteIcon}
+                secondaryAction={{
+                  label: "Search nearby",
+                  onPress: () => router.navigate("/search"),
+                }}
+                title="Nothing saved yet"
+              />
             }
             errorText="Couldn't grab your saves."
             isError={saves.isError}

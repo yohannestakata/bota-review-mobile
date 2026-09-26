@@ -1,3 +1,4 @@
+import { StarIcon } from "@hugeicons/core-free-icons";
 import { useAuth } from "@clerk/clerk-expo";
 import { router, type Href, useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
@@ -5,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
 import { BackButton } from "@/components/ui/back-button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { FlashList } from "@/components/ui/flash-list";
 import { ListErrorState } from "@/components/ui/list-state-placeholder";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -83,11 +85,16 @@ export default function BranchReviewsScreen() {
           onRetry={() => reviews.refetch()}
         />
       ) : data.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-6">
-          <ThemedText className="text-center" tone="muted">
-            No reviews yet — be the first to weigh in!
-          </ThemedText>
-        </View>
+        <EmptyState
+          action={{
+            label: "Write the first review",
+            onPress: () =>
+              router.push(isSignedIn ? `/review/${branchId}` : "/login"),
+          }}
+          body="Been here? Your take helps the next person decide."
+          icon={StarIcon}
+          title="No reviews yet"
+        />
       ) : (
         <FlashList
           contentContainerClassName="px-6 pb-12 pt-2"

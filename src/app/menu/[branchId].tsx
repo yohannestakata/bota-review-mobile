@@ -1,9 +1,12 @@
+import { useAuth } from "@clerk/clerk-expo";
+import { SpoonAndForkIcon } from "@hugeicons/core-free-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackButton } from "@/components/ui/back-button";
 import { ListErrorState } from "@/components/ui/list-state-placeholder";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   MenuList,
@@ -17,6 +20,7 @@ export default function MenuScreen() {
     branchId: string;
     name?: string;
   }>();
+  const { isSignedIn } = useAuth();
   const menus = useBranchMenus(branchId);
 
   const data = menus.data ?? [];
@@ -56,11 +60,24 @@ export default function MenuScreen() {
           onRetry={() => menus.refetch()}
         />
       ) : itemCount === 0 ? (
-        <View className="flex-1 items-center justify-center px-6">
-          <ThemedText className="text-center" tone="muted">
-            No menu has been added for this spot yet.
-          </ThemedText>
-        </View>
+        <EmptyState
+          action={{
+            label: "Add what you know",
+            onPress: () => {
+              if (!isSignedIn) {
+                router.push("/login");
+                return;
+              }
+              router.push({
+                pathname: "/suggest-edit/[branchId]",
+                params: { branchId, ...(name ? { name } : {}) },
+              });
+            },
+          }}
+          body="Been here? Share a few dishes and prices to help the next person decide."
+          icon={SpoonAndForkIcon}
+          title="No menu yet"
+        />
       ) : (
         <ScrollView
           contentContainerClassName="px-6 pb-12 pt-2"

@@ -24,6 +24,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
+import { FilledStar } from "@/components/ui/filled-star";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { SectionTitle } from "@/components/ui/section-title";
 import { Stars } from "@/components/ui/stars";
@@ -249,7 +250,8 @@ export default function BranchDetailScreen() {
   const data = branch.data;
   // Hero + rail must agree on which photo is the cover: prefer the flagged one,
   // fall back to the first, and keep exactly that photo out of the rail.
-  const coverPhoto = data.photos.find((photo) => photo.isCover) ?? data.photos[0];
+  const coverPhoto =
+    data.photos.find((photo) => photo.isCover) ?? data.photos[0];
   const cover = coverPhoto?.url ?? null;
   const detailPhotos = data.photos.filter(
     (photo) => photo.id !== coverPhoto?.id,
@@ -658,10 +660,38 @@ export default function BranchDetailScreen() {
                   </View>
                 ))}
               </View>
-            ) : (
+            ) : isOwnBranch ? (
               <ThemedText tone="muted">
-                No reviews yet — be the first to weigh in!
+                No reviews yet. They&apos;ll show up here as guests weigh in.
               </ThemedText>
+            ) : (
+              // Plain Pressables rather than RatingInput: its pan gesture would
+              // fire on the first touch of a scroll and navigate by accident.
+              <View className="items-center rounded-2xl bg-surface-muted px-4 py-5">
+                <ThemedText weight="semibold">
+                  Be the first to review
+                </ThemedText>
+                <ThemedText className="mt-1 text-center" size="sm" tone="muted">
+                  Tap a star to rate your visit.
+                </ThemedText>
+                <View className="mt-3 flex-row gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Pressable
+                      accessibilityLabel={`Rate ${star} star${star === 1 ? "" : "s"}`}
+                      accessibilityRole="button"
+                      hitSlop={4}
+                      key={star}
+                      onPress={() =>
+                        requireSignIn(() =>
+                          router.push(`/review/${data.id}?rating=${star}`),
+                        )
+                      }
+                    >
+                      <FilledStar color={colors.subtle} size={32} />
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
             )}
 
             {data.reviewCount > data.recentReviews.length ? (

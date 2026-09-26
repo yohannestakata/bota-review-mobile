@@ -1,3 +1,4 @@
+import { BubbleChatIcon } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,6 +8,7 @@ import { BackButton } from "@/components/ui/back-button";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
 import { ListErrorState } from "@/components/ui/list-state-placeholder";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ThemedText } from "@/components/ui/themed-text";
 import { ReplyComposerModal, type ReplyTarget } from "@/features/branch";
 import {
@@ -147,11 +149,15 @@ export default function MyRepliesScreen() {
           onRetry={() => replies.refetch()}
         />
       ) : items.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-6">
-          <ThemedText className="text-center" tone="muted">
-            You haven&apos;t replied to any reviews yet.
-          </ThemedText>
-        </View>
+        <EmptyState
+          action={{
+            label: "Browse places",
+            onPress: () => router.navigate("/"),
+          }}
+          body="Agree, disagree, or have a tip to add? Tap Reply under any review on a place's page."
+          icon={BubbleChatIcon}
+          title="No replies yet"
+        />
       ) : (
         <FlashList
           contentContainerClassName="px-6 pb-12 pt-2"
