@@ -18,7 +18,6 @@ import {
   getTasteOptions,
   saveBranch,
   unsaveBranch,
-  replaceTastePreferences,
 } from "./api";
 
 export const homeKeys = {
@@ -72,20 +71,6 @@ export function useTasteOptionsQuery() {
     queryFn: () => getTasteOptions(getToken),
     enabled: isSignedIn === true,
     staleTime: 30 * 60 * 1000,
-  });
-}
-
-export function useReplaceTastePreferences() {
-  const { getToken, userId } = useAuth();
-  const queryClient = useQueryClient();
-  return useMutation({
-    scope: { id: "taste-preferences" },
-    mutationFn: (tasteOptionIds: string[]) =>
-      replaceTastePreferences(tasteOptionIds, getToken),
-    onSuccess: (preferences) => {
-      queryClient.setQueryData(homeKeys.tastes(userId), preferences);
-      void queryClient.invalidateQueries({ queryKey: homeKeys.forYou(userId) });
-    },
   });
 }
 
