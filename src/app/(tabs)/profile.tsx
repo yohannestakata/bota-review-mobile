@@ -133,7 +133,7 @@ export default function ProfileScreen() {
         {/* Header */}
         <View className="px-6">
           <View className="flex-row items-center gap-4">
-            <Avatar name={name} size={64} uri={user?.imageUrl} />
+            <Avatar name={name} size={56} uri={user?.imageUrl} />
             <View className="flex-1 gap-1">
               <ThemedText numberOfLines={1} size="xl" weight="semibold">
                 {name}

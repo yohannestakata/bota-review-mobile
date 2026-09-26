@@ -355,6 +355,7 @@ export default function SearchScreen() {
 
       <FlashList
         contentContainerClassName="px-6 pb-10 pt-2"
+        showsVerticalScrollIndicator={false}
         data={results}
         ItemSeparatorComponent={ListGapLg}
         keyboardShouldPersistTaps="handled"
