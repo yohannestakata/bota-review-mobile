@@ -71,6 +71,11 @@ export function ThemedText({
 }: ThemedTextProps) {
   return (
     <Text
+      // Android's default "highQuality" line breaking can measure a line a
+      // hair narrower than it draws, so the last word wraps into a line the
+      // box has no room for and is clipped ("Write a" instead of "Write a
+      // review") on some phones/font settings. "simple" measures consistently.
+      textBreakStrategy="simple"
       className={classes(
         sizeClass[size],
         toneClass[tone],
