@@ -124,7 +124,18 @@ function RootLayout() {
                         contentStyle: { backgroundColor: colors.background },
                         headerShown: false,
                       }}
-                    />
+                    >
+                      {/* Fades in over the page, which stays visible beneath
+                          so dragging a photo down to close reveals it. */}
+                      <Stack.Screen
+                        name="branch/[id]/photos"
+                        options={{
+                          animation: "fade",
+                          contentStyle: { backgroundColor: "transparent" },
+                          presentation: "transparentModal",
+                        }}
+                      />
+                    </Stack>
                     <OfflineBanner />
                   </ToastProvider>
                 </AlertProvider>

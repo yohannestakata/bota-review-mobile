@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { Dimensions } from "react-native";
+import { useWindowDimensions } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
@@ -8,8 +8,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-const { width } = Dimensions.get("window");
-
 // A single pinch/double-tap zoomable, pannable-while-zoomed image. Shared by the
 // modal PhotoViewer and the full-screen gallery route so the gesture logic lives
 // in one place.
@@ -17,11 +15,15 @@ export function ZoomableImage({
   uri,
   isZoomed,
   onZoomChange,
+  onTap,
 }: {
   uri: string;
   isZoomed: boolean;
   onZoomChange: (zoomed: boolean) => void;
+  /** A single tap (fires only once a double-tap is ruled out). */
+  onTap?: () => void;
 }) {
+  const { width } = useWindowDimensions();
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const tx = useSharedValue(0);
@@ -77,8 +79,15 @@ export function ZoomableImage({
       }
     });
 
+  const singleTap = Gesture.Tap()
+    .enabled(!!onTap)
+    .onEnd(() => {
+      if (onTap) runOnJS(onTap)();
+    });
+
   const gesture = Gesture.Exclusive(
     doubleTap,
+    singleTap,
     Gesture.Simultaneous(pinch, pan),
   );
 
