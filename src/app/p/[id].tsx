@@ -1,6 +1,6 @@
 import { Redirect, useLocalSearchParams } from "expo-router";
 
-// https://botareview.com/p/:id (shared links, opened as universal/app links)
+// <share host>/p/:id (shared links, opened as universal/app links)
 // lands here — forward to the place page.
 export default function SharedPlaceLink() {
   const { id } = useLocalSearchParams<{ id: string }>();

@@ -17,7 +17,8 @@ type QuickActionsProps = {
 };
 
 // Public share links; the page unfurls in chats and opens the app if installed.
-const SHARE_BASE_URL = "https://botareview.com";
+// botareview.com expired; the backend's free Render host serves share pages.
+const SHARE_BASE_URL = "https://bota-review-api.onrender.com";
 
 export function QuickActions({
   branchId,

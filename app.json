@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.botareview.bota",
-      "associatedDomains": ["applinks:botareview.com"]
+      "associatedDomains": ["applinks:bota-review-api.onrender.com"]
     },
     "android": {
       "adaptiveIcon": {
@@ -31,7 +31,7 @@
           "action": "VIEW",
           "autoVerify": true,
           "data": [
-            { "scheme": "https", "host": "botareview.com", "pathPrefix": "/p/" }
+            { "scheme": "https", "host": "bota-review-api.onrender.com", "pathPrefix": "/p/" }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
         }
