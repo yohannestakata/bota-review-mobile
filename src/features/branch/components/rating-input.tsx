@@ -2,6 +2,7 @@ import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 import { FilledStar } from "@/components/ui/filled-star";
+import { haptics } from "@/lib/haptics";
 import { colors } from "@/lib/theme";
 
 const GAP = 8;
@@ -18,12 +19,21 @@ export function RatingInput({ value, onChange, size = 40 }: RatingInputProps) {
   // Map an x position within the row to a 1–5 rating.
   const ratingAt = (x: number) => Math.min(5, Math.max(1, Math.ceil(x / step)));
 
+  // Tick once per star crossed, not on every drag frame. The gesture is rebuilt
+  // each render, so `value` here is always the current rating.
+  const select = (x: number) => {
+    const next = ratingAt(x);
+    if (next === value) return;
+    haptics.select();
+    onChange(next);
+  };
+
   // Pan handles both the tap (onBegin) and the drag (onUpdate). runOnJS so the
   // JS onChange can be called directly from the gesture callbacks.
   const pan = Gesture.Pan()
     .runOnJS(true)
-    .onBegin((event) => onChange(ratingAt(event.x)))
-    .onUpdate((event) => onChange(ratingAt(event.x)));
+    .onBegin((event) => select(event.x))
+    .onUpdate((event) => select(event.x));
 
   return (
     <GestureDetector gesture={pan}>

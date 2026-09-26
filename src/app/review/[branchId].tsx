@@ -28,6 +28,7 @@ import {
 import { getMyReviews } from "@/features/profile";
 import { analytics } from "@/lib/analytics";
 import { getErrorCode, getErrorMessage } from "@/lib/api";
+import { haptics } from "@/lib/haptics";
 import { promptAndRegisterPush } from "@/lib/push-registration";
 import { usePickImage } from "@/lib/use-pick-image";
 import { colors } from "@/lib/theme";
@@ -178,6 +179,7 @@ export default function WriteReviewScreen() {
           branch_id: branchId,
           rating: values.rating,
         });
+        haptics.success();
         Alert.alert("All set!", "Your review got a fresh coat.");
         router.back();
         return;
@@ -232,6 +234,7 @@ export default function WriteReviewScreen() {
     }
 
     if (failed.length === 0) {
+      haptics.success();
       Alert.alert("You're a star!", "Your review is live.");
       router.back();
       return;

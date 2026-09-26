@@ -33,6 +33,7 @@ import {
 import { useCuisines, useNeighborhoods, useTags } from "@/features/taxonomy";
 import { analytics } from "@/lib/analytics";
 import type { BranchCard as BranchCardData } from "@/lib/api";
+import { haptics } from "@/lib/haptics";
 import { colors } from "@/lib/theme";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useLocation } from "@/lib/use-location";
@@ -265,11 +266,21 @@ export default function SearchScreen() {
             </ThemedText>
           </Pressable>
 
-          <ChipButton label="Nearby" onPress={toggleNearby} selected={nearby} />
+          <ChipButton
+            label="Nearby"
+            onPress={() => {
+              haptics.select();
+              void toggleNearby();
+            }}
+            selected={nearby}
+          />
 
           <ChipButton
             label="Open now"
-            onPress={() => setOpenNow((v) => !v)}
+            onPress={() => {
+              haptics.select();
+              setOpenNow((v) => !v);
+            }}
             selected={openNow}
           />
         </View>

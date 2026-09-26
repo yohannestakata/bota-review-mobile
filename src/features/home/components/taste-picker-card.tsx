@@ -3,6 +3,7 @@ import { Pressable, View } from "react-native";
 
 import { ThemedText } from "@/components/ui/themed-text";
 import { cn } from "@/lib/cn";
+import { haptics } from "@/lib/haptics";
 import { useTasteOptionsQuery } from "../queries";
 
 const GROUP_LABELS = {
@@ -73,6 +74,7 @@ export function TastePickerCard({
                       )}
                       key={option.id}
                       onPress={() => {
+                        haptics.select();
                         setHasInteracted(true);
                         onToggle(option.id);
                       }}

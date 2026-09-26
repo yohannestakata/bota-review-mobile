@@ -1,10 +1,10 @@
-import { ArrowLeft01Icon, FavouriteIcon } from "@hugeicons/core-free-icons";
-import { colors, shadows } from "@/lib/theme";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { shadows } from "@/lib/theme";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IconButton } from "@/components/ui/button";
-import { AppIcon } from "@/components/ui/huge-icon";
+import { SaveHeartButton } from "@/components/ui/save-heart-button";
 
 type BranchHeaderButtonsProps = {
   isSaved: boolean;
@@ -36,20 +36,12 @@ export function BranchHeaderButtons({
         style={shadows.navigation}
       />
 
-      <IconButton
-        accessibilityLabel={isSaved ? "Remove from saved" : "Save branch"}
-        icon={FavouriteIcon}
+      <SaveHeartButton
+        iconSize={20}
+        isSaved={isSaved}
         onPress={onToggleSave}
-        size={44}
-        style={shadows.navigation}
-      >
-        <AppIcon
-          color={isSaved ? colors.favorite : colors.foreground}
-          icon={FavouriteIcon}
-          size={20}
-          strokeWidth={isSaved ? 2.5 : 2}
-        />
-      </IconButton>
+        style={[{ height: 44, width: 44 }, shadows.navigation]}
+      />
     </View>
   );
 }

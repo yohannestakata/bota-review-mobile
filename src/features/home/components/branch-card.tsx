@@ -1,10 +1,9 @@
-import { FavouriteIcon } from "@hugeicons/core-free-icons";
 import { colors, shadows } from "@/lib/theme";
 import { Image } from "expo-image";
 import { Pressable, View } from "react-native";
 
 import { FilledStar } from "@/components/ui/filled-star";
-import { AppIcon } from "@/components/ui/huge-icon";
+import { SaveHeartButton } from "@/components/ui/save-heart-button";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 import { formatMenuPriceRange } from "@/lib/price";
@@ -80,19 +79,12 @@ export function BranchCard({
           </View>
         ) : null}
 
-        <Pressable
-          className="absolute right-3 top-3 size-12 items-center justify-center rounded-full bg-surface"
-          hitSlop={8}
+        <SaveHeartButton
+          className="absolute right-3 top-3 size-12"
+          isSaved={isSaved}
           onPress={() => onToggleSave(branch)}
           style={shadows.cardControl}
-        >
-          <AppIcon
-            color={isSaved ? colors.favorite : colors.foreground}
-            icon={FavouriteIcon}
-            size={24}
-            strokeWidth={isSaved ? 2.5 : 2}
-          />
-        </Pressable>
+        />
 
         {branch.placeAvatarUrl ? (
           <View
