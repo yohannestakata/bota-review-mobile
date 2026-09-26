@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
@@ -8,6 +9,18 @@ import type { Milestone } from "../api";
 import { milestoneIcon } from "../milestone-meta";
 
 const RING_WIDTH = 3;
+
+// Rendered 3D art per badge (design/3d-icons/bota-icons.blend), shown in place
+// of the line icon on earned badges. Badges without art keep the line icon.
+const ART: Record<string, number> = {
+  first_review: require("@/assets/icons3d/first_review.png"),
+  first_photo: require("@/assets/icons3d/first_photo.png"),
+  reviews_5: require("@/assets/icons3d/reviews_5.png"),
+  saves_10: require("@/assets/icons3d/saves_10.png"),
+  neighborhoods_3: require("@/assets/icons3d/neighborhoods_3.png"),
+  place_live: require("@/assets/icons3d/place_live.png"),
+  reviews_10: require("@/assets/icons3d/reviews_10.png"),
+};
 
 // A badge as a collectible object. Earned: a solid brand disc with the icon in
 // white. Locked: the icon as a faint silhouette inside a progress ring, so the
@@ -28,6 +41,7 @@ export function MilestoneMedallion({
   const ratio = progress.target > 0 ? progress.current / progress.target : 0;
   const iconSize = Math.round(size * 0.4);
 
+  const art = ART[milestone.id];
   if (earned) {
     return (
       <View style={{ width: size, height: size }}>
@@ -36,7 +50,16 @@ export function MilestoneMedallion({
           className="flex-1 items-center justify-center rounded-full bg-primary"
           style={{ borderWidth: 2, borderColor: "rgba(255,255,255,0.18)" }}
         >
-          <AppIcon color={colors.inverse} icon={icon} size={iconSize} />
+          {art ? (
+            // 3D art replaces the line icon at the same size; disc unchanged.
+            <Image
+              contentFit="contain"
+              source={art}
+              style={{ width: iconSize, height: iconSize }}
+            />
+          ) : (
+            <AppIcon color={colors.inverse} icon={icon} size={iconSize} />
+          )}
         </View>
         {showNewDot ? (
           <View
@@ -80,7 +103,17 @@ export function MilestoneMedallion({
           />
         ) : null}
       </Svg>
-      <AppIcon color={colors.subtle} icon={icon} size={iconSize} />
+      {art ? (
+        // Locked: the 3D shape as a flat silhouette — recognisable, not earned.
+        <Image
+          contentFit="contain"
+          source={art}
+          style={{ width: iconSize, height: iconSize }}
+          tintColor={colors.subtle}
+        />
+      ) : (
+        <AppIcon color={colors.subtle} icon={icon} size={iconSize} />
+      )}
     </View>
   );
 }
