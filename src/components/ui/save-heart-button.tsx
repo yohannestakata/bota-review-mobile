@@ -1,3 +1,4 @@
+import { useAuth } from "@clerk/clerk-expo";
 import { FavouriteIcon } from "@hugeicons/core-free-icons";
 import type { StyleProp, ViewStyle } from "react-native";
 import Animated, {
@@ -38,11 +39,17 @@ export function SaveHeartButton({
 }) {
   const scale = useSharedValue(1);
   const reduced = useReducedMotion();
+  const { isSignedIn } = useAuth();
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.get() }],
   }));
 
   function handlePress() {
+    // Signed out, the tap only leads to sign-in — no "saved" feedback.
+    if (!isSignedIn) {
+      onPress();
+      return;
+    }
     haptics.tap();
     if (!isSaved && !reduced) {
       scale.set(
