@@ -10,8 +10,9 @@ import { milestoneIcon } from "../milestone-meta";
 
 const RING_WIDTH = 3;
 
-// Rendered 3D art per badge (design/3d-icons/bota-icons.blend), shown in place
-// of the line icon on earned badges. Badges without art keep the line icon.
+// Light 3D versions of each badge's Hugeicons glyph (the exact same outline,
+// built as rounded tubes in design/3d-icons/bota-icons.blend), rendered to fill
+// the same 24-unit box as the line icon so they drop in at the same size.
 const ART: Record<string, number> = {
   first_review: require("@/assets/icons3d/first_review.png"),
   first_photo: require("@/assets/icons3d/first_photo.png"),
@@ -22,9 +23,9 @@ const ART: Record<string, number> = {
   reviews_10: require("@/assets/icons3d/reviews_10.png"),
 };
 
-// A badge as a collectible object: its 3D art inside a progress ring. The ring
-// fills as the user gets closer and closes fully once earned; locked art is a
-// flat grey silhouette so they see what it is without it looking won.
+// A badge as a collectible object. Earned: a solid brand disc with the light
+// 3D icon. Locked: the icon as a grey silhouette inside a progress ring, so the
+// user sees what it is and how close they are — not a wall of padlocks.
 export function MilestoneMedallion({
   milestone,
   size = 60,
@@ -40,7 +41,6 @@ export function MilestoneMedallion({
   const circumference = 2 * Math.PI * radius;
   const ratio = progress.target > 0 ? progress.current / progress.target : 0;
   const iconSize = Math.round(size * 0.4);
-  const artSize = Math.round(size * 0.56);
 
   const art = ART[milestone.id];
   const newDot = showNewDot ? (
@@ -49,23 +49,32 @@ export function MilestoneMedallion({
       className="absolute right-0 top-0 size-3.5 rounded-full border-2 border-background bg-favorite"
     />
   ) : null;
-  // Badges without 3D art keep the original solid disc when earned.
-  if (earned && !art) {
+  // Earned: the solid brand disc, with the light 3D icon (same size and shape
+  // as the line icon it replaces) or the line icon when there's no art.
+  if (earned) {
     return (
       <View style={{ width: size, height: size }}>
         <View
           className="size-full items-center justify-center rounded-full bg-primary"
           style={{ borderWidth: 2, borderColor: "rgba(255,255,255,0.18)" }}
         >
-          <AppIcon color={colors.inverse} icon={icon} size={iconSize} />
+          {art ? (
+            <Image
+              contentFit="contain"
+              source={art}
+              style={{ width: iconSize, height: iconSize }}
+            />
+          ) : (
+            <AppIcon color={colors.inverse} icon={icon} size={iconSize} />
+          )}
         </View>
         {newDot}
       </View>
     );
   }
 
-  // The ring is the progress: a closed green ring means earned.
-  const fill = earned ? 1 : ratio;
+  // Locked: the ring fills with progress.
+  const fill = ratio;
   return (
     <View
       className="items-center justify-center"
@@ -99,13 +108,12 @@ export function MilestoneMedallion({
         ) : null}
       </Svg>
       {art ? (
-        // Earned: full-colour 3D art. Locked: the same shape as a flat grey
-        // silhouette — recognisable, clearly not yet earned.
+        // The same shape as a flat grey silhouette — recognisable, not earned.
         <Image
           contentFit="contain"
           source={art}
-          style={{ width: artSize, height: artSize }}
-          tintColor={earned ? undefined : colors.subtle}
+          style={{ width: iconSize, height: iconSize }}
+          tintColor={colors.subtle}
         />
       ) : (
         <AppIcon color={colors.subtle} icon={icon} size={iconSize} />
