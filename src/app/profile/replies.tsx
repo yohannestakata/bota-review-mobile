@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { TextButton } from "@/components/ui/button";
 import { BackHeader } from "@/components/ui/screen-header";
 import { Alert } from "@/components/ui/alert";
+import { toast } from "@/components/ui/toast";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
 import { ListErrorState } from "@/components/ui/list-state-placeholder";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -113,7 +114,7 @@ export default function MyRepliesScreen() {
       await update.mutateAsync({ replyId: editTarget.replyId, body });
       setEditTarget(null);
     } catch (error) {
-      Alert.alert("Reply hit a snag", getErrorMessage(error));
+      toast.error("Reply hit a snag", getErrorMessage(error));
     }
   }
 
@@ -126,7 +127,7 @@ export default function MyRepliesScreen() {
         onPress: () =>
           remove.mutate(reply.id, {
             onError: (error) =>
-              Alert.alert("Couldn't delete reply", getErrorMessage(error)),
+              toast.error("Couldn't delete reply", getErrorMessage(error)),
           }),
       },
     ]);

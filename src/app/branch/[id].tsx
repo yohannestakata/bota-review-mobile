@@ -61,6 +61,7 @@ import {
 import { useMe } from "@/features/profile";
 import { useSavedBranchIds, useToggleSave } from "@/features/home";
 import { Alert } from "@/components/ui/alert";
+import { toast } from "@/components/ui/toast";
 import { analytics } from "@/lib/analytics";
 import { getErrorMessage } from "@/lib/api";
 import { formatMenuPriceRange } from "@/lib/price";
@@ -227,9 +228,9 @@ export default function BranchDetailScreen() {
               { reviewId },
               {
                 onSuccess: () =>
-                  Alert.alert("Got it", "Thanks for keeping Bota helpful."),
+                  toast.success("Got it", "Thanks for keeping Bota helpful."),
                 onError: (e) =>
-                  Alert.alert("Couldn't send report", getErrorMessage(e)),
+                  toast.error("Couldn't send report", getErrorMessage(e)),
               },
             ),
         },

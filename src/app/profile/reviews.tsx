@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
+import { toast } from "@/components/ui/toast";
 import { EmptyState } from "@/components/ui/empty-state";
 import { BackHeader } from "@/components/ui/screen-header";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
@@ -47,10 +48,7 @@ export default function MyReviewsScreen() {
             },
             {
               onError: () =>
-                Alert.alert(
-                  "Couldn't delete",
-                  "That didn't go through. Try again in a moment.",
-                ),
+                toast.error("Couldn't delete", "That didn't go through. Try again in a moment."),
             },
           ),
       },

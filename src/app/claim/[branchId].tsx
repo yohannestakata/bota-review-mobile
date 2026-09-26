@@ -7,7 +7,7 @@ import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
-import { Alert } from "@/components/ui/alert";
+import { toast } from "@/components/ui/toast";
 import { Button, ChipButton } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import {
@@ -222,10 +222,7 @@ export default function ClaimBusinessScreen() {
       claim.mutate(body, {
         onSuccess: () => {
           analytics.track("claim_submitted", { branch_id: branchId });
-          Alert.alert(
-            "Claim received",
-            "We'll check the details and get you set up.",
-          );
+          toast.success("Claim received", "We'll check the details and get you set up.");
           router.back();
           resolve();
         },

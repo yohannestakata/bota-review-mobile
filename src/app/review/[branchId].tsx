@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
+import { toast } from "@/components/ui/toast";
 import { Button, TextButton } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { ControlledTextArea } from "@/components/ui/form-field";
@@ -214,7 +215,7 @@ export default function WriteReviewScreen() {
           rating: values.rating,
         });
         haptics.success();
-        Alert.alert("All set!", "Your review got a fresh coat.");
+        toast.success("All set!", "Your review got a fresh coat.");
         router.back();
         return;
       }

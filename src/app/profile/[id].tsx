@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackHeader } from "@/components/ui/screen-header";
 import { Alert } from "@/components/ui/alert";
+import { toast } from "@/components/ui/toast";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FlashList, ListGapMd } from "@/components/ui/flash-list";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -59,9 +60,9 @@ export default function PublicProfileScreen() {
             { reviewId },
             {
               onSuccess: () =>
-                Alert.alert("Got it", "Thanks for keeping Bota helpful."),
+                toast.success("Got it", "Thanks for keeping Bota helpful."),
               onError: (error) =>
-                Alert.alert("Couldn't send report", getErrorMessage(error)),
+                toast.error("Couldn't send report", getErrorMessage(error)),
             },
           ),
       },

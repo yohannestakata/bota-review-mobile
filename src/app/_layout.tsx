@@ -17,6 +17,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { AnalyticsProvider } from "@/components/analytics-provider";
 import { PushRegistration } from "@/components/push-registration";
 import { AlertProvider } from "@/components/ui/alert";
+import { ToastProvider } from "@/components/ui/toast";
 import { debugLog } from "@/lib/debug";
 import { routeFromNotification } from "@/lib/notification-routing";
 import { queryClient } from "@/lib/query-client";
@@ -107,6 +108,7 @@ function RootLayout() {
             <QueryClientProvider client={queryClient}>
               <BottomSheetModalProvider>
                 <AlertProvider>
+                  <ToastProvider>
                   <PushRegistration />
                   <StatusBar barStyle="dark-content" />
                   <Stack
@@ -115,6 +117,7 @@ function RootLayout() {
                       headerShown: false,
                     }}
                   />
+                  </ToastProvider>
                 </AlertProvider>
               </BottomSheetModalProvider>
             </QueryClientProvider>

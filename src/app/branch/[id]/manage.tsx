@@ -10,6 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
+import { toast } from "@/components/ui/toast";
 import { Button, ChipButton } from "@/components/ui/button";
 import { ChipGroup } from "@/components/ui/chip-group";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -188,10 +189,10 @@ export default function ManageListingScreen() {
         amenityIds: resolvedAmenities,
         ...(menu !== null ? { menu } : {}),
       });
-      Alert.alert("Nice, saved", "Your listing is up to date.");
+      toast.success("Nice, saved", "Your listing is up to date.");
       router.back();
     } catch {
-      Alert.alert("Save hit a snag", "Try again in a moment.");
+      toast.error("Save hit a snag", "Try again in a moment.");
     }
   });
 
@@ -209,9 +210,9 @@ export default function ManageListingScreen() {
     try {
       await uploadOwnerPhoto(id, photo, getToken);
       await branch.refetch();
-      Alert.alert("Photo added", "Fresh shot, right on the listing.");
+      toast.success("Photo added", "Fresh shot, right on the listing.");
     } catch {
-      Alert.alert("Upload hit a snag", "Give the photo another try.");
+      toast.error("Upload hit a snag", "Give the photo another try.");
     } finally {
       setUploadingPhoto(false);
     }
@@ -231,9 +232,9 @@ export default function ManageListingScreen() {
     try {
       await uploadOwnerAvatar(id, image, getToken);
       await branch.refetch();
-      Alert.alert("Logo updated", "It shows when you reply to reviews.");
+      toast.success("Logo updated", "It shows when you reply to reviews.");
     } catch {
-      Alert.alert("Upload hit a snag", "Give it another try.");
+      toast.error("Upload hit a snag", "Give it another try.");
     } finally {
       setUploadingAvatar(false);
     }
@@ -245,7 +246,7 @@ export default function ManageListingScreen() {
       await update.mutateAsync({ avatarUrl: null, avatarPublicId: null });
       await branch.refetch();
     } catch {
-      Alert.alert("Couldn't remove", "Try again in a moment.");
+      toast.error("Couldn't remove", "Try again in a moment.");
     } finally {
       setUploadingAvatar(false);
     }
@@ -256,7 +257,7 @@ export default function ManageListingScreen() {
       await setOwnerPhotoCover(id, photoId, getToken);
       await branch.refetch();
     } catch {
-      Alert.alert("Couldn't update cover", "Try again in a moment.");
+      toast.error("Couldn't update cover", "Try again in a moment.");
     }
   }
 
@@ -270,7 +271,7 @@ export default function ManageListingScreen() {
           void removeOwnerPhoto(id, photoId, getToken)
             .then(() => branch.refetch())
             .catch(() =>
-              Alert.alert("Couldn't remove photo", "Try again in a moment."),
+              toast.error("Couldn't remove photo", "Try again in a moment."),
             );
         },
       },

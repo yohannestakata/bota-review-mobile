@@ -2,6 +2,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import { useState } from "react";
 
 import { Alert } from "@/components/ui/alert";
+import { toast } from "@/components/ui/toast";
 import { getErrorMessage } from "@/lib/api";
 import { promptAndRegisterPush } from "@/lib/push-registration";
 
@@ -38,10 +39,10 @@ export function useReplyActions(branchId: string) {
       // Replying is a meaningful action — a good moment to ask about push.
       void promptAndRegisterPush(getToken);
       if (result.moderationStatus !== "approved") {
-        Alert.alert("Reply posted", "Thanks for adding your thoughts.");
+        toast.success("Reply posted", "Thanks for adding your thoughts.");
       }
     } catch (error) {
-      Alert.alert("Reply hit a snag", getErrorMessage(error));
+      toast.error("Reply hit a snag", getErrorMessage(error));
     }
   }
 
@@ -56,9 +57,9 @@ export function useReplyActions(branchId: string) {
             { replyId: reply.id },
             {
               onSuccess: () =>
-                Alert.alert("Got it", "Thanks for keeping Bota helpful."),
+                toast.success("Got it", "Thanks for keeping Bota helpful."),
               onError: (error) =>
-                Alert.alert("Couldn't send report", getErrorMessage(error)),
+                toast.error("Couldn't send report", getErrorMessage(error)),
             },
           ),
       },

@@ -9,7 +9,7 @@ import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
-import { Alert } from "@/components/ui/alert";
+import { toast } from "@/components/ui/toast";
 import { AuthRequiredScreen } from "@/components/auth/auth-required-screen";
 import { Button, ChipButton } from "@/components/ui/button";
 import { ChipGroup } from "@/components/ui/chip-group";
@@ -226,10 +226,7 @@ export default function SubmissionsScreen() {
               locationContact: false,
               features: false,
             });
-            Alert.alert(
-              "Tip received",
-              "We'll scout it out and add it if it checks out.",
-            );
+            toast.success("Tip received", "We'll scout it out and add it if it checks out.");
             resolve();
           },
           onError: (err) => {

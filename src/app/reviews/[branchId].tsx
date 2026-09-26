@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackHeader } from "@/components/ui/screen-header";
 import { Alert } from "@/components/ui/alert";
+import { toast } from "@/components/ui/toast";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FlashList } from "@/components/ui/flash-list";
 import { ListErrorState } from "@/components/ui/list-state-placeholder";
@@ -47,9 +48,9 @@ export default function BranchReviewsScreen() {
             { reviewId },
             {
               onSuccess: () =>
-                Alert.alert("Got it", "Thanks for keeping Bota helpful."),
+                toast.success("Got it", "Thanks for keeping Bota helpful."),
               onError: (e) =>
-                Alert.alert("Couldn't send report", getErrorMessage(e)),
+                toast.error("Couldn't send report", getErrorMessage(e)),
             },
           ),
       },

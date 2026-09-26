@@ -7,7 +7,7 @@ import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
-import { Alert } from "@/components/ui/alert";
+import { toast } from "@/components/ui/toast";
 import { Button, ChipButton } from "@/components/ui/button";
 import { ChipGroup } from "@/components/ui/chip-group";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -286,7 +286,7 @@ export default function SuggestEditScreen() {
             branch_id: branchId,
             submission_type: body.type,
           });
-          Alert.alert("Good catch!", "We'll check it and tidy up the listing.");
+          toast.success("Good catch!", "We'll check it and tidy up the listing.");
           router.back();
           resolve();
         },

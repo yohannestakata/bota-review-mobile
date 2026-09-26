@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
 import { Alert } from "@/components/ui/alert";
+import { toast } from "@/components/ui/toast";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -56,7 +57,7 @@ export default function EditProfileScreen() {
       router.replace("/login");
     } catch (err) {
       setDeleting(false);
-      Alert.alert("Couldn't delete account", getAuthMessage(err));
+      toast.error("Couldn't delete account", getAuthMessage(err));
     }
   }
 
