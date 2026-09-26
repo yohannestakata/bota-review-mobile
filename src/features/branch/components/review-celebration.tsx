@@ -112,16 +112,21 @@ export function ReviewCelebration({
   const colors = useColors();
   const reduced = useReducedMotion();
 
-  // Same frame as the visual: a tick as each star lands, and the success buzz
-  // on the last one. Reduced motion has no stamps, so just the buzz.
+  // Same frame as the visual: a beat as each star lands, and the success on
+  // the last one. Reduced motion has no stamps, so just the buzz.
   useEffect(() => {
     if (reduced || rating < 1) {
       haptics.success();
       return;
     }
+    // Each star lands a little firmer than the one before, and the last lands
+    // as the success — a small crescendo rather than identical ticks.
     const timers = Array.from({ length: rating }, (_, index) =>
       setTimeout(
-        index === rating - 1 ? haptics.success : haptics.select,
+        () =>
+          index === rating - 1
+            ? haptics.success()
+            : haptics.build(index, rating - 1),
         FILL_START_MS + index * FILL_STAGGER_MS + FILL_MS * LAND_AT,
       ),
     );

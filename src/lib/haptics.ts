@@ -29,8 +29,41 @@ export const haptics = {
       : Haptics.selectionAsync()
     ).catch(() => {});
   },
+  /**
+   * One beat of a build-up — e.g. stars stamping in one by one. Each step lands
+   * a little firmer than the last (`step` of `total`, 0-based), so a sequence
+   * reads as a crescendo instead of identical ticks. End it with `success()`.
+   */
+  build(step: number, total: number) {
+    const t = total > 1 ? step / (total - 1) : 1;
+    if (isAndroid) {
+      Haptics.performAndroidHapticsAsync(
+        t < 0.5
+          ? Haptics.AndroidHaptics.Clock_Tick
+          : Haptics.AndroidHaptics.Virtual_Key,
+      ).catch(() => {});
+      return;
+    }
+    const styles = [
+      Haptics.ImpactFeedbackStyle.Soft,
+      Haptics.ImpactFeedbackStyle.Light,
+      Haptics.ImpactFeedbackStyle.Medium,
+      Haptics.ImpactFeedbackStyle.Rigid,
+    ];
+    Haptics.impactAsync(
+      styles[Math.min(styles.length - 1, Math.round(t * (styles.length - 1)))],
+    ).catch(() => {});
+  },
   /** A success buzz for completing something meaningful — posting a review. */
   success() {
+    // Android 11+ has a real "confirm" haptic; the Vibrator-based notification
+    // pattern is a coarse buzz, so only older phones fall back to it.
+    if (isAndroid && Number(Platform.Version) >= 30) {
+      Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Confirm).catch(
+        () => {},
+      );
+      return;
+    }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
       () => {},
     );
