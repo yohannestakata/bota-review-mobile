@@ -4,7 +4,7 @@ import {
   StarIcon,
 } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
-import { useEffect, type ComponentProps } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import Animated, {
   Easing,
@@ -22,24 +22,26 @@ import type { BranchCard } from "@/lib/api";
 import { haptics } from "@/lib/haptics";
 import { colors } from "@/lib/theme";
 
-type IconType = ComponentProps<typeof AppIcon>["icon"];
-
-// Rare-tier moment (once per posted review), purpose: confirmation. Kept
-// restrained: no springs (nothing was thrown), nothing scales from zero, every
-// piece is in within ~450ms so "Done" is never waiting on the animation.
+// Rare-tier moment (once per posted review), purpose: confirmation. All five
+// stars sit grey from the first frame; the ones the user gave fill in green one
+// after another, like the rating being stamped. Ease-out, no springs (nothing
+// was thrown), done in ~650ms so "Done" is never waiting on it.
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
 const ENTER_MS = 250;
-const STAR_STAGGER_MS = 40;
+const FILL_MS = 320;
+const FILL_START_MS = 120;
+const FILL_STAGGER_MS = 80;
 
 // Built once at module scope — an inline builder chain in JSX rebuilds on
-// every render.
-const STAR_ENTERING = [0, 1, 2, 3, 4].map((index) =>
+// every render. The fill starts at 0.6 over a grey star already in place, so
+// it reads as filling, not appearing from nothing.
+const STAR_FILL = [0, 1, 2, 3, 4].map((index) =>
   new Keyframe({
-    0: { opacity: 0, transform: [{ scale: 0.9 }] },
+    0: { opacity: 0, transform: [{ scale: 0.6 }] },
     100: { opacity: 1, transform: [{ scale: 1 }], easing: EASE_OUT },
   })
-    .duration(ENTER_MS)
-    .delay(index * STAR_STAGGER_MS),
+    .duration(FILL_MS)
+    .delay(FILL_START_MS + index * FILL_STAGGER_MS),
 );
 const HEADLINE_ENTERING = new Keyframe({
   0: { opacity: 0, transform: [{ translateY: 8 }] },
@@ -81,7 +83,8 @@ export function ReviewCelebration({
 }: {
   rating: number;
   /** A badge this review just unlocked — the unexpected reward. */
-  newBadge?: { title: string; description: string; icon: IconType };
+  /** `art` is the badge's medallion, rendered by the caller (profile owns it). */
+  newBadge?: { title: string; description: string; art: ReactNode };
   placeName?: string;
   reviewNumber?: number;
   pendingModeration: boolean;
@@ -117,15 +120,17 @@ export function ReviewCelebration({
         <View className="items-center">
           <View className="flex-row gap-2">
             {[1, 2, 3, 4, 5].map((star) => (
-              <Animated.View
-                entering={reduced ? REDUCED_ENTERING : STAR_ENTERING[star - 1]}
-                key={star}
-              >
-                <FilledStar
-                  color={star <= rating ? colors.rating : colors.subtle}
-                  size={44}
-                />
-              </Animated.View>
+              <View key={star}>
+                <FilledStar color={colors.subtle} size={44} />
+                {star <= rating ? (
+                  <Animated.View
+                    className="absolute inset-0"
+                    entering={reduced ? REDUCED_ENTERING : STAR_FILL[star - 1]}
+                  >
+                    <FilledStar color={colors.rating} size={44} />
+                  </Animated.View>
+                ) : null}
+              </View>
             ))}
           </View>
 
@@ -148,15 +153,13 @@ export function ReviewCelebration({
         >
           {newBadge ? (
             <Animated.View
-              className="flex-row items-center gap-4 rounded-2xl bg-accent-soft p-4"
+              className="flex-row items-center gap-4 rounded-2xl bg-personalized p-4"
               entering={reduced ? REDUCED_ENTERING : BADGE_ENTERING}
             >
-              <View className="size-12 items-center justify-center rounded-full bg-surface">
-                <AppIcon color={colors.accent} icon={newBadge.icon} size={24} />
-              </View>
+              {newBadge.art}
               <View className="flex-1">
-                <ThemedText size="xs" tone="muted" weight="semibold">
-                  NEW BADGE UNLOCKED
+                <ThemedText size="xs" tone="brand" weight="semibold">
+                  New badge unlocked
                 </ThemedText>
                 <ThemedText size="lg" weight="bold">
                   {newBadge.title}

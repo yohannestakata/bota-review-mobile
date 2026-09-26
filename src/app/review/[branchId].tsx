@@ -33,7 +33,7 @@ import { useSaves } from "@/features/home";
 import {
   getMyMilestones,
   getMyReviews,
-  milestoneIcon,
+  MilestoneMedallion,
   useSeenMilestones,
 } from "@/features/profile";
 import { analytics } from "@/lib/analytics";
@@ -265,7 +265,7 @@ export default function WriteReviewScreen() {
           ? {
               title: badge.title,
               description: badge.description,
-              icon: milestoneIcon(badge.id),
+              art: <MilestoneMedallion milestone={badge} size={52} />,
             }
           : undefined,
         reviewId: review.id,

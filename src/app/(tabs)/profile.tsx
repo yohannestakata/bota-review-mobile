@@ -5,32 +5,22 @@ import {
   Comment01Icon,
   FavouriteIcon,
   Logout01Icon,
-  Share08Icon,
   StarIcon,
   UserEdit01Icon,
 } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { type ComponentProps, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Share,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AuthRequiredScreen } from "@/components/auth/auth-required-screen";
 import { LegalLinks } from "@/components/legal-links";
 import { Avatar } from "@/components/ui/avatar";
 import { AppIcon } from "@/components/ui/huge-icon";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useOwnClaims } from "@/features/branch";
-import { useSavedBranchIds } from "@/features/home";
 import {
   ProfileBadges,
-  ProfileCompletionCard,
   useMe,
   useMyReplies,
   useMyReviews,
@@ -39,31 +29,6 @@ import { clearPushRegistration } from "@/lib/push-registration";
 import { colors } from "@/lib/theme";
 
 type IconType = ComponentProps<typeof AppIcon>["icon"];
-
-function StatCard({
-  value,
-  label,
-  loading = false,
-}: {
-  value: number;
-  label: string;
-  loading?: boolean;
-}) {
-  return (
-    <View className="flex-1 items-center justify-center gap-0.5 rounded-2xl border border-placeholder bg-surface py-3">
-      {loading ? (
-        <Skeleton className="my-1 h-5 w-8 rounded-md" />
-      ) : (
-        <ThemedText size="xl" weight="bold">
-          {value}
-        </ThemedText>
-      )}
-      <ThemedText size="sm" tone="muted">
-        {label}
-      </ThemedText>
-    </View>
-  );
-}
 
 function MenuRow({
   icon,
@@ -122,7 +87,6 @@ export default function ProfileScreen() {
   const { signOut } = useClerk();
   const { user } = useUser();
   const me = useMe();
-  const saved = useSavedBranchIds();
   const claims = useOwnClaims();
   const replies = useMyReplies();
   const reviews = useMyReviews();
@@ -131,10 +95,10 @@ export default function ProfileScreen() {
   const name = user?.fullName ?? user?.firstName ?? "You";
   const handle =
     user?.username ?? user?.primaryEmailAddress?.emailAddress ?? "";
-  const trustLevel = me.data?.trustLevel;
   const role = me.data?.role;
-  const savedCount = saved.data?.size ?? 0;
-  const reviewCount = reviews.data?.length ?? 0;
+  // Deleted reviews are archived, not removed — don't count them.
+  const reviewCount =
+    reviews.data?.filter((r) => r.moderationStatus !== "archived").length ?? 0;
   const replyCount = replies.data?.length ?? 0;
   const claimCount = claims.data?.length ?? 0;
 
@@ -177,13 +141,6 @@ export default function ProfileScreen() {
                     {handle}
                   </ThemedText>
                 ) : null}
-                {trustLevel ? (
-                  <View className="rounded-full bg-surface-muted px-2 py-0.5">
-                    <ThemedText size="xs" tone="muted" weight="medium">
-                      {trustLevel}
-                    </ThemedText>
-                  </View>
-                ) : null}
                 {role && role !== "user" ? (
                   <View className="rounded-full bg-primary px-2 py-0.5">
                     <ThemedText size="xs" tone="inverse" weight="medium">
@@ -194,35 +151,6 @@ export default function ProfileScreen() {
               </View>
             </View>
           </View>
-
-          {/* Stats */}
-          <View className="mt-5 flex-row gap-3">
-            <StatCard
-              label="Reviews"
-              loading={reviews.isPending}
-              value={reviewCount}
-            />
-            <StatCard
-              label="Saved"
-              loading={saved.isPending}
-              value={savedCount}
-            />
-            <Pressable
-              className="flex-1 items-center justify-center gap-1 rounded-2xl border border-placeholder bg-surface py-3"
-              onPress={() =>
-                void Share.share({
-                  message: `See my food finds on Bota — ${name}`,
-                })
-              }
-            >
-              <AppIcon color={colors.foreground} icon={Share08Icon} size={22} />
-              <ThemedText size="sm" weight="medium">
-                Share
-              </ThemedText>
-            </Pressable>
-          </View>
-
-          <ProfileCompletionCard />
 
           <View className="mt-6">
             <ProfileBadges />
@@ -237,20 +165,30 @@ export default function ProfileScreen() {
             label="Your reviews"
             onPress={() => router.push("/profile/reviews")}
           />
-          <RowDivider />
-          <MenuRow
-            count={replyCount}
-            icon={Comment01Icon}
-            label="Your replies"
-            onPress={() => router.push("/profile/replies")}
-          />
-          <RowDivider />
-          <MenuRow
-            count={claimCount}
-            icon={Building01Icon}
-            label="My business"
-            onPress={() => router.push("/profile/claims")}
-          />
+          {/* Only once there's something there — replies are written on a
+              place's page, and claims start from its claim card. */}
+          {replyCount > 0 ? (
+            <>
+              <RowDivider />
+              <MenuRow
+                count={replyCount}
+                icon={Comment01Icon}
+                label="Your replies"
+                onPress={() => router.push("/profile/replies")}
+              />
+            </>
+          ) : null}
+          {claimCount > 0 ? (
+            <>
+              <RowDivider />
+              <MenuRow
+                count={claimCount}
+                icon={Building01Icon}
+                label="My business"
+                onPress={() => router.push("/profile/claims")}
+              />
+            </>
+          ) : null}
           <RowDivider />
           <MenuRow
             icon={FavouriteIcon}
