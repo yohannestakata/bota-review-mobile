@@ -3,7 +3,7 @@ import {
   Navigation03Icon,
   Share08Icon,
 } from "@hugeicons/core-free-icons";
-import { Linking, Share, View } from "react-native";
+import { Linking, Platform, Share, View } from "react-native";
 
 import { ActionTile } from "@/components/ui/button";
 import { analytics } from "@/lib/analytics";
@@ -15,6 +15,9 @@ type QuickActionsProps = {
   latitude: string | null;
   longitude: string | null;
 };
+
+// Public share links; the page unfurls in chats and opens the app if installed.
+const SHARE_BASE_URL = "https://botareview.com";
 
 export function QuickActions({
   branchId,
@@ -43,7 +46,14 @@ export function QuickActions({
 
   const onShare = () => {
     analytics.track("share_clicked", { branch_id: branchId });
-    void Share.share({ message: `Check out ${name} on Bota` });
+    // The link unfurls into a rich preview in chats and opens the app when
+    // it's installed (see backend ShareController).
+    const url = `${SHARE_BASE_URL}/p/${branchId}`;
+    void Share.share(
+      Platform.OS === "ios"
+        ? { message: `Check out ${name} on Bota`, url }
+        : { message: `Check out ${name} on Bota\n${url}` },
+    );
   };
 
   return (
