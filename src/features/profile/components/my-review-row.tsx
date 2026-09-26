@@ -54,9 +54,16 @@ export function MyReviewRow({
       onPress={() => onPress(review)}
     >
       <View className="flex-row items-center gap-2">
-        <ThemedText className="flex-1" numberOfLines={1} weight="medium">
-          {review.branch.label ?? "Place"}
-        </ThemedText>
+        <View className="flex-1">
+          <ThemedText numberOfLines={1} weight="semibold">
+            {review.branch.placeName}
+          </ThemedText>
+          {review.branch.label ? (
+            <ThemedText numberOfLines={1} size="sm" tone="muted">
+              {review.branch.label}
+            </ThemedText>
+          ) : null}
+        </View>
         <StatusBadge status={review.moderationStatus} />
       </View>
       <Stars size={12} value={review.rating} />

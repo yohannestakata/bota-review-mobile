@@ -12,6 +12,7 @@ export type MyReview = {
     label: string | null;
     slug: string;
     status: string;
+    placeName: string;
   };
 };
 
