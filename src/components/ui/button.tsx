@@ -148,7 +148,9 @@ export function TextButton({
       accessibilityRole="button"
       className={disabled ? "opacity-40" : ""}
       disabled={disabled}
-      hitSlop={8}
+      // Pads the ~19pt line out to a ~44pt touch target without changing the
+      // layout — these sit in dense rows where a small target is easy to miss.
+      hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
       onPress={onPress}
     >
       <ThemedText size={size} tone={tone} weight="semibold">

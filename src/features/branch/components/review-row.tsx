@@ -6,6 +6,7 @@ import { Pressable, ScrollView, View } from "react-native";
 import { Photo } from "@/components/ui/photo";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { Avatar } from "@/components/ui/avatar";
+import { TextButton } from "@/components/ui/button";
 import { Stars } from "@/components/ui/stars";
 import { ThemedText } from "@/components/ui/themed-text";
 import { formatRelativeDate } from "@/lib/format-date";
@@ -64,24 +65,6 @@ export function CollapsibleReviewText({ text }: { text: string }) {
   );
 }
 
-function ActionLink({
-  label,
-  tone = "brand",
-  onPress,
-}: {
-  label: string;
-  tone?: "brand" | "muted" | "danger";
-  onPress: () => void;
-}) {
-  return (
-    <Pressable hitSlop={6} onPress={onPress}>
-      <ThemedText size="xs" tone={tone} weight="medium">
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
-}
-
 function ReplyItem({
   reply,
   businessName,
@@ -135,7 +118,7 @@ function ReplyItem({
           <Pressable
             accessibilityLabel="Report reply"
             accessibilityRole="button"
-            hitSlop={8}
+            hitSlop={12}
             onPress={onReport}
           >
             <AppIcon color={colors.muted} icon={MoreHorizontalIcon} size={18} />
@@ -235,7 +218,7 @@ export function ReviewRow({
           <Pressable
             accessibilityLabel="Report review"
             accessibilityRole="button"
-            hitSlop={8}
+            hitSlop={12}
             onPress={() => onReport(review.id)}
           >
             <AppIcon color={colors.muted} icon={MoreHorizontalIcon} size={18} />
@@ -294,13 +277,13 @@ export function ReviewRow({
           })}
 
           {hiddenCount > 0 ? (
-            <ActionLink
+            <TextButton
               label={`View ${hiddenCount} more ${hiddenCount === 1 ? "reply" : "replies"}`}
               onPress={() => setShowAllReplies(true)}
               tone="muted"
             />
           ) : replies.length > REPLY_PREVIEW_COUNT ? (
-            <ActionLink
+            <TextButton
               label="Show fewer replies"
               onPress={() => setShowAllReplies(false)}
               tone="muted"
@@ -311,7 +294,11 @@ export function ReviewRow({
 
       {canReply ? (
         <View className="mt-2">
-          <ActionLink label="Reply" onPress={() => onReply!(review)} />
+          <TextButton
+            accessibilityLabel={`Reply to ${review.user.displayName}`}
+            label="Reply"
+            onPress={() => onReply!(review)}
+          />
         </View>
       ) : null}
     </View>
