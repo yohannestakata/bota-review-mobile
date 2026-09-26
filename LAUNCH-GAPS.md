@@ -62,8 +62,8 @@ ae7a998, a85e3fd, f3bf604._
 - [ ] `AuthRequiredScreen` — add a "Create account" path (CTA is bare "Sign in"). · NICE — PARKED (post-launch)
 - [x] `profile/edit.tsx` — disable Save during account deletion; add discard-confirm on close; avatar permission message. · NICE → `e36820c`
 - [x] `profile/replies.tsx:20` — label pending replies "Under review", not "Posted". · NICE → `42a9d08`
-- [ ] `quick-actions.tsx:44` / share — include a branch deep-link in the share message. · NICE — PARKED (post-launch)
-- [ ] `search.tsx:339` — no-results copy assumes filters even for plain text queries. · NICE — PARKED (post-launch)
+- [x] `quick-actions.tsx:44` / share — include a branch deep-link in the share message. · NICE → `a5bba88` (botareview.com/p/:id, backend share page `9544553`)
+- [x] `search.tsx:339` — no-results copy assumes filters even for plain text queries. · NICE → `316ea14`
 
 ---
 
