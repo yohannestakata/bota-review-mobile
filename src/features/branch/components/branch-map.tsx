@@ -53,12 +53,19 @@ if (GEBETA_API_KEY) {
 type BranchMapProps = {
   latitude: string | null;
   longitude: string | null;
+  /** Fires when a finger lands on / leaves the map, so a parent ScrollView can
+   * stop scrolling and let the map pan instead. */
+  onInteractionChange?: (active: boolean) => void;
 };
 
 // An interactive location map centered on the branch, with a pin marker at its
 // coordinates. Pan/zoom enabled; MapLibre's own logo/attribution are hidden in
 // favor of the required "© Gebeta Maps" credit.
-export function BranchMap({ latitude, longitude }: BranchMapProps) {
+export function BranchMap({
+  latitude,
+  longitude,
+  onInteractionChange,
+}: BranchMapProps) {
   const lat = Number(latitude);
   const lng = Number(longitude);
   const hasCoords =
@@ -70,7 +77,12 @@ export function BranchMap({ latitude, longitude }: BranchMapProps) {
   if (!hasCoords || !GEBETA_API_KEY) return null;
 
   return (
-    <View className="h-56 overflow-hidden rounded-2xl border border-border">
+    <View
+      className="h-56 overflow-hidden rounded-2xl border border-border"
+      onTouchCancel={() => onInteractionChange?.(false)}
+      onTouchEnd={() => onInteractionChange?.(false)}
+      onTouchStart={() => onInteractionChange?.(true)}
+    >
       <MapLibreMap
         attribution={false}
         compass={false}

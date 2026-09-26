@@ -9,7 +9,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import { colors } from "@/lib/theme";
 import { Image } from "expo-image";
 import { router, type Href, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Linking,
   Platform,
@@ -152,6 +152,7 @@ export default function BranchDetailScreen() {
 
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
+  const [mapActive, setMapActive] = useState(false);
   const onScroll = useAnimatedScrollHandler((event) => {
     scrollY.value = event.contentOffset.y;
   });
@@ -285,6 +286,8 @@ export default function BranchDetailScreen() {
       <Animated.ScrollView
         contentContainerStyle={{ paddingBottom: 112 }}
         onScroll={onScroll}
+        // A finger on the map pans the map, not the page.
+        scrollEnabled={!mapActive}
         refreshControl={
           <RefreshControl
             colors={[colors.primary]}
@@ -498,6 +501,7 @@ export default function BranchDetailScreen() {
                 <BranchMap
                   latitude={data.latitude}
                   longitude={data.longitude}
+                  onInteractionChange={setMapActive}
                 />
               </View>
             </>
