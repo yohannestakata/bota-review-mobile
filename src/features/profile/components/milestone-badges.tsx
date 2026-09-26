@@ -15,6 +15,7 @@ import Animated, {
   useReducedMotion,
 } from "react-native-reanimated";
 
+import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { ThemedText } from "@/components/ui/themed-text";
 import { haptics } from "@/lib/haptics";
 import { shadows, useColors } from "@/lib/theme";
@@ -26,7 +27,8 @@ import { useMilestones } from "../queries";
 
 // Profile's badges section. Each time Profile comes into focus it snapshots
 // which earned badges are new, shows them with a "New" marker, then marks them
-// seen so the marker appears once. Hidden until the data is ready.
+// seen so the marker appears once. A skeleton row holds the space while it
+// loads; hidden if it fails or there's nothing to show.
 export function ProfileBadges() {
   const milestones = useMilestones();
   const seen = useSeenMilestones();
@@ -54,6 +56,7 @@ export function ProfileBadges() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newIds]);
 
+  if (milestones.isPending) return <BadgesSkeleton />;
   if (!milestones.isSuccess || milestones.data.length === 0) return null;
 
   return (
@@ -246,5 +249,30 @@ function Badge({
         {milestone.title}
       </ThemedText>
     </Pressable>
+  );
+}
+
+// Mirrors the badge row (60pt medallion + one-line xs label per 68pt column)
+// so the menu below doesn't jump when the badges arrive.
+function BadgesSkeleton() {
+  return (
+    <View
+      className="flex-row overflow-hidden"
+      style={{ gap: BADGE_GAP, marginHorizontal: -EDGE, paddingLeft: EDGE }}
+    >
+      {[0, 1, 2, 3, 4].map((i) => (
+        <View
+          className="items-center gap-2"
+          key={i}
+          style={{ width: BADGE_WIDTH }}
+        >
+          <Skeleton
+            className="rounded-full"
+            style={{ width: 60, height: 60 }}
+          />
+          <SkeletonText className="w-12" size="xs" />
+        </View>
+      ))}
+    </View>
   );
 }
