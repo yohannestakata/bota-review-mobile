@@ -22,8 +22,14 @@ export function AuthRequiredScreen({ title, body }: AuthRequiredScreenProps) {
         </ThemedText>
         <Button
           className="mt-3 w-full"
-          label="Sign in"
+          label="Create account"
+          onPress={() => router.push("/signup")}
+        />
+        <Button
+          className="w-full"
+          label="I already have an account"
           onPress={() => router.push("/login")}
+          variant="ghost"
         />
       </View>
     </SafeAreaView>
