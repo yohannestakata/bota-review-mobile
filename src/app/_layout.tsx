@@ -9,7 +9,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect } from "react";
-import { Linking, StatusBar } from "react-native";
+import { Linking, StatusBar, useColorScheme } from "react-native";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -43,6 +43,8 @@ if (!clerkPublishableKey) {
 }
 
 function RootLayout() {
+  // Re-render the tree (and colors.* reads) when the system scheme changes.
+  const scheme = useColorScheme();
   const { markInteractive } = useObserve();
   const [fontsLoaded] = useFonts({
     "Outfit-Black": require("../../assets/fonts/Outfit-Black.ttf"),
@@ -111,7 +113,11 @@ function RootLayout() {
                 <AlertProvider>
                   <ToastProvider>
                     <PushRegistration />
-                    <StatusBar barStyle="dark-content" />
+                    <StatusBar
+                      barStyle={
+                        scheme === "dark" ? "light-content" : "dark-content"
+                      }
+                    />
                     <Stack
                       screenOptions={{
                         contentStyle: { backgroundColor: colors.background },

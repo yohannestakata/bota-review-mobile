@@ -108,7 +108,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               accessibilityRole="alert"
               className="flex-row items-center gap-3 rounded-2xl px-4 py-3"
               onPress={() => setCurrent(null)}
-              style={[shadows.navigation, { backgroundColor: colors.heading }]}
+              style={[shadows.navigation, { backgroundColor: colors.pill }]}
             >
               <AppIcon
                 color={isError ? colors.accent : colors.inverse}

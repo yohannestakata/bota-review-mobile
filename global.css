@@ -57,3 +57,33 @@
   --color-danger: #dc2626;
   --color-danger-soft: #fee2e2;
 }
+
+/* Dark palette — keep in sync with `dark` in src/lib/theme.ts. Deep forest
+   neutrals (never pure black) so the brand green still feels at home; the
+   brand green itself is lifted so it stays readable as text and on fills. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #0e1411;
+    --color-surface: #161d19;
+    --color-surface-muted: #1d2621;
+    --color-border: #2a342e;
+    --color-placeholder: #232c27;
+    --color-foreground: #e7ece6;
+    --color-heading: #f3f6f1;
+    --color-muted: #9aa59c;
+    --color-subtle: #4b564e;
+    --color-primary: #1f8f67;
+    --color-personalized: #14251c;
+    --color-accent: #e4a53a;
+    --color-accent-soft: #3a2e14;
+    --color-inverse: #ffffff;
+    --color-rating: #3cc08f;
+    --color-favorite: #ff5c7c;
+    --color-success: #3cc08f;
+    --color-success-soft: #12291f;
+    --color-warning: #f0a54a;
+    --color-warning-soft: #33250f;
+    --color-danger: #f26464;
+    --color-danger-soft: #3a1717;
+  }
+}

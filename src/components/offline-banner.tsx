@@ -52,7 +52,7 @@ export function OfflineBanner() {
     >
       <View
         className="mx-auto flex-row items-center gap-2 rounded-full px-4 py-2"
-        style={{ backgroundColor: colors.heading }}
+        style={{ backgroundColor: colors.pill }}
       >
         <AppIcon
           color={colors.inverse}
