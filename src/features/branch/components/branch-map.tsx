@@ -11,6 +11,8 @@ import Svg, { Circle, Path } from "react-native-svg";
 
 import { useColors } from "@/lib/theme";
 
+import { GEBETA_API_KEY, useMapStyle } from "../map-style";
+
 // A filled teardrop map pin with a white center dot; its tip sits on the point.
 function MapPin() {
   const colors = useColors();
@@ -24,14 +26,6 @@ function MapPin() {
     </Svg>
   );
 }
-
-// Inlined at build time (EXPO_PUBLIC_*). Empty when unset — the map hides
-// itself so the rest of the location UI still works without a key.
-const GEBETA_API_KEY = process.env.EXPO_PUBLIC_GEBETA_API_KEY ?? "";
-
-// Gebeta's public style; its tile/glyph/sprite sources all live on this host.
-const GEBETA_STYLE_URL =
-  "https://tiles.gebeta.app/styles/standard/style.json?device=mobile";
 
 // Gebeta's tile server authenticates via an `Authorization: Bearer` header and
 // rejects any `?apiKey=` query param, so we drive MapLibre directly and attach
@@ -67,6 +61,8 @@ export function BranchMap({
   longitude,
   onInteractionChange,
 }: BranchMapProps) {
+  // Gebeta's light style, or a darkened copy of it in dark mode.
+  const mapStyle = useMapStyle();
   const lat = Number(latitude);
   const lng = Number(longitude);
   const hasCoords =
@@ -84,18 +80,22 @@ export function BranchMap({
       onTouchEnd={() => onInteractionChange?.(false)}
       onTouchStart={() => onInteractionChange?.(true)}
     >
-      <MapLibreMap
-        attribution={false}
-        compass={false}
-        logo={false}
-        mapStyle={GEBETA_STYLE_URL}
-        style={{ flex: 1 }}
-      >
-        <Camera initialViewState={{ center: [lng, lat], zoom: 16.5 }} />
-        <ViewAnnotation anchor="bottom" lngLat={[lng, lat]}>
-          <MapPin />
-        </ViewAnnotation>
-      </MapLibreMap>
+      {mapStyle ? (
+        <MapLibreMap
+          attribution={false}
+          compass={false}
+          logo={false}
+          mapStyle={mapStyle}
+          style={{ flex: 1 }}
+        >
+          <Camera initialViewState={{ center: [lng, lat], zoom: 16.5 }} />
+          <ViewAnnotation anchor="bottom" lngLat={[lng, lat]}>
+            <MapPin />
+          </ViewAnnotation>
+        </MapLibreMap>
+      ) : (
+        <View className="flex-1 bg-placeholder" />
+      )}
 
       {/* Required Gebeta attribution. */}
       <View
