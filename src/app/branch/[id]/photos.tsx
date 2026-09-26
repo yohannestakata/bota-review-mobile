@@ -19,7 +19,7 @@ import { CloseButton } from "@/components/ui/close-button";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useBranch } from "@/features/branch";
 import { ZoomableImage } from "@/features/branch/components/zoomable-image";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 const { width } = Dimensions.get("window");
 
@@ -28,6 +28,7 @@ function capitalize(value: string) {
 }
 
 export default function PhotoGalleryScreen() {
+  const colors = useColors();
   const { isSignedIn } = useAuth();
   const { id, index } = useLocalSearchParams<{ id: string; index?: string }>();
   const branch = useBranch(id);

@@ -6,7 +6,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 const TRACK_WIDTH = 44;
 const TRACK_HEIGHT = 24;
@@ -26,6 +26,7 @@ export function Switch({
   onValueChange: (value: boolean) => void;
   disabled?: boolean;
 }) {
+  const colors = useColors();
   const progress = useDerivedValue(() =>
     withTiming(value ? 1 : 0, { duration: 180 }),
   );

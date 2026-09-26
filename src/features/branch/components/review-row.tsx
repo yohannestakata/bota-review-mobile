@@ -9,7 +9,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Stars } from "@/components/ui/stars";
 import { ThemedText } from "@/components/ui/themed-text";
 import { formatRelativeDate } from "@/lib/format-date";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 import type { BranchReview, ReviewReply } from "../api";
 import { PhotoViewer } from "./photo-viewer";
@@ -95,6 +95,7 @@ function ReplyItem({
   isOwn: boolean;
   onReport?: () => void;
 }) {
+  const colors = useColors();
   const isOwner = reply.authorRole === "owner";
   // Owner replies speak for the business, not the person who typed them.
   const title = isOwner
@@ -169,6 +170,7 @@ export function ReviewRow({
   onReply?: (review: BranchReview) => void;
   onReportReply?: (reply: ReviewReply) => void;
 }) {
+  const colors = useColors();
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [showAllReplies, setShowAllReplies] = useState(false);
   // Older/cached branch-detail responses may predate review photos/replies.

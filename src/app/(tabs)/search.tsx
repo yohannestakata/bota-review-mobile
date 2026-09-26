@@ -38,7 +38,7 @@ import { useCuisines, useNeighborhoods, useTags } from "@/features/taxonomy";
 import { analytics } from "@/lib/analytics";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 import { haptics } from "@/lib/haptics";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useDeviceList } from "@/lib/use-device-list";
 import { useLocation } from "@/lib/use-location";
@@ -51,6 +51,7 @@ function toggle<T>(list: T[], value: T): T[] {
 }
 
 export default function SearchScreen() {
+  const colors = useColors();
   const [text, setText] = useState("");
   const [neighborhoodId, setNeighborhoodId] = useState<string>();
   const [cuisineIds, setCuisineIds] = useState<string[]>([]);

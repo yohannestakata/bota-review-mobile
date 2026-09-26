@@ -28,7 +28,7 @@ import { analytics } from "@/lib/analytics";
 import { getErrorCode, getErrorMessage } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import { emailField, EMAIL_REGEX } from "@/lib/validation";
 
 const ROLES = [
@@ -137,6 +137,7 @@ const claimSchema = z
 type ClaimValues = z.infer<typeof claimSchema>;
 
 function ClaimStatusScreen({ verified }: { verified: boolean }) {
+  const colors = useColors();
   return (
     <SafeAreaView className="flex-1 bg-background">
       <ScreenHeader title={verified ? "You're verified" : "Your claim"} />

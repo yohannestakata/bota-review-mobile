@@ -1,5 +1,5 @@
 import { Search01Icon } from "@hugeicons/core-free-icons";
-import { colors, shadows } from "@/lib/theme";
+import { shadows, useColors } from "@/lib/theme";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
@@ -10,6 +10,7 @@ type HomeSearchBarProps = {
 };
 
 export function HomeSearchBar({ onPress }: HomeSearchBarProps) {
+  const colors = useColors();
   return (
     <PressableScale
       className="h-16 flex-row items-center gap-2.5 rounded-full border border-border bg-surface px-5"

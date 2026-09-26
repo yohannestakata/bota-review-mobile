@@ -1,7 +1,7 @@
 import { View } from "react-native";
 
 import { FilledStar } from "@/components/ui/filled-star";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 type StarsProps = {
   value: number;
@@ -10,6 +10,7 @@ type StarsProps = {
 
 // Renders a 5-star row, filling stars up to the rounded rating value.
 export function Stars({ value, size = 14 }: StarsProps) {
+  const colors = useColors();
   const filled = Math.round(value);
 
   return (

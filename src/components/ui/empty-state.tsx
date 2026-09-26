@@ -4,7 +4,7 @@ import { View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 type IconType = ComponentProps<typeof AppIcon>["icon"];
 
@@ -28,6 +28,7 @@ export function EmptyState({
   secondaryAction?: EmptyAction;
   className?: string;
 }) {
+  const colors = useColors();
   return (
     <View className={`items-center px-8 ${className}`}>
       <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-surface-muted">

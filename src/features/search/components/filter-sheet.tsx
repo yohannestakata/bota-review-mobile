@@ -19,7 +19,7 @@ import { View } from "react-native";
 import { Button, ChipButton, TextButton } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { Cuisine, Neighborhood, Tag } from "@/lib/api";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 import type { SearchSort } from "../api";
 
@@ -86,6 +86,7 @@ export const FilterSheet = forwardRef<FilterSheetRef, FilterSheetProps>(
     },
     ref,
   ) {
+  const colors = useColors();
     const sheetRef = useRef<ComponentRef<typeof BottomSheetModal>>(null);
 
     // Present imperatively from the parent's button press (gorhom's recommended

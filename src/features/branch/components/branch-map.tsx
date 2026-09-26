@@ -9,10 +9,11 @@ import { LogBox, View } from "react-native";
 import { ThemedText } from "@/components/ui/themed-text";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 // A filled teardrop map pin with a white center dot; its tip sits on the point.
 function MapPin() {
+  const colors = useColors();
   return (
     <Svg width={28} height={37} viewBox="0 0 24 32">
       <Path

@@ -2,7 +2,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { TextInput, View } from "react-native";
 
 import { cn } from "@/lib/cn";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 // The one source of truth for input styling. Used by TextField (and therefore
 // every field built on it).
@@ -33,9 +33,10 @@ export function TextField({
   suffix,
   className,
   style,
-  placeholderTextColor = colors.muted,
+  placeholderTextColor,
   ...props
 }: TextFieldProps) {
+  const colors = useColors();
   const input = (
     <TextInput
       className={cn(
@@ -43,7 +44,7 @@ export function TextField({
           ? "flex-1 py-0 font-outfit text-md text-foreground"
           : cn(fieldInputClass({ surface, error }), className),
       )}
-      placeholderTextColor={placeholderTextColor}
+      placeholderTextColor={placeholderTextColor ?? colors.muted}
       style={[{ includeFontPadding: false, lineHeight: 16 }, style]}
       {...props}
     />

@@ -26,7 +26,7 @@ import {
   useMyReviews,
 } from "@/features/profile";
 import { clearPushRegistration } from "@/lib/push-registration";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import { PressableScale } from "@/components/ui/pressable-scale";
 
 type IconType = ComponentProps<typeof AppIcon>["icon"];
@@ -48,6 +48,7 @@ function MenuRow({
   showChevron?: boolean;
   loading?: boolean;
 }) {
+  const colors = useColors();
   const muted = tone === "muted";
   return (
     <PressableScale

@@ -10,7 +10,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 type SkeletonProps = {
   className: string;
@@ -19,6 +19,7 @@ type SkeletonProps = {
 const PULSE_DURATION_MS = 900;
 
 export function Skeleton({ className }: SkeletonProps) {
+  const colors = useColors();
   const progress = useSharedValue(0);
 
   useEffect(() => {

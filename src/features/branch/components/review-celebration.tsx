@@ -20,7 +20,7 @@ import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { BranchCard } from "@/lib/api";
 import { haptics } from "@/lib/haptics";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 // Rare-tier moment (once per posted review), purpose: delight. All five stars
 // sit grey from the first frame; the ones the user gave are stamped in green one
@@ -109,6 +109,7 @@ export function ReviewCelebration({
   onFindAnother: () => void;
   onDone: () => void;
 }) {
+  const colors = useColors();
   const reduced = useReducedMotion();
 
   // Same frame as the visual: a tick as each star lands, and the success buzz
@@ -262,6 +263,7 @@ function SuggestionRow({
   branch: BranchCard;
   onPress: () => void;
 }) {
+  const colors = useColors();
   // Branch labels often repeat the neighborhood ("Bole · Bole") — show it once.
   const subtitle = [...new Set([branch.neighborhood?.name, branch.label])]
     .filter(Boolean)

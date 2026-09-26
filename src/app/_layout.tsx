@@ -22,7 +22,7 @@ import { OfflineBanner } from "@/components/offline-banner";
 import { debugLog } from "@/lib/debug";
 import { routeFromNotification } from "@/lib/notification-routing";
 import { queryClient } from "@/lib/query-client";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 void SplashScreen.preventAutoHideAsync();
 void WebBrowser.maybeCompleteAuthSession();
@@ -43,6 +43,7 @@ if (!clerkPublishableKey) {
 }
 
 function RootLayout() {
+  const colors = useColors();
   // Re-render the tree (and colors.* reads) when the system scheme changes.
   const scheme = useColorScheme();
   const { markInteractive } = useObserve();

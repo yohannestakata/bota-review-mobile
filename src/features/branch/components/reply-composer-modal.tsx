@@ -6,7 +6,7 @@ import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 import { REPLY_AVATAR_SIZE } from "./review-row";
 
@@ -70,6 +70,7 @@ function ReplyComposerContent({
   onClose: () => void;
   onSubmit: (body: string) => void;
 }) {
+  const colors = useColors();
   const { user } = useUser();
   const inputRef = useRef<TextInput>(null);
   const [body, setBody] = useState(target.initialBody ?? "");

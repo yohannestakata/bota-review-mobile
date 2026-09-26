@@ -21,7 +21,7 @@ import { View } from "react-native";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { Amenity } from "@/lib/api";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 type IconType = ComponentProps<typeof AppIcon>["icon"];
 
@@ -52,6 +52,7 @@ function amenityKey(amenity: Amenity): string {
 }
 
 export function AmenityList({ amenities }: { amenities: Amenity[] }) {
+  const colors = useColors();
   return (
     <View className="flex-row flex-wrap">
       {amenities.map((amenity) => (

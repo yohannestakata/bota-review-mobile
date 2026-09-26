@@ -3,7 +3,7 @@ import { Image, type ImageProps } from "expo-image";
 import { View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 // A tiny, blurred version of the same photo from its CDN (a few hundred bytes),
 // shown instantly while the full image loads so cards never sit as flat grey
@@ -53,6 +53,7 @@ export function Photo({
 // Shown where a place has no photo yet: a soft brand-tinted tile with the
 // food glyph, so the card still looks intentional instead of an empty box.
 export function PhotoFallback({ iconSize = 40 }: { iconSize?: number }) {
+  const colors = useColors();
   return (
     <View className="size-full items-center justify-center bg-personalized">
       <AppIcon

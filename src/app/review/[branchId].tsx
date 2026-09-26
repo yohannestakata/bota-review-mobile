@@ -42,7 +42,7 @@ import { getErrorCode, getErrorMessage } from "@/lib/api";
 import { haptics } from "@/lib/haptics";
 import { promptAndRegisterPush } from "@/lib/push-registration";
 import { usePickImage } from "@/lib/use-pick-image";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 
 const MIN_CHARS = 20;
@@ -104,6 +104,7 @@ type PostedReview = {
 };
 
 export default function WriteReviewScreen() {
+  const colors = useColors();
   const {
     branchId,
     reviewId,

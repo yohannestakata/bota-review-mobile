@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import type { ComponentProps } from "react";
 
 type HugeiconsIconProps = ComponentProps<typeof HugeiconsIcon>;
@@ -14,14 +14,15 @@ type AppIconProps = Omit<
 };
 
 export function AppIcon({
-  color = colors.foreground,
+  color,
   size = 24,
   strokeWidth = 2,
   ...props
 }: AppIconProps) {
+  const colors = useColors();
   return (
     <HugeiconsIcon
-      color={color}
+      color={color ?? colors.foreground}
       size={size}
       strokeWidth={strokeWidth}
       {...props}

@@ -13,7 +13,7 @@ import { AppIcon } from "@/components/ui/huge-icon";
 import { TextField } from "@/components/ui/text-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { cn } from "@/lib/cn";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 type NativeTextInputProps = ComponentProps<typeof TextInput>;
 
@@ -41,12 +41,13 @@ export function FormTextInput({
   error,
   containerClassName = "",
   inputClassName = "",
-  placeholderTextColor = colors.muted,
+  placeholderTextColor,
   surface = "default",
   secureTextEntry = false,
   style,
   ...props
 }: BaseFieldProps) {
+  const colors = useColors();
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   return (
@@ -58,7 +59,7 @@ export function FormTextInput({
         <TextField
           className={cn(secureTextEntry && "pr-14", inputClassName)}
           error={Boolean(error)}
-          placeholderTextColor={placeholderTextColor}
+          placeholderTextColor={placeholderTextColor ?? colors.muted}
           secureTextEntry={secureTextEntry && !passwordVisible}
           style={style}
           surface={surface}
@@ -93,10 +94,11 @@ export function FormTextArea({
   error,
   containerClassName = "",
   inputClassName = "",
-  placeholderTextColor = colors.muted,
+  placeholderTextColor,
   surface = "default",
   ...props
 }: BaseFieldProps) {
+  const colors = useColors();
   return (
     <View className={containerClassName}>
       <ThemedText size="sm" weight="medium">
@@ -110,7 +112,7 @@ export function FormTextArea({
           inputClassName,
         )}
         multiline
-        placeholderTextColor={placeholderTextColor}
+        placeholderTextColor={placeholderTextColor ?? colors.muted}
         textAlignVertical="top"
         {...props}
       />

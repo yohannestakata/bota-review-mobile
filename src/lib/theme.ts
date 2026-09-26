@@ -2,7 +2,7 @@
 // that can't read CSS variables. This is the subset of the --color-* vars in
 // global.css that JS reads directly — the rest are consumed only as Tailwind
 // classes (which read the CSS vars). Values must match global.css.
-import { Appearance, type ViewStyle } from "react-native";
+import { Appearance, useColorScheme, type ViewStyle } from "react-native";
 
 const light = {
   background: "#ffffff",
@@ -54,10 +54,9 @@ const dark: Palette = {
 
 export const palettes = { light, dark };
 
-// Reads the palette for the current system scheme at access time, so every
-// `colors.x` in render code follows light/dark without each call site needing
-// a hook. Components re-render on scheme change via NativeWind's className
-// subscription (and the root layout's useColorScheme).
+// Reads the palette for the current system scheme at access time. For code
+// outside React only — components must use `useColors()` below, or the React
+// Compiler's memoized output keeps the old scheme's colors after a switch.
 export const colors: Palette = new Proxy(light, {
   get(_, key: keyof Palette) {
     return (Appearance.getColorScheme() === "dark" ? dark : light)[key];
@@ -103,3 +102,12 @@ export const shadows = {
     ],
   } satisfies ViewStyle,
 } as const;
+
+/**
+ * The palette for the current scheme, as a hook. Use this in components rather
+ * than `colors`: the React Compiler memoizes render output, and only a hook
+ * value tells it to re-render when the system switches light/dark.
+ */
+export function useColors(): Palette {
+  return useColorScheme() === "dark" ? dark : light;
+}

@@ -8,7 +8,7 @@ import { Stars } from "@/components/ui/stars";
 import { ThemedText } from "@/components/ui/themed-text";
 import { CollapsibleReviewText, PhotoViewer } from "@/features/branch";
 import { formatRelativeDate } from "@/lib/format-date";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 import type { PublicReview } from "../api";
 import { PressableScale } from "@/components/ui/pressable-scale";
@@ -22,6 +22,7 @@ export function PublicReviewRow({
   onPress: (review: PublicReview) => void;
   onReport?: (reviewId: string) => void;
 }) {
+  const colors = useColors();
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const branchLabel = review.branch.label
     ? `${review.branch.placeName} · ${review.branch.label}`

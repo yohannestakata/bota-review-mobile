@@ -44,7 +44,7 @@ import {
   useTags,
 } from "@/features/taxonomy";
 import { zodFormResolver } from "@/lib/zod-resolver";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import { usePickImage } from "@/lib/use-pick-image";
 
 const DAYS = [
@@ -93,6 +93,7 @@ type FormValues = z.infer<typeof schema>;
 const PHOTO_GRID_GAP = 8;
 
 export default function ManageListingScreen() {
+  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getToken } = useAuth();
   const pickImage = usePickImage();

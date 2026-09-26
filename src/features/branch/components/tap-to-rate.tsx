@@ -2,7 +2,7 @@ import { Pressable, View } from "react-native";
 
 import { FilledStar } from "@/components/ui/filled-star";
 import { haptics } from "@/lib/haptics";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 // A row of five tappable stars that starts a review with that rating prefilled.
 // Plain Pressables rather than RatingInput: its pan gesture fires on the first
@@ -14,6 +14,7 @@ export function TapToRate({
   onRate: (rating: number) => void;
   size?: number;
 }) {
+  const colors = useColors();
   return (
     <View className="flex-row gap-2">
       {[1, 2, 3, 4, 5].map((star) => (

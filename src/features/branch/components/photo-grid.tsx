@@ -1,5 +1,5 @@
 import { Add01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import { Image } from "expo-image";
 import { useState } from "react";
 import {
@@ -33,6 +33,7 @@ export function PhotoGrid({
   onAdd,
   onRemove,
 }: PhotoGridProps) {
+  const colors = useColors();
   const [rowWidth, setRowWidth] = useState(0);
   const cell = rowWidth > 0 ? (rowWidth - GAP * (COLUMNS - 1)) / COLUMNS : 0;
 

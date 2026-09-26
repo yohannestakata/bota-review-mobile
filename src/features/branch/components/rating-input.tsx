@@ -3,7 +3,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 import { FilledStar } from "@/components/ui/filled-star";
 import { haptics } from "@/lib/haptics";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 const GAP = 8;
 
@@ -14,6 +14,7 @@ type RatingInputProps = {
 };
 
 export function RatingInput({ value, onChange, size = 40 }: RatingInputProps) {
+  const colors = useColors();
   const step = size + GAP;
 
   // Map an x position within the row to a 1–5 rating.

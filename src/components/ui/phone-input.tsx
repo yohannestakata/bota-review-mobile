@@ -8,7 +8,7 @@ import { TextInput, View } from "react-native";
 
 import { ThemedText } from "@/components/ui/themed-text";
 import { cn } from "@/lib/cn";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 const COUNTRY_CODE = "+251"; // Ethiopia
 
@@ -53,6 +53,7 @@ export function PhoneInput({
   surface = "default",
   containerClassName = "",
 }: PhoneInputProps) {
+  const colors = useColors();
   const local = toLocalDigits(value);
 
   return (

@@ -5,7 +5,7 @@ import { Linking, Pressable, View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 export type PinCoords = { lat: number; lng: number };
 
@@ -19,6 +19,7 @@ export function LocationPinField({
   value: PinCoords | null;
   onChange: (value: PinCoords | null) => void;
 }) {
+  const colors = useColors();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

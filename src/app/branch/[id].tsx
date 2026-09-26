@@ -6,7 +6,7 @@ import {
   SpoonAndForkIcon,
 } from "@hugeicons/core-free-icons";
 import { useAuth } from "@clerk/clerk-expo";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import { Image } from "expo-image";
 import { router, type Href, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -134,6 +134,7 @@ function RatingBreakdown({
 }
 
 export default function BranchDetailScreen() {
+  const colors = useColors();
   const { isSignedIn } = useAuth();
   const { id, source } = useLocalSearchParams<{
     id: string;

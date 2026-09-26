@@ -4,7 +4,7 @@ import {
   UserCircleIcon,
   Wifi01Icon,
 } from "@hugeicons/core-free-icons";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import { router } from "expo-router";
 import { useEffect, useMemo } from "react";
 import { Pressable, RefreshControl, ScrollView, View } from "react-native";
@@ -38,6 +38,7 @@ import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 const GREETING_SEED = Math.random();
 
 export default function Index() {
+  const colors = useColors();
   const { isSignedIn } = useAuth();
   const { user } = useUser();
   const location = useLocation();

@@ -10,7 +10,7 @@ import { BackHeader } from "@/components/ui/screen-header";
 import { FlashList, ListGapLg } from "@/components/ui/flash-list";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import {
   BranchCard,
   BranchListSkeleton,
@@ -25,6 +25,7 @@ import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 const EMPTY_SAVED = new Set<string>();
 
 export default function PlaceOverviewScreen() {
+  const colors = useColors();
   const { isSignedIn } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const place = usePlace(id);

@@ -13,7 +13,7 @@ import Animated, {
 import { AppIcon } from "@/components/ui/huge-icon";
 import { PressableScale } from "@/components/ui/pressable-scale";
 import { haptics } from "@/lib/haptics";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
 const EASE_IN_OUT = Easing.bezier(0.77, 0, 0.175, 1);
@@ -37,6 +37,7 @@ export function SaveHeartButton({
   className?: string;
   style?: StyleProp<ViewStyle>;
 }) {
+  const colors = useColors();
   const scale = useSharedValue(1);
   const reduced = useReducedMotion();
   const { isSignedIn } = useAuth();

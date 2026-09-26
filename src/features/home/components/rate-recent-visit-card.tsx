@@ -10,7 +10,7 @@ import { TapToRate } from "@/features/branch";
 // make a require cycle with this component.
 import { useMyReviews } from "@/features/profile/queries";
 import { analytics } from "@/lib/analytics";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import { useDeviceList } from "@/lib/use-device-list";
 import { useRecentlyViewed } from "@/lib/use-recently-viewed";
 
@@ -25,6 +25,7 @@ const idOf = (id: string) => id;
 // they recently viewed and haven't reviewed. One tap on a star opens the review
 // with that rating prefilled; dismissing hides that place for good.
 export function RateRecentVisitCard() {
+  const colors = useColors();
   const recentlyViewed = useRecentlyViewed();
   const dismissed = useDeviceList<string>("rate-nudge-dismissed", {
     max: 30,

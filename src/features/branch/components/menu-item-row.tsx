@@ -4,7 +4,7 @@ import { View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import type { MenuItem } from "../api";
 import { formatBirr } from "../menu-format";
 
@@ -15,6 +15,7 @@ export function MenuItemRow({
   item: MenuItem;
   showImage: boolean;
 }) {
+  const colors = useColors();
   return (
     <View className="flex-row items-start gap-3 py-3">
       {showImage ? (

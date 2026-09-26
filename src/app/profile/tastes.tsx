@@ -5,9 +5,10 @@ import { BackHeader } from "@/components/ui/screen-header";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useTasteOptionsQuery, useTastePreferences } from "@/features/home";
 import { cn } from "@/lib/cn";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 export default function TastePreferencesScreen() {
+  const colors = useColors();
   const options = useTasteOptionsQuery();
   const tastes = useTastePreferences();
   const loading = options.isPending || !tastes.ready;

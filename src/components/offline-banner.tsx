@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 // Treat "connected but internet unreachable" as offline too. Unknown (undefined)
 // counts as online so we never flash the banner on launch.
@@ -31,6 +31,7 @@ onlineManager.setEventListener((setOnline) => {
 // A slim pill near the bottom while the device is offline, so screens
 // showing cached data explain themselves instead of silently not updating.
 export function OfflineBanner() {
+  const colors = useColors();
   const [online, setOnline] = useState(onlineManager.isOnline());
   const insets = useSafeAreaInsets();
 

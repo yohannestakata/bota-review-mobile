@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
-import { colors, shadows } from "@/lib/theme";
+import { shadows, useColors } from "@/lib/theme";
 
 type ToastKind = "success" | "error";
 type ToastData = {
@@ -58,6 +58,7 @@ const EXIT = new Keyframe({
 const DURATION = { success: 2600, error: 4200 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const colors = useColors();
   const [current, setCurrent] = useState<ToastData | null>(null);
   const nextId = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);

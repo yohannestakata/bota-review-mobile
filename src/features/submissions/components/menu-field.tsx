@@ -12,7 +12,7 @@ import { ChipButton } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { TextField } from "@/components/ui/text-field";
 import { ThemedText } from "@/components/ui/themed-text";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import { usePickImage } from "@/lib/use-pick-image";
 
 import { uploadSubmissionPhoto, type SubmissionMenuItem } from "../api";
@@ -68,6 +68,7 @@ export function MenuField({
   label?: string;
   singleItem?: boolean;
 }) {
+  const colors = useColors();
   const { getToken } = useAuth();
   const pick = usePickImage();
   const makeItem = (): Item => ({

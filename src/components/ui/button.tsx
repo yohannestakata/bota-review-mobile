@@ -8,7 +8,7 @@ import {
 import { PressableScale } from "@/components/ui/pressable-scale";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
-import { colors } from "@/lib/theme";
+import { useColors, type ColorToken } from "@/lib/theme";
 
 type Variant = "primary" | "secondary" | "outline" | "ghost";
 type Size = "md" | "sm" | "xs";
@@ -31,20 +31,24 @@ type ButtonProps = {
 
 const VARIANTS: Record<
   Variant,
-  { container: string; tone: "inverse" | "default" | "brand"; color: string }
+  {
+    container: string;
+    tone: "inverse" | "default" | "brand";
+    color: ColorToken;
+  }
 > = {
-  primary: { container: "bg-primary", tone: "inverse", color: colors.inverse },
+  primary: { container: "bg-primary", tone: "inverse", color: "inverse" },
   secondary: {
     container: "border border-primary bg-surface",
     tone: "brand",
-    color: colors.primary,
+    color: "primary",
   },
   outline: {
     container: "border border-placeholder bg-surface",
     tone: "default",
-    color: colors.foreground,
+    color: "foreground",
   },
-  ghost: { container: "", tone: "brand", color: colors.primary },
+  ghost: { container: "", tone: "brand", color: "primary" },
 };
 
 const SIZES: Record<Size, string> = {
@@ -75,6 +79,7 @@ export function Button({
   textClassName,
   tone,
 }: ButtonProps) {
+  const colors = useColors();
   const v = VARIANTS[variant];
   const isDisabled = disabled || loading;
 
@@ -85,13 +90,13 @@ export function Button({
       onPress={onPress}
     >
       {loading ? (
-        <ActivityIndicator color={v.color} />
+        <ActivityIndicator color={colors[v.color]} />
       ) : (
         <>
           {leftSlot ?? null}
           {icon ? (
             <AppIcon
-              color={v.color}
+              color={colors[v.color]}
               icon={icon}
               size={size === "xs" ? 16 : 18}
             />
@@ -107,7 +112,7 @@ export function Button({
           </ThemedText>
           {rightIcon ? (
             <AppIcon
-              color={v.color}
+              color={colors[v.color]}
               icon={rightIcon}
               size={size === "xs" ? 16 : 18}
             />
@@ -174,6 +179,7 @@ export function IconButton({
   style?: StyleProp<ViewStyle>;
   children?: ReactNode;
 }) {
+  const colors = useColors();
   return (
     <PressableScale
       accessibilityLabel={accessibilityLabel}
@@ -235,6 +241,7 @@ export function ActionTile({
   onPress: () => void;
   disabled?: boolean;
 }) {
+  const colors = useColors();
   return (
     <PressableScale
       className={`flex-1 items-center gap-1.5 rounded-2xl bg-surface-muted py-3 ${

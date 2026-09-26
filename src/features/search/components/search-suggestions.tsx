@@ -5,7 +5,7 @@ import { ChipButton, TextButton } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { haptics } from "@/lib/haptics";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import { PressableScale } from "@/components/ui/pressable-scale";
 
 // Shown on the search screen before the user types: their recent searches and
@@ -23,6 +23,7 @@ export function SearchSuggestions({
   cuisines: { id: string; name: string }[];
   onPickCuisine: (id: string) => void;
 }) {
+  const colors = useColors();
   if (recent.length === 0 && cuisines.length === 0) return null;
 
   return (

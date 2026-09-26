@@ -1,6 +1,6 @@
 import { Pressable } from "react-native";
 
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import { Photo, PhotoFallback } from "@/components/ui/photo";
 import Animated, {
   Extrapolation,
@@ -18,6 +18,7 @@ type BranchHeroProps = {
 };
 
 export function BranchHero({ imageUrl, scrollY, onPress }: BranchHeroProps) {
+  const colors = useColors();
   const animatedStyle = useAnimatedStyle(() => {
     const y = scrollY.value;
     return {

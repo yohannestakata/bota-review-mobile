@@ -20,7 +20,7 @@ import {
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ControlledPhoneInput } from "@/components/ui/phone-input";
 import { ThemedText } from "@/components/ui/themed-text";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import {
   HoursField,
   MenuField,
@@ -130,6 +130,7 @@ function SectionToggle({
   onPress: () => void;
   title: string;
 }) {
+  const colors = useColors();
   return (
     <Pressable
       className="flex-row items-center justify-between gap-3 border-t border-border py-4"

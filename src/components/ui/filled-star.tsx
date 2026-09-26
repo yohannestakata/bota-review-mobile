@@ -1,7 +1,7 @@
 import { StarIcon } from "@hugeicons/core-free-icons";
 
 import { AppIcon } from "@/components/ui/huge-icon";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 type FilledStarProps = {
   color?: string;
@@ -9,8 +9,10 @@ type FilledStarProps = {
 };
 
 export function FilledStar({
-  color = colors.rating,
+  color: colorProp,
   size = 14,
 }: FilledStarProps) {
+  const colors = useColors();
+  const color = colorProp ?? colors.rating;
   return <AppIcon color={color} fill={color} icon={StarIcon} size={size} />;
 }

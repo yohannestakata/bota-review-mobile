@@ -1,5 +1,5 @@
 import { useAuth, useClerk } from "@clerk/clerk-expo";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import {
   FavouriteIcon,
   Home01Icon,
@@ -25,8 +25,6 @@ type SyncState = "pending" | "ready" | "error";
 
 // Fixed, uniform icon size for every tab.
 const TAB_ICON_SIZE = 25;
-const TAB_ACTIVE_COLOR = colors.primary;
-const TAB_INACTIVE_COLOR = colors.muted;
 
 function TabsLoadingScreen() {
   return (
@@ -37,6 +35,7 @@ function TabsLoadingScreen() {
 }
 
 export default function TabLayout() {
+  const colors = useColors();
   const { getToken, isLoaded, isSignedIn, userId } = useAuth();
   const { signOut } = useClerk();
   const getTokenRef = useRef(getToken);
@@ -158,8 +157,8 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: TAB_ACTIVE_COLOR,
-        tabBarInactiveTintColor: TAB_INACTIVE_COLOR,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
           backgroundColor: colors.background,
           borderTopColor: colors.border,

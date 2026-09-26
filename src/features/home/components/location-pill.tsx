@@ -3,7 +3,7 @@ import { Pressable } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 
 type LocationPillProps = {
   label: string | null;
@@ -12,6 +12,7 @@ type LocationPillProps = {
 };
 
 export function LocationPill({ label, status, onPress }: LocationPillProps) {
+  const colors = useColors();
   const text = {
     idle: "Use location",
     loading: "Locating…",

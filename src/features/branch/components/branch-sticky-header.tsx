@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { colors } from "@/lib/theme";
+import { useColors } from "@/lib/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   Extrapolation,
@@ -23,6 +23,7 @@ export function BranchStickyHeader({
   title,
   scrollY,
 }: BranchStickyHeaderProps) {
+  const colors = useColors();
   const insets = useSafeAreaInsets();
 
   const animatedStyle = useAnimatedStyle(() => ({
