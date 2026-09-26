@@ -18,6 +18,7 @@ import { AnalyticsProvider } from "@/components/analytics-provider";
 import { PushRegistration } from "@/components/push-registration";
 import { AlertProvider } from "@/components/ui/alert";
 import { ToastProvider } from "@/components/ui/toast";
+import { OfflineBanner } from "@/components/offline-banner";
 import { debugLog } from "@/lib/debug";
 import { routeFromNotification } from "@/lib/notification-routing";
 import { queryClient } from "@/lib/query-client";
@@ -109,14 +110,15 @@ function RootLayout() {
               <BottomSheetModalProvider>
                 <AlertProvider>
                   <ToastProvider>
-                  <PushRegistration />
-                  <StatusBar barStyle="dark-content" />
-                  <Stack
-                    screenOptions={{
-                      contentStyle: { backgroundColor: colors.background },
-                      headerShown: false,
-                    }}
-                  />
+                    <PushRegistration />
+                    <StatusBar barStyle="dark-content" />
+                    <Stack
+                      screenOptions={{
+                        contentStyle: { backgroundColor: colors.background },
+                        headerShown: false,
+                      }}
+                    />
+                    <OfflineBanner />
                   </ToastProvider>
                 </AlertProvider>
               </BottomSheetModalProvider>
