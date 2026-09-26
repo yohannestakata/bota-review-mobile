@@ -1,7 +1,8 @@
 import { Image } from "expo-image";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
 import { ThemedText } from "@/components/ui/themed-text";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 export type CollectionCircleItem = {
   slug: string;
@@ -22,7 +23,7 @@ export function CollectionCircles({ items, onPress }: CollectionCirclesProps) {
       showsHorizontalScrollIndicator={false}
     >
       {items.map((item) => (
-        <Pressable
+        <PressableScale
           className="w-20 items-center gap-2"
           key={item.slug}
           onPress={() => onPress(item.slug)}
@@ -48,7 +49,7 @@ export function CollectionCircles({ items, onPress }: CollectionCirclesProps) {
           >
             {item.title}
           </ThemedText>
-        </Pressable>
+        </PressableScale>
       ))}
     </ScrollView>
   );

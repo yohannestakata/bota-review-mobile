@@ -1,11 +1,12 @@
 import { Clock01Icon } from "@hugeicons/core-free-icons";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 import { ChipButton, TextButton } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { haptics } from "@/lib/haptics";
 import { colors } from "@/lib/theme";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 // Shown on the search screen before the user types: their recent searches and
 // a few cuisines to jump straight into, so most searches are a single tap.
@@ -41,7 +42,7 @@ export function SearchSuggestions({
           </View>
           <View className="flex-row flex-wrap gap-2">
             {recent.map((query) => (
-              <Pressable
+              <PressableScale
                 accessibilityLabel={`Search ${query} again`}
                 accessibilityRole="button"
                 className="flex-row items-center gap-1.5 rounded-full border border-placeholder bg-surface px-4 py-2"
@@ -52,7 +53,7 @@ export function SearchSuggestions({
                 <ThemedText size="sm" weight="medium">
                   {query}
                 </ThemedText>
-              </Pressable>
+              </PressableScale>
             ))}
           </View>
         </View>

@@ -1,6 +1,6 @@
 import { CheckmarkBadge01Icon } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackHeader } from "@/components/ui/screen-header";
@@ -12,6 +12,7 @@ import { ThemedText } from "@/components/ui/themed-text";
 import { useOwnClaims, type OwnClaim } from "@/features/branch";
 import { formatRelativeDate } from "@/lib/format-date";
 import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 const STATUS_LABEL: Record<OwnClaim["status"], string> = {
   pending: "Pending",
@@ -27,7 +28,8 @@ const STATUS_TONE: Record<OwnClaim["status"], "muted" | "brand" | "danger"> = {
 
 function ClaimCard({ claim }: { claim: OwnClaim }) {
   return (
-    <Pressable
+    <PressableScale
+      scaleTo={0.985}
       className="gap-1.5 rounded-2xl border border-placeholder bg-surface p-4"
       onPress={() => router.push(`/branch/${claim.branchId}`)}
     >
@@ -42,7 +44,7 @@ function ClaimCard({ claim }: { claim: OwnClaim }) {
           · Submitted {formatRelativeDate(claim.createdAt)}
         </ThemedText>
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 

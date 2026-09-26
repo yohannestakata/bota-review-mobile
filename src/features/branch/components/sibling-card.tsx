@@ -1,10 +1,11 @@
 import { Image } from "expo-image";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 import { FilledStar } from "@/components/ui/filled-star";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 import { formatMenuPriceRange } from "@/lib/price";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 type SiblingCardProps = {
   branch: BranchCardData;
@@ -25,7 +26,7 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
       : null;
 
   return (
-    <Pressable className="w-56" onPress={() => onPress(branch)}>
+    <PressableScale className="w-56" onPress={() => onPress(branch)}>
       <View className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-placeholder">
         {branch.coverPhotoUrl ? (
           <Image
@@ -89,6 +90,6 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
           ) : null}
         </View>
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }

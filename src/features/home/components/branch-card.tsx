@@ -1,12 +1,13 @@
 import { shadows } from "@/lib/theme";
 import { Image } from "expo-image";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 import { FilledStar } from "@/components/ui/filled-star";
 import { SaveHeartButton } from "@/components/ui/save-heart-button";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 import { formatMenuPriceRange } from "@/lib/price";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 type BranchCardProps = {
   branch: BranchCardData;
@@ -53,7 +54,7 @@ export function BranchCard({
   const textInset = layout === "portrait" ? 4 : 3;
 
   return (
-    <Pressable className="w-full" onPress={() => onPress?.(branch)}>
+    <PressableScale className="w-full" onPress={() => onPress?.(branch)}>
       <View className={`w-full overflow-hidden bg-placeholder ${imageClass}`}>
         {branch.coverPhotoUrl ? (
           <Image
@@ -141,6 +142,6 @@ export function BranchCard({
           ) : null}
         </View>
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }

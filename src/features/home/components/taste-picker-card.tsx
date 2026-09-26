@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 import { ThemedText } from "@/components/ui/themed-text";
 import { cn } from "@/lib/cn";
 import { haptics } from "@/lib/haptics";
 import { useTasteOptionsQuery } from "../queries";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 const GROUP_LABELS = {
   food: "What sounds good?",
@@ -43,7 +44,7 @@ export function TastePickerCard({
               Pick a few and we&apos;ll bump them up your feed.
             </ThemedText>
           </View>
-          <Pressable hitSlop={8} onPress={() => setDismissed(true)}>
+          <PressableScale hitSlop={8} onPress={() => setDismissed(true)}>
             <ThemedText
               size="sm"
               tone={picks.length ? "brand" : "muted"}
@@ -51,7 +52,7 @@ export function TastePickerCard({
             >
               {picks.length ? "Done" : "Skip"}
             </ThemedText>
-          </Pressable>
+          </PressableScale>
         </View>
 
         {(["food", "mood", "time"] as const).map((group) => (
@@ -65,7 +66,7 @@ export function TastePickerCard({
                 .map((option) => {
                   const selected = picks.includes(option.id);
                   return (
-                    <Pressable
+                    <PressableScale
                       className={cn(
                         "rounded-full border px-4 py-2",
                         selected
@@ -86,7 +87,7 @@ export function TastePickerCard({
                       >
                         {option.name}
                       </ThemedText>
-                    </Pressable>
+                    </PressableScale>
                   );
                 })}
             </View>

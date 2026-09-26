@@ -10,7 +10,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { type ComponentProps, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AuthRequiredScreen } from "@/components/auth/auth-required-screen";
@@ -27,6 +27,7 @@ import {
 } from "@/features/profile";
 import { clearPushRegistration } from "@/lib/push-registration";
 import { colors } from "@/lib/theme";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 type IconType = ComponentProps<typeof AppIcon>["icon"];
 
@@ -49,8 +50,9 @@ function MenuRow({
 }) {
   const muted = tone === "muted";
   return (
-    <Pressable
+    <PressableScale
       className="flex-row items-center gap-3 px-6 py-4"
+      scaleTo={0.985}
       disabled={loading}
       onPress={onPress}
     >
@@ -74,7 +76,7 @@ function MenuRow({
       {showChevron ? (
         <AppIcon color={colors.muted} icon={ArrowRight01Icon} size={18} />
       ) : null}
-    </Pressable>
+    </PressableScale>
   );
 }
 

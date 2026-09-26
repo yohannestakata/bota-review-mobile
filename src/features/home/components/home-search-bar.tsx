@@ -1,9 +1,9 @@
 import { Search01Icon } from "@hugeicons/core-free-icons";
 import { colors, shadows } from "@/lib/theme";
-import { Pressable } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 type HomeSearchBarProps = {
   onPress: () => void;
@@ -11,7 +11,7 @@ type HomeSearchBarProps = {
 
 export function HomeSearchBar({ onPress }: HomeSearchBarProps) {
   return (
-    <Pressable
+    <PressableScale
       className="h-16 flex-row items-center gap-2.5 rounded-full border border-border bg-surface px-5"
       onPress={onPress}
       style={shadows.searchBar}
@@ -26,6 +26,6 @@ export function HomeSearchBar({ onPress }: HomeSearchBarProps) {
       >
         What are you craving?
       </ThemedText>
-    </Pressable>
+    </PressableScale>
   );
 }

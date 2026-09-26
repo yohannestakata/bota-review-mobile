@@ -1,7 +1,7 @@
 import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
 import { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { Stars } from "@/components/ui/stars";
@@ -11,6 +11,7 @@ import { formatRelativeDate } from "@/lib/format-date";
 import { colors } from "@/lib/theme";
 
 import type { PublicReview } from "../api";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 export function PublicReviewRow({
   review,
@@ -27,7 +28,8 @@ export function PublicReviewRow({
     : review.branch.placeName;
 
   return (
-    <Pressable
+    <PressableScale
+      scaleTo={0.985}
       className="gap-3 rounded-2xl border border-placeholder p-4"
       onPress={() => onPress(review)}
     >
@@ -44,14 +46,14 @@ export function PublicReviewRow({
           </View>
         </View>
         {onReport ? (
-          <Pressable
+          <PressableScale
             accessibilityLabel="Report review"
             accessibilityRole="button"
             hitSlop={8}
             onPress={() => onReport(review.id)}
           >
             <AppIcon color={colors.muted} icon={MoreHorizontalIcon} size={18} />
-          </Pressable>
+          </PressableScale>
         ) : null}
       </View>
 
@@ -65,14 +67,17 @@ export function PublicReviewRow({
             showsHorizontalScrollIndicator={false}
           >
             {review.photos.map((photo, index) => (
-              <Pressable key={photo.id} onPress={() => setViewerIndex(index)}>
+              <PressableScale
+                key={photo.id}
+                onPress={() => setViewerIndex(index)}
+              >
                 <Image
                   contentFit="cover"
                   source={photo.url}
                   style={{ width: 96, height: 96, borderRadius: 12 }}
                   transition={150}
                 />
-              </Pressable>
+              </PressableScale>
             ))}
           </ScrollView>
           <PhotoViewer
@@ -83,6 +88,6 @@ export function PublicReviewRow({
           />
         </>
       ) : null}
-    </Pressable>
+    </PressableScale>
   );
 }

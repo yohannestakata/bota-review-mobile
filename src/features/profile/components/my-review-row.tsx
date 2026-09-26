@@ -1,10 +1,11 @@
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 import { TextButton } from "@/components/ui/button";
 import { Stars } from "@/components/ui/stars";
 import { ThemedText } from "@/components/ui/themed-text";
 
 import type { MyReview } from "../api";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 const STATUS_STYLES: Record<
   MyReview["moderationStatus"],
@@ -47,7 +48,8 @@ export function MyReviewRow({
   const canManage = review.moderationStatus !== "archived";
 
   return (
-    <Pressable
+    <PressableScale
+      scaleTo={0.985}
       className="gap-2 rounded-2xl border border-placeholder bg-surface p-4"
       onPress={() => onPress(review)}
     >
@@ -77,6 +79,6 @@ export function MyReviewRow({
           />
         </View>
       ) : null}
-    </Pressable>
+    </PressableScale>
   );
 }

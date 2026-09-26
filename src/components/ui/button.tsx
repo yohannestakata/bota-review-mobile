@@ -1,11 +1,11 @@
 import type { ComponentProps, ReactNode } from "react";
 import {
   ActivityIndicator,
-  Pressable,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
 
+import { PressableScale } from "@/components/ui/pressable-scale";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { colors } from "@/lib/theme";
@@ -79,7 +79,7 @@ export function Button({
   const isDisabled = disabled || loading;
 
   return (
-    <Pressable
+    <PressableScale
       className={`flex-row items-center justify-center gap-2 rounded-full ${SIZES[size]} ${variant === "ghost" ? "" : SIZE_PADDING[size]} ${v.container} ${isDisabled ? "opacity-40" : ""} ${className}`}
       disabled={isDisabled}
       onPress={onPress}
@@ -114,7 +114,7 @@ export function Button({
           ) : null}
         </>
       )}
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -138,7 +138,7 @@ export function TextButton({
   accessibilityLabel?: string;
 }) {
   return (
-    <Pressable
+    <PressableScale
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityRole="button"
       className={disabled ? "opacity-40" : ""}
@@ -149,7 +149,7 @@ export function TextButton({
       <ThemedText size={size} tone={tone} weight="semibold">
         {label}
       </ThemedText>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -175,7 +175,7 @@ export function IconButton({
   children?: ReactNode;
 }) {
   return (
-    <Pressable
+    <PressableScale
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
       className={`items-center justify-center rounded-full ${
@@ -193,7 +193,7 @@ export function IconButton({
             size={iconSize}
           />
         ) : null)}
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -207,7 +207,7 @@ export function ChipButton({
   onPress: () => void;
 }) {
   return (
-    <Pressable
+    <PressableScale
       className={`rounded-full px-4 py-2 ${
         selected ? "bg-primary" : "border border-placeholder bg-surface"
       }`}
@@ -220,7 +220,7 @@ export function ChipButton({
       >
         {label}
       </ThemedText>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -236,7 +236,7 @@ export function ActionTile({
   disabled?: boolean;
 }) {
   return (
-    <Pressable
+    <PressableScale
       className={`flex-1 items-center gap-1.5 rounded-2xl bg-surface-muted py-3 ${
         disabled ? "opacity-40" : ""
       }`}
@@ -247,6 +247,6 @@ export function ActionTile({
       <ThemedText size="sm" weight="medium">
         {label}
       </ThemedText>
-    </Pressable>
+    </PressableScale>
   );
 }
