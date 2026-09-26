@@ -1,6 +1,6 @@
 import { View } from "react-native";
 
-import { Photo } from "@/components/ui/photo";
+import { Photo, PhotoFallback } from "@/components/ui/photo";
 import { FilledStar } from "@/components/ui/filled-star";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { BranchCard as BranchCardData } from "@/lib/api";
@@ -33,7 +33,9 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
             style={{ width: "100%", height: "100%" }}
             uri={branch.coverPhotoUrl}
           />
-        ) : null}
+        ) : (
+          <PhotoFallback iconSize={32} />
+        )}
 
         {branch.isOpenNow !== undefined ? (
           <View className="absolute left-2 top-2 rounded-full bg-surface px-2 py-0.5">

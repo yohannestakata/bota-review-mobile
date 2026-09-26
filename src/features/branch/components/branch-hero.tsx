@@ -1,7 +1,7 @@
 import { Pressable } from "react-native";
 
 import { colors } from "@/lib/theme";
-import { Photo } from "@/components/ui/photo";
+import { Photo, PhotoFallback } from "@/components/ui/photo";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -53,7 +53,9 @@ export function BranchHero({ imageUrl, scrollY, onPress }: BranchHeroProps) {
       <Pressable disabled={!onPress} onPress={onPress} style={{ flex: 1 }}>
         {imageUrl ? (
           <Photo style={{ width: "100%", height: "100%" }} uri={imageUrl} />
-        ) : null}
+        ) : (
+          <PhotoFallback iconSize={64} />
+        )}
       </Pressable>
     </Animated.View>
   );
