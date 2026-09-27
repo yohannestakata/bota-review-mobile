@@ -13,7 +13,7 @@ import { formatMenuPriceRange } from "@/lib/price";
 import { PressableScale } from "@/components/ui/pressable-scale";
 import { openBadge } from "@/features/branch/hours";
 import { usePrefetchBranch } from "@/features/branch/prefetch";
-import { setPendingPhotoFlight } from "@/features/branch/shared-photo";
+import { startPhotoFlight } from "@/features/branch/shared-photo";
 
 type BranchCardProps = {
   branch: BranchCardData;
@@ -43,7 +43,7 @@ export function BranchCard({
       return;
     }
     photoRef.current.measureInWindow((x, y, width, height) => {
-      setPendingPhotoFlight({
+      startPhotoFlight({
         branchId: branch.id,
         uri,
         from: { x, y, width, height },

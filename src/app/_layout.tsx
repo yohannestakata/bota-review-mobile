@@ -24,7 +24,10 @@ import { OfflineBanner } from "@/components/offline-banner";
 import { PhotoSourceHost } from "@/components/photo-source-host";
 import { debugLog } from "@/lib/debug";
 import { routeFromNotification } from "@/lib/notification-routing";
-import { hasPendingPhotoFlight } from "@/features/branch/shared-photo";
+import {
+  hasPendingPhotoFlight,
+  PhotoFlightHost,
+} from "@/features/branch/shared-photo";
 import { queryClient } from "@/lib/query-client";
 import {
   ClearCacheOnSignOut,
@@ -177,6 +180,7 @@ function RootLayout() {
                         }}
                       />
                     </Stack>
+                    <PhotoFlightHost />
                     <OfflineBanner />
                     <PhotoSourceHost />
                   </ToastProvider>
