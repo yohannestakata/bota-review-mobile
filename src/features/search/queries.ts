@@ -19,6 +19,7 @@ export function useSearch(params: SearchParams) {
     params.cuisineId?.length ||
     params.tagId?.length ||
     params.openNow ||
+    params.bbox ||
     (params.sort !== undefined && params.sort !== "rating"),
   );
   const isBrowse = params.q.trim().length < 2 && !hasFilters;

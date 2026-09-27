@@ -84,14 +84,20 @@ function located(branches: BranchCard[]): Located[] {
 /**
  * Search results as pins on a map. Tapping a pin highlights it and shows a
  * compact card for that place at the bottom; tapping the card opens it.
- * The camera frames all pins whenever the results change.
+ * The camera frames all pins whenever the results change — except for an
+ * area search, where the map stays put. After you pan or zoom, a "Search this
+ * area" pill offers to load places inside the visible map.
  */
 export function SearchMap({
   results,
   onOpen,
+  onSearchArea,
+  areaActive = false,
 }: {
   results: BranchCard[];
   onOpen: (branch: BranchCard) => void;
+  onSearchArea?: (bbox: [number, number, number, number]) => void;
+  areaActive?: boolean;
 }) {
   const colors = useColors();
   const mapStyle = useMapStyle();
@@ -105,6 +111,9 @@ export function SearchMap({
   const location = useLocation();
   const wantsLocate = useRef(false);
   const [locating, setLocating] = useState(false);
+  // Latest visible area, and whether the user has moved since the last search.
+  const viewBounds = useRef<[number, number, number, number] | null>(null);
+  const [moved, setMoved] = useState(false);
 
   function flyToMe() {
     if (location.coords) {
@@ -142,7 +151,7 @@ export function SearchMap({
   const [mapReady, setMapReady] = useState(false);
   const boundsKey = pins.map((p) => p.id).join(",");
   useEffect(() => {
-    if (!mapReady || pins.length === 0) return;
+    if (!mapReady || pins.length === 0 || areaActive) return;
     if (pins.length === 1) {
       cameraRef.current?.easeTo({
         center: [pins[0].lng, pins[0].lat],
@@ -184,6 +193,9 @@ export function SearchMap({
           onRegionDidChange={(e) => {
             const z = Math.round(e.nativeEvent.zoom * 2) / 2;
             if (z !== zoom) setZoom(z);
+            viewBounds.current = e.nativeEvent.bounds;
+            // Only a finger-driven move offers a new area search.
+            if (e.nativeEvent.userInteraction && onSearchArea) setMoved(true);
           }}
           onPress={() => {
             // A pin tap also reaches the map; don't let it undo the selection.
@@ -314,10 +326,54 @@ export function SearchMap({
         >
           <View className="rounded-full bg-surface px-4 py-2">
             <ThemedText size="sm" tone="muted">
-              No places with a location to show
+              {areaActive
+                ? "No places in this area yet"
+                : "No places with a location to show"}
             </ThemedText>
           </View>
         </View>
+      ) : null}
+
+      {moved && onSearchArea ? (
+        <Animated.View
+          entering={FadeIn.duration(160)}
+          exiting={FadeOut.duration(120)}
+          style={{
+            position: "absolute",
+            top: 12,
+            left: 0,
+            right: 0,
+            alignItems: "center",
+          }}
+        >
+          <PressableScale
+            accessibilityRole="button"
+            className="rounded-full px-4 py-2.5"
+            onPress={() => {
+              if (!viewBounds.current) return;
+              haptics.select();
+              setSelectedId(null);
+              setMoved(false);
+              onSearchArea(viewBounds.current);
+            }}
+            style={{
+              backgroundColor: colors.surface,
+              boxShadow: [
+                {
+                  offsetX: 0,
+                  offsetY: 3,
+                  blurRadius: 12,
+                  spreadDistance: 0,
+                  color: "rgba(0,0,0,0.16)",
+                },
+              ],
+            }}
+          >
+            <ThemedText size="sm" tone="brand" weight="semibold">
+              Search this area
+            </ThemedText>
+          </PressableScale>
+        </Animated.View>
       ) : null}
 
       {/* Center on me — above the preview card when one is showing. */}

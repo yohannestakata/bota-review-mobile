@@ -15,6 +15,8 @@ export type SearchParams = {
   openNow?: boolean;
   lat?: number;
   lng?: number;
+  /** Map area as [west, south, east, north] ("Search this area"). */
+  bbox?: [number, number, number, number];
   sort?: SearchSort;
   limit?: number;
   offset?: number;
@@ -34,6 +36,9 @@ export function searchBranches(params: SearchParams, getToken: TokenGetter) {
   if (params.lat !== undefined && params.lng !== undefined) {
     query.set("lat", String(params.lat));
     query.set("lng", String(params.lng));
+  }
+  if (params.bbox) {
+    query.set("bbox", params.bbox.map((n) => n.toFixed(5)).join(","));
   }
   if (params.sort) {
     query.set("sort", params.sort);

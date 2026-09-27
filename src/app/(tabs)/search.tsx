@@ -62,6 +62,10 @@ export default function SearchScreen() {
   const [sort, setSort] = useState<Exclude<SearchSort, "distance">>("rating");
   const [openNow, setOpenNow] = useState(false);
   const [view, setView] = useState<"list" | "map">("list");
+  // Set by the map's "Search this area"; cleared when leaving the map.
+  const [area, setArea] = useState<
+    [number, number, number, number] | undefined
+  >(undefined);
   const [nearby, setNearby] = useState(false);
   const filterSheetRef = useRef<FilterSheetRef>(null);
 
@@ -118,6 +122,7 @@ export default function SearchScreen() {
       sort: sortByDistance ? ("distance" as const) : sort,
       lat: coords?.lat,
       lng: coords?.lng,
+      bbox: area,
     }),
     [
       debouncedQ,
@@ -129,6 +134,7 @@ export default function SearchScreen() {
       sort,
       coords?.lat,
       coords?.lng,
+      area,
     ],
   );
 
@@ -158,7 +164,11 @@ export default function SearchScreen() {
     (sort === "rating" ? 0 : 1);
   const hasFilters = filterCount > 0 || openNow || nearby;
   const active =
-    debouncedQ.length >= 2 || filterCount > 0 || openNow || sortByDistance;
+    debouncedQ.length >= 2 ||
+    filterCount > 0 ||
+    openNow ||
+    sortByDistance ||
+    Boolean(area);
   const resultPages = search.data?.pages;
   const results = useMemo(() => {
     const unique = new Map<string, BranchCardData>();
@@ -220,6 +230,7 @@ export default function SearchScreen() {
     setSort("rating");
     setOpenNow(false);
     setNearby(false);
+    setArea(undefined);
   }
 
   // Removable chips for each applied sheet filter (neighborhood/cuisine/tag).
@@ -227,6 +238,13 @@ export default function SearchScreen() {
   // own toggle chips in the row above.
   const activeChips: { key: string; label: string; onRemove: () => void }[] =
     [];
+  if (area) {
+    activeChips.push({
+      key: "area",
+      label: "This map area",
+      onRemove: () => setArea(undefined),
+    });
+  }
   if (neighborhoodId) {
     const match = neighborhoods.data?.find((n) => n.id === neighborhoodId);
     activeChips.push({
@@ -340,6 +358,7 @@ export default function SearchScreen() {
             onPress={() => {
               haptics.select();
               setView((v) => (v === "map" ? "list" : "map"));
+              setArea(undefined);
             }}
           >
             <AppIcon
@@ -382,6 +401,8 @@ export default function SearchScreen() {
             rememberSearch(debouncedQ);
             router.push(`/branch/${branch.id}?source=search`);
           }}
+          areaActive={Boolean(area)}
+          onSearchArea={setArea}
           results={results}
         />
       ) : (
