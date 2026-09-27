@@ -22,8 +22,11 @@ type BranchCardProps = {
   isSaved: boolean;
   onToggleSave: (branch: BranchCardData) => void;
   onPress?: (branch: BranchCardData) => void;
-  layout?: "portrait" | "square" | "wide";
+  layout?: "portrait" | "wide";
 };
+
+/** Width / height of rail card covers (3:4, a portrait phone photo). */
+export const CARD_PORTRAIT_RATIO = 3 / 4;
 
 export function BranchCard({
   branch,
@@ -79,8 +82,9 @@ export function BranchCard({
   // Area · distance on one line, e.g. "Piassa · 1.2 km".
   const locationLine = [subtitle, distance].filter(Boolean).join(" · ");
 
-  const aspectRatio =
-    layout === "portrait" ? 4 / 5 : layout === "square" ? 1 : 4 / 3;
+  // Rails use 3:4, the shape of a portrait phone photo, so most covers show
+  // uncropped. Full-width list cards stay landscape to keep lists scannable.
+  const aspectRatio = layout === "portrait" ? CARD_PORTRAIT_RATIO : 4 / 3;
   const textInset = layout === "wide" ? 3 : 4;
 
   return (
@@ -183,12 +187,15 @@ export function BranchCard({
         </View>
         {/* "For you": a quiet note when there's a specific reason. */}
         {branch.reason ? (
-          <View className="mt-1 flex-row items-center gap-1">
-            <AppIcon color={colors.muted} icon={SparklesIcon} size={12} />
+          <View className="mt-1 flex-row items-start gap-1.5">
+            {/* Centered on the first line (sm line height). */}
+            <View className="justify-center" style={{ height: 19 }}>
+              <AppIcon color={colors.muted} icon={SparklesIcon} size={14} />
+            </View>
             <ThemedText
               className="shrink"
-              numberOfLines={1}
-              size="xs"
+              numberOfLines={2}
+              size="sm"
               tone="muted"
             >
               {branch.reason}

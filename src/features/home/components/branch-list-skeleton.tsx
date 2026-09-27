@@ -2,6 +2,8 @@ import { View } from "react-native";
 
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 
+import { CARD_PORTRAIT_RATIO } from "./branch-card";
+
 // Mirrors BranchCard line for line: the cover (4:5 in rails, 4:3 in lists),
 // then name (lg), area (sm) and rating · price (sm), inset like the real text.
 export function BranchCardSkeleton({
@@ -12,9 +14,10 @@ export function BranchCardSkeleton({
   return (
     <View>
       <Skeleton
-        className={`w-full rounded-2xl ${
-          layout === "portrait" ? "aspect-[4/5]" : "aspect-[4/3]"
-        }`}
+        className="w-full rounded-2xl"
+        style={{
+          aspectRatio: layout === "portrait" ? CARD_PORTRAIT_RATIO : 4 / 3,
+        }}
       />
       <View
         className="mt-3"
