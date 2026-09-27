@@ -9,6 +9,7 @@ import { ThemedText } from "@/components/ui/themed-text";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 import { formatMenuPriceRange } from "@/lib/price";
 import { PressableScale } from "@/components/ui/pressable-scale";
+import { usePrefetchBranch } from "@/features/branch/prefetch";
 
 type BranchCardProps = {
   branch: BranchCardData;
@@ -25,6 +26,7 @@ export function BranchCard({
   onPress,
   layout = "wide",
 }: BranchCardProps) {
+  const prefetchBranch = usePrefetchBranch();
   const subtitleParts = [branch.label, branch.neighborhood?.name].filter(
     (value): value is string => Boolean(value),
   );
@@ -55,7 +57,12 @@ export function BranchCard({
   const textInset = layout === "portrait" ? 4 : 3;
 
   return (
-    <PressableScale className="w-full" onPress={() => onPress?.(branch)}>
+    <PressableScale
+      className="w-full"
+      onPress={() => onPress?.(branch)}
+      // Start loading the page (and its cover) as the finger lands.
+      onPressIn={() => prefetchBranch(branch)}
+    >
       <View className={`w-full overflow-hidden bg-placeholder ${imageClass}`}>
         {branch.coverPhotoUrl ? (
           <Photo

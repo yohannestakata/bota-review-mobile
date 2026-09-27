@@ -30,15 +30,9 @@ import {
   type UpdateOwnerInfoBody,
   type UpdateReviewBody,
 } from "./api";
+import { branchKeys } from "./keys";
 
-export const branchKeys = {
-  all: ["branch"] as const,
-  detail: (id: string) => [...branchKeys.all, id] as const,
-  siblings: (id: string) => [...branchKeys.detail(id), "siblings"] as const,
-  menus: (id: string) => [...branchKeys.detail(id), "menus"] as const,
-  reviews: (id: string) => [...branchKeys.detail(id), "reviews"] as const,
-  review: (id: string) => [...branchKeys.all, "review", id] as const,
-};
+export { branchKeys };
 
 export const claimKeys = {
   all: ["claims"] as const,

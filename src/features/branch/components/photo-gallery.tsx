@@ -91,6 +91,14 @@ export function PhotoGallery({
     );
   }, [chromeVisible, chrome]);
 
+  // Have the photos either side downloaded before they're swiped to.
+  useEffect(() => {
+    const neighbors = [photos[current - 1], photos[current + 1]]
+      .filter((p): p is GalleryPhoto => Boolean(p))
+      .map((p) => p.url);
+    if (neighbors.length) void Image.prefetch(neighbors);
+  }, [current, photos]);
+
   // Keep the active thumbnail in view (centered once the strip overflows).
   useEffect(() => {
     const stripWidth =
