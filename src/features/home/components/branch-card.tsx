@@ -175,6 +175,18 @@ export function BranchCard({
             </ThemedText>
           ) : null}
         </View>
+        {/* "For you" says why it picked this place. */}
+        {branch.reason ? (
+          <ThemedText
+            className="mt-1"
+            numberOfLines={2}
+            size="xs"
+            tone="brand"
+            weight="medium"
+          >
+            {branch.reason}
+          </ThemedText>
+        ) : null}
       </View>
     </PressableScale>
   );

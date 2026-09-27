@@ -44,7 +44,7 @@ export default function Index() {
   const { user } = useUser();
   const location = useLocation();
   const home = useHomeFeed(location.coords);
-  const forYou = useForYou();
+  const forYou = useForYou(location.coords);
   const taste = useTastePreferences();
   const tasteOnboarding = useTasteOnboarding();
   const { saved, savedIds, onToggleSave } = useSaveHandler();

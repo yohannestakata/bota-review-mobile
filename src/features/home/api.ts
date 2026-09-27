@@ -37,16 +37,40 @@ export function getHome(
   return apiFetch<HomeResponse>(`/discovery/home${query}`, getToken);
 }
 
-export function getForYou(getToken: TokenGetter) {
-  return apiFetch<HomeBranchSection>("/discovery/for-you", getToken);
+/** What the app tells "For you" about right now, to rank for it. */
+export type ForYouContext = {
+  coords?: { lat: number; lng: number } | null;
+  /** Recently viewed place ids, most recent first. */
+  viewed?: string[];
+  /** Stable per-install id (guest rotation). */
+  seed?: string;
+};
+
+function contextQuery(context: ForYouContext) {
+  const query = new URLSearchParams();
+  if (context.coords) {
+    query.set("lat", String(context.coords.lat));
+    query.set("lng", String(context.coords.lng));
+  }
+  context.viewed?.forEach((id) => query.append("viewed", id));
+  if (context.seed) query.set("seed", context.seed);
+  return query;
+}
+
+export function getForYou(context: ForYouContext, getToken: TokenGetter) {
+  return apiFetch<HomeBranchSection>(
+    `/discovery/for-you?${contextQuery(context).toString()}`,
+    getToken,
+  );
 }
 
 // "For you" for someone signed out, from the tastes picked on their device.
 export function getGuestForYou(
   tasteOptionIds: string[],
+  context: ForYouContext,
   getToken: TokenGetter,
 ) {
-  const query = new URLSearchParams();
+  const query = contextQuery(context);
   tasteOptionIds.forEach((id) => query.append("tasteOptionId", id));
   return apiFetch<HomeBranchSection>(
     `/discovery/for-you/guest?${query.toString()}`,

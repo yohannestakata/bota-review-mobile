@@ -22,6 +22,8 @@ import {
   type TasteOption,
 } from "./api";
 import { readGuestTastes } from "./guest-tastes";
+import { getDeviceId } from "@/lib/device-id";
+import { useRecentlyViewed } from "@/lib/use-recently-viewed";
 
 export const homeKeys = {
   all: ["home"] as const,
@@ -49,20 +51,39 @@ export function useSaves() {
   });
 }
 
-export function useForYou() {
+export function useForYou(coords: { lat: number; lng: number } | null) {
   const { getToken, isLoaded, isSignedIn, userId } = useAuth();
   // Guests: built from the tastes picked on this device.
   const guestTastes = useTastePreferencesQuery();
   const guestIds = isSignedIn
     ? []
     : (guestTastes.data ?? []).map((option) => option.id);
+  const recentlyViewed = useRecentlyViewed();
+  const viewed = recentlyViewed.items.slice(0, 10).map((place) => place.id);
+  // ~1 km steps, so walking around doesn't refetch constantly.
+  const near = coords
+    ? {
+        lat: Math.round(coords.lat * 100) / 100,
+        lng: Math.round(coords.lng * 100) / 100,
+      }
+    : null;
   return useQuery({
-    queryKey: isSignedIn
-      ? homeKeys.forYou(userId)
-      : [...homeKeys.forYou(null), ...guestIds],
-    queryFn: () =>
-      isSignedIn ? getForYou(getToken) : getGuestForYou(guestIds, getToken),
+    queryKey: [
+      ...homeKeys.forYou(isSignedIn ? userId : null),
+      ...guestIds,
+      near?.lat,
+      near?.lng,
+      viewed.join(","),
+    ],
+    queryFn: async () => {
+      const context = { coords: near, viewed, seed: await getDeviceId() };
+      return isSignedIn
+        ? getForYou(context, getToken)
+        : getGuestForYou(guestIds, context, getToken);
+    },
     enabled: isLoaded && (isSignedIn === true || guestIds.length > 0),
+    // Keep showing the last list while a new location/view refetches.
+    placeholderData: keepPreviousData,
   });
 }
 

@@ -244,6 +244,8 @@ export type BranchCard = {
   isOpenNow?: boolean;
   /** Weekly hours, sent alongside isOpenNow (e.g. { mon: [["07:00","20:00"]] }). */
   hours?: Record<string, [string, string][]> | null;
+  /** Why "For you" picked this place, e.g. "Like Kaldi's Coffee, which you saved". */
+  reason?: string;
   /** Sent by search/browse for the map view (numeric strings). */
   latitude?: string | null;
   longitude?: string | null;
