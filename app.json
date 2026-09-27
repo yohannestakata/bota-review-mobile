@@ -73,6 +73,14 @@
       ],
       "expo-image",
       [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "organization": "bota-hx",
+          "project": "react-native"
+        }
+      ],
+      [
         "expo-camera",
         {
           "cameraPermission": "Allow Bota to use your camera so you can take photos for reviews and listings.",
@@ -124,7 +132,9 @@
       }
     },
     "owner": "botareview",
-    "runtimeVersion": "1.0.0",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
     "updates": {
       "url": "https://u.expo.dev/4e7c5a64-6310-4d30-8ba6-0572d1c4ddeb"
     }

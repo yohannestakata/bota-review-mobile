@@ -1,3 +1,5 @@
+// First, so errors during startup are reported too.
+import { Sentry } from "@/lib/sentry";
 import "../../global.css";
 import { ClerkProvider } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
@@ -176,4 +178,4 @@ function RootLayout() {
   );
 }
 
-export default ObserveRoot.wrap(RootLayout);
+export default Sentry.wrap(ObserveRoot.wrap(RootLayout));
