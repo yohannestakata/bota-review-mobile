@@ -8,62 +8,44 @@ import { Platform } from "react-native";
 // Use sparingly and only on meaningful taps — saving, rating, picking a chip,
 // completing an action. Never on typing, scrolling, or navigation.
 //
-// On Android, selectionAsync/impactAsync are simulated with a raw Vibrator
-// pulse that many phones barely render, so ticks and taps go through the
-// system haptics engine instead (the one the keyboard uses) — crisp, and it
-// follows the user's system haptics setting.
+// Stick to expo-haptics' standard calls. On Android these drive the vibration
+// motor directly, so they work on every phone. (performAndroidHapticsAsync goes
+// through the system's touch-feedback setting instead, which many phones —
+// Xiaomi in particular — leave off or suppress, so it was silent there.)
 const isAndroid = Platform.OS === "android";
 
 export const haptics = {
   /** A light tap for toggles — save/unsave, like. */
   tap() {
-    (isAndroid
-      ? Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Virtual_Key)
-      : Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    ).catch(() => {});
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
   },
   /** A crisp tick for picking a value — stars, chips, segmented controls. */
   select() {
+    // Android's selection pulse is 50ms at ~12% strength — too faint to feel on
+    // many motors — so ticks use the medium impact pulse there.
     (isAndroid
-      ? Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Clock_Tick)
+      ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       : Haptics.selectionAsync()
     ).catch(() => {});
   },
   /**
    * One beat of a build-up — e.g. stars stamping in one by one. Each step lands
-   * a little firmer than the last (`step` of `total`, 0-based), so a sequence
-   * reads as a crescendo instead of identical ticks. End it with `success()`.
+   * a little firmer than the last (`step` of `total`, 0-based). End it with
+   * `success()`.
    */
   build(step: number, total: number) {
-    const t = total > 1 ? step / (total - 1) : 1;
-    if (isAndroid) {
-      Haptics.performAndroidHapticsAsync(
-        t < 0.5
-          ? Haptics.AndroidHaptics.Clock_Tick
-          : Haptics.AndroidHaptics.Virtual_Key,
-      ).catch(() => {});
-      return;
-    }
     const styles = [
-      Haptics.ImpactFeedbackStyle.Soft,
       Haptics.ImpactFeedbackStyle.Light,
       Haptics.ImpactFeedbackStyle.Medium,
-      Haptics.ImpactFeedbackStyle.Rigid,
+      Haptics.ImpactFeedbackStyle.Heavy,
     ];
+    const t = total > 1 ? step / (total - 1) : 1;
     Haptics.impactAsync(
       styles[Math.min(styles.length - 1, Math.round(t * (styles.length - 1)))],
     ).catch(() => {});
   },
   /** A success buzz for completing something meaningful — posting a review. */
   success() {
-    // Android 11+ has a real "confirm" haptic; the Vibrator-based notification
-    // pattern is a coarse buzz, so only older phones fall back to it.
-    if (isAndroid && Number(Platform.Version) >= 30) {
-      Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Confirm).catch(
-        () => {},
-      );
-      return;
-    }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
       () => {},
     );
