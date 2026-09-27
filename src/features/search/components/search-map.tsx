@@ -5,7 +5,12 @@ import {
   type CameraRef,
 } from "@maplibre/maplibre-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 import { Location04Icon } from "@hugeicons/core-free-icons";
@@ -29,6 +34,16 @@ const ADDIS: [number, number] = [38.7578, 9.0301];
 
 type Located = BranchCard & { lng: number; lat: number };
 type Cluster = { id: string; lng: number; lat: number; members: Located[] };
+
+const PIN_SHADOW = [
+  {
+    offsetX: 0,
+    offsetY: 1,
+    blurRadius: 4,
+    spreadDistance: 0,
+    color: "rgba(0,0,0,0.25)",
+  },
+];
 
 // Pins closer than this on screen merge into one numbered bubble.
 const CLUSTER_RADIUS_PX = 44;
@@ -266,6 +281,7 @@ export function SearchMap({
                   <View
                     className="items-center justify-center rounded-full"
                     style={{
+                      boxShadow: PIN_SHADOW,
                       minWidth: 34,
                       height: 34,
                       paddingHorizontal: 8,
@@ -296,13 +312,18 @@ export function SearchMap({
                 }}
               >
                 <View
-                  className="flex-row items-center gap-1 rounded-full px-2.5 py-1"
+                  className="flex-row items-center gap-1 rounded-full"
                   style={{
+                    paddingHorizontal: 9,
+                    paddingVertical: 4,
                     backgroundColor: isSelected
                       ? colors.primary
                       : colors.surface,
-                    borderWidth: 1,
-                    borderColor: isSelected ? colors.primary : colors.border,
+                    // A clear outline + soft shadow so white pins stand out on
+                    // the light map (the old hairline border disappeared).
+                    borderWidth: 1.5,
+                    borderColor: isSelected ? colors.surface : colors.muted,
+                    boxShadow: PIN_SHADOW,
                   }}
                 >
                   <FilledStar
@@ -352,8 +373,13 @@ export function SearchMap({
           }}
         >
           <View
-            className="flex-row items-center gap-2 rounded-full px-3.5 py-2"
-            style={{ backgroundColor: colors.surface }}
+            className="flex-row items-center gap-2 rounded-full"
+            style={{
+              paddingHorizontal: 14,
+              paddingVertical: 8,
+              backgroundColor: colors.surface,
+              boxShadow: PIN_SHADOW,
+            }}
           >
             {loading ? (
               <ActivityIndicator color={colors.muted} size="small" />
@@ -395,17 +421,109 @@ export function SearchMap({
         )}
       </PressableScale>
 
-      {selected ? <SelectedCard branch={selected} onOpen={onOpen} /> : null}
+      {selected ? (
+        <ResultCarousel
+          onOpen={onOpen}
+          onSelect={(pin) => {
+            setSelectedId(pin.id);
+            // Follow the swipe without zooming or triggering an area reload.
+            cameraRef.current?.easeTo({
+              center: [pin.lng, pin.lat],
+              duration: 350,
+            });
+          }}
+          pins={pins}
+          selectedId={selected.id}
+        />
+      ) : null}
     </View>
   );
 }
 
-function SelectedCard({
+const CARD_GAP = 8;
+const CARD_SIDE = 24;
+
+/**
+ * The selected place, with its neighbours a swipe away: a snapping row of
+ * cards over the map. Swiping selects the next place (and the map follows);
+ * tapping a pin scrolls the row to it. Tapping a card opens the place.
+ */
+function ResultCarousel({
+  pins,
+  selectedId,
+  onSelect,
+  onOpen,
+}: {
+  pins: Located[];
+  selectedId: string;
+  onSelect: (pin: Located) => void;
+  onOpen: (branch: BranchCard) => void;
+}) {
+  const { width } = useWindowDimensions();
+  const cardWidth = width - CARD_SIDE * 2;
+  const snap = cardWidth + CARD_GAP;
+  const listRef = useRef<FlatList<Located>>(null);
+  const index = Math.max(
+    0,
+    pins.findIndex((p) => p.id === selectedId),
+  );
+  // Set while a swipe is choosing the selection, so we don't scroll back.
+  const fromSwipe = useRef(false);
+
+  useEffect(() => {
+    if (fromSwipe.current) {
+      fromSwipe.current = false;
+      return;
+    }
+    listRef.current?.scrollToOffset({ offset: index * snap, animated: true });
+  }, [index, snap]);
+
+  return (
+    <Animated.View
+      entering={FadeIn.duration(160)}
+      exiting={FadeOut.duration(120)}
+      // Sits above the tab bar, which already covers the safe area.
+      style={{ position: "absolute", left: 0, right: 0, bottom: 16 }}
+    >
+      <FlatList
+        contentContainerStyle={{
+          paddingHorizontal: CARD_SIDE,
+          gap: CARD_GAP,
+        }}
+        data={pins}
+        decelerationRate="fast"
+        getItemLayout={(_, i) => ({ length: snap, offset: snap * i, index: i })}
+        horizontal
+        initialScrollIndex={index}
+        keyExtractor={(item) => item.id}
+        onMomentumScrollEnd={(e) => {
+          const i = Math.round(e.nativeEvent.contentOffset.x / snap);
+          const pin = pins[Math.min(Math.max(i, 0), pins.length - 1)];
+          if (pin && pin.id !== selectedId) {
+            fromSwipe.current = true;
+            haptics.select();
+            onSelect(pin);
+          }
+        }}
+        ref={listRef}
+        renderItem={({ item }) => (
+          <PlaceCard branch={item} onOpen={onOpen} width={cardWidth} />
+        )}
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={snap}
+      />
+    </Animated.View>
+  );
+}
+
+function PlaceCard({
   branch,
   onOpen,
+  width,
 }: {
   branch: BranchCard;
   onOpen: (branch: BranchCard) => void;
+  width: number;
 }) {
   const prefetch = usePrefetchBranch();
   const badge = openBadge(branch);
@@ -413,13 +531,7 @@ function SelectedCard({
   const area = branch.neighborhood?.name ?? branch.label;
 
   return (
-    <Animated.View
-      entering={FadeIn.duration(160)}
-      exiting={FadeOut.duration(120)}
-      key={branch.id}
-      // Sits above the tab bar, which already covers the safe area.
-      style={{ position: "absolute", left: 16, right: 16, bottom: 16 }}
-    >
+    <View style={{ width }}>
       <PressableScale
         accessibilityLabel={`Open ${branch.placeName}`}
         accessibilityRole="button"
@@ -486,6 +598,6 @@ function SelectedCard({
           ) : null}
         </View>
       </PressableScale>
-    </Animated.View>
+    </View>
   );
 }
