@@ -11,6 +11,9 @@ export const searchKeys = {
 };
 
 const PAGE_SIZE = 20;
+/** Map-area searches fetch more at once (the server's max): a map shows a
+ * whole area, not a scrolling list. */
+export const AREA_PAGE_SIZE = 50;
 
 export function useSearch(params: SearchParams) {
   const { getToken } = useAuth();
@@ -23,6 +26,7 @@ export function useSearch(params: SearchParams) {
     (params.sort !== undefined && params.sort !== "rating"),
   );
   const isBrowse = params.q.trim().length < 2 && !hasFilters;
+  const pageSize = params.bbox ? AREA_PAGE_SIZE : PAGE_SIZE;
 
   return useInfiniteQuery({
     queryKey: isBrowse ? searchKeys.browse() : searchKeys.results(params),
@@ -32,14 +36,14 @@ export function useSearch(params: SearchParams) {
         : searchBranches(
             {
               ...params,
-              limit: PAGE_SIZE,
-              offset: pageParam * PAGE_SIZE,
+              limit: pageSize,
+              offset: pageParam * pageSize,
             },
             getToken,
           ),
     initialPageParam: 0,
     getNextPageParam: (lastPage, pages) =>
-      lastPage.length < PAGE_SIZE ? undefined : pages.length,
+      lastPage.length < pageSize ? undefined : pages.length,
     placeholderData: keepPreviousData,
   });
 }

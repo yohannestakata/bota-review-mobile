@@ -23,6 +23,7 @@ import { ThemedText } from "@/components/ui/themed-text";
 import { openBadge } from "@/features/branch/hours";
 import { GEBETA_API_KEY, useMapStyle } from "@/features/branch/map-style";
 import { usePrefetchBranch } from "@/features/branch/prefetch";
+import { AREA_PAGE_SIZE } from "../queries";
 import type { BranchCard } from "@/lib/api";
 import { haptics } from "@/lib/haptics";
 import { formatMenuPriceRange } from "@/lib/price";
@@ -117,6 +118,9 @@ export function SearchMap({
   /** Results are refreshing (shows a small indicator; pins stay put). */
   loading?: boolean;
 }) {
+  // A busy area hit the per-request cap: say so, so it isn't mistaken for
+  // "that's everything here".
+  const capped = areaActive && !loading && results.length >= AREA_PAGE_SIZE;
   const colors = useColors();
   const mapStyle = useMapStyle();
   const cameraRef = useRef<CameraRef>(null);
@@ -359,7 +363,7 @@ export function SearchMap({
       </View>
 
       {/* One status pill: loading takes priority, then "nothing here". */}
-      {loading || pins.length === 0 ? (
+      {loading || pins.length === 0 || capped ? (
         <Animated.View
           entering={FadeIn.duration(160)}
           exiting={FadeOut.duration(120)}
@@ -387,9 +391,11 @@ export function SearchMap({
             <ThemedText size="sm" tone="muted" weight="medium">
               {loading
                 ? "Finding places"
-                : areaActive
-                  ? "No places in this area yet"
-                  : "No places with a location to show"}
+                : capped
+                  ? "Top 50 here. Zoom in for more."
+                  : areaActive
+                    ? "No places in this area yet"
+                    : "No places with a location to show"}
             </ThemedText>
           </View>
         </Animated.View>
