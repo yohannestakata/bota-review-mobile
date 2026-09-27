@@ -1,6 +1,8 @@
 import { shadows } from "@/lib/theme";
 import { Image } from "expo-image";
+import { useRef } from "react";
 import { View } from "react-native";
+import { useReducedMotion } from "react-native-reanimated";
 
 import { Photo, PhotoFallback } from "@/components/ui/photo";
 import { FilledStar } from "@/components/ui/filled-star";
@@ -11,6 +13,7 @@ import { formatMenuPriceRange } from "@/lib/price";
 import { PressableScale } from "@/components/ui/pressable-scale";
 import { openBadge } from "@/features/branch/hours";
 import { usePrefetchBranch } from "@/features/branch/prefetch";
+import { setPendingPhotoFlight } from "@/features/branch/shared-photo";
 
 type BranchCardProps = {
   branch: BranchCardData;
@@ -28,6 +31,27 @@ export function BranchCard({
   layout = "wide",
 }: BranchCardProps) {
   const prefetchBranch = usePrefetchBranch();
+  const reduced = useReducedMotion();
+  const photoRef = useRef<View>(null);
+
+  // Hand the cover's on-screen position to the place page, so the photo can
+  // fly from here into its header. Reduce Motion (or no photo) just opens it.
+  function open() {
+    const uri = branch.coverPhotoUrl;
+    if (reduced || !uri || !photoRef.current) {
+      onPress?.(branch);
+      return;
+    }
+    photoRef.current.measureInWindow((x, y, width, height) => {
+      setPendingPhotoFlight({
+        branchId: branch.id,
+        uri,
+        from: { x, y, width, height },
+        radius: 16,
+      });
+      onPress?.(branch);
+    });
+  }
   const badge = openBadge(branch);
   const subtitleParts = [branch.label, branch.neighborhood?.name].filter(
     (value): value is string => Boolean(value),
@@ -61,11 +85,15 @@ export function BranchCard({
   return (
     <PressableScale
       className="w-full"
-      onPress={() => onPress?.(branch)}
+      onPress={open}
       // Start loading the page (and its cover) as the finger lands.
       onPressIn={() => prefetchBranch(branch)}
     >
-      <View className={`w-full overflow-hidden bg-placeholder ${imageClass}`}>
+      <View
+        className={`w-full overflow-hidden bg-placeholder ${imageClass}`}
+        collapsable={false}
+        ref={photoRef}
+      >
         {branch.coverPhotoUrl ? (
           <Photo
             style={{ width: "100%", height: "100%" }}

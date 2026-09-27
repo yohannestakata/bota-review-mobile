@@ -24,6 +24,7 @@ import { OfflineBanner } from "@/components/offline-banner";
 import { PhotoSourceHost } from "@/components/photo-source-host";
 import { debugLog } from "@/lib/debug";
 import { routeFromNotification } from "@/lib/notification-routing";
+import { hasPendingPhotoFlight } from "@/features/branch/shared-photo";
 import { queryClient } from "@/lib/query-client";
 import {
   ClearCacheOnSignOut,
@@ -148,6 +149,17 @@ function RootLayout() {
                     >
                       {/* Fades in over the page, which stays visible beneath
                           so dragging a photo down to close reveals it. */}
+                      {/* Opened from a card: fade in while the card's photo
+                          flies to the hero, instead of sliding sideways. */}
+                      <Stack.Screen
+                        name="branch/[id]"
+                        options={({ route }) => {
+                          const id = (route.params as { id?: string })?.id;
+                          return id && hasPendingPhotoFlight(id)
+                            ? { animation: "fade", animationDuration: 280 }
+                            : {};
+                        }}
+                      />
                       {/* First-launch taste picker: slides up over the tabs. */}
                       <Stack.Screen
                         name="onboarding/tastes"

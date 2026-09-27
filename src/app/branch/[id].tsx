@@ -70,6 +70,10 @@ import { formatMenuPriceRange } from "@/lib/price";
 import { useLocation } from "@/lib/use-location";
 import { useRecentlyViewed } from "@/lib/use-recently-viewed";
 import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
+import {
+  PhotoFlightOverlay,
+  takePendingPhotoFlight,
+} from "@/features/branch/shared-photo";
 
 function Chip({ label }: { label: string }) {
   return (
@@ -156,6 +160,9 @@ export default function BranchDetailScreen() {
 
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
+  // Opened from a card: its photo flies in to become the hero.
+  const [flight] = useState(() => takePendingPhotoFlight(id));
+  const [flightLanded, setFlightLanded] = useState(false);
   const [mapActive, setMapActive] = useState(false);
   const onScroll = useAnimatedScrollHandler((event) => {
     scrollY.value = event.contentOffset.y;
@@ -243,8 +250,23 @@ export default function BranchDetailScreen() {
     });
   }
 
+  // Keep the flying photo over the hero until it has landed and the page is
+  // ready to show its own copy.
+  const flightOverlay =
+    flight && !(flightLanded && !branch.isPending) ? (
+      <PhotoFlightOverlay
+        flight={flight}
+        onLanded={() => setFlightLanded(true)}
+      />
+    ) : null;
+
   if (branch.isPending) {
-    return <BranchDetailSkeleton />;
+    return (
+      <View style={{ flex: 1 }}>
+        <BranchDetailSkeleton />
+        {flightOverlay}
+      </View>
+    );
   }
 
   if (branch.isError || !branch.data) {
@@ -322,6 +344,7 @@ export default function BranchDetailScreen() {
       >
         <BranchHero
           imageUrl={cover}
+          photoHidden={Boolean(flightOverlay)}
           onPress={
             data.photos.length > 0
               ? () => router.push(`/branch/${data.id}/photos`)
@@ -865,6 +888,9 @@ export default function BranchDetailScreen() {
           ) : null}
         </View>
       </Animated.ScrollView>
+
+      {/* Over the hero, under the sticky header and back/save buttons. */}
+      {flightOverlay}
 
       <BranchStickyHeader scrollY={scrollY} title={data.place.name} />
 

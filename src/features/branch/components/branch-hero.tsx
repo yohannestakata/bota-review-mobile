@@ -15,9 +15,16 @@ type BranchHeroProps = {
   imageUrl: string | null;
   scrollY: SharedValue<number>;
   onPress?: () => void;
+  /** Hide the photo while a card's photo is still flying in to cover it. */
+  photoHidden?: boolean;
 };
 
-export function BranchHero({ imageUrl, scrollY, onPress }: BranchHeroProps) {
+export function BranchHero({
+  imageUrl,
+  scrollY,
+  onPress,
+  photoHidden = false,
+}: BranchHeroProps) {
   const colors = useColors();
   const animatedStyle = useAnimatedStyle(() => {
     const y = scrollY.value;
@@ -59,7 +66,14 @@ export function BranchHero({ imageUrl, scrollY, onPress }: BranchHeroProps) {
         style={{ flex: 1 }}
       >
         {imageUrl ? (
-          <Photo style={{ width: "100%", height: "100%" }} uri={imageUrl} />
+          <Photo
+            style={{
+              width: "100%",
+              height: "100%",
+              opacity: photoHidden ? 0 : 1,
+            }}
+            uri={imageUrl}
+          />
         ) : (
           <PhotoFallback iconSize={64} />
         )}
