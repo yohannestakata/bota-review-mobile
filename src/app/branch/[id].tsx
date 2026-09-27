@@ -13,7 +13,6 @@ import { router, type Href, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Linking,
-  PixelRatio,
   Platform,
   Pressable,
   RefreshControl,
@@ -285,10 +284,20 @@ export default function BranchDetailScreen() {
     .filter(Boolean)
     .join("  ·  ");
   const chips = [...data.cuisines, ...data.tags];
+  // The address without the city (everything here is in Addis), and hidden
+  // when it only repeats the neighbourhood the top line already shows.
+  const shortAddress = (() => {
+    const trimmed = (data.addressText ?? "")
+      .replace(/,?\s*addis\s+ababa(,?\s*ethiopia)?\s*$/i, "")
+      .trim();
+    const area = data.neighborhood?.name?.trim().toLowerCase();
+    return trimmed && trimmed.toLowerCase() !== area ? trimmed : null;
+  })();
+  const mapsUrl =
+    data.latitude != null && data.longitude != null
+      ? `https://www.google.com/maps/search/?api=1&query=${data.latitude},${data.longitude}`
+      : null;
   const status = openStatus(data.hours);
-  // One line of md text (24pt), scaled like the text itself so the icons stay
-  // centred on it at large system text sizes (ThemedText caps at 1.6x).
-  const lineHeight = 24 * Math.min(PixelRatio.getFontScale(), 1.6);
   // Your own review of this place (any state but archived): the sticky button
   // edits it instead of starting a duplicate, and it's pinned to the top.
   const myReview = myReviews.data?.find(
@@ -366,45 +375,56 @@ export default function BranchDetailScreen() {
               ) : null}
             </View>
 
-            {status ? (
-              <View className="flex-row items-start gap-1.5">
-                <View className="justify-center" style={{ height: lineHeight }}>
-                  <AppIcon
-                    color={
-                      {
-                        success: colors.success,
-                        warning: colors.warning,
-                        danger: colors.danger,
-                      }[status.tone]
-                    }
-                    icon={Clock01Icon}
-                    size={16}
-                  />
-                </View>
-                <ThemedText
-                  className="shrink"
-                  tone={status.tone}
-                  weight="medium"
-                >
-                  {status.label}
-                </ThemedText>
-              </View>
-            ) : null}
-
-            {data.addressText ? (
-              <View className="flex-row items-start gap-1.5">
-                {/* Centered on the first line (md line height), so it stays
-                    aligned when a long address wraps. */}
-                <View className="justify-center" style={{ height: lineHeight }}>
-                  <AppIcon
-                    color={colors.muted}
-                    icon={Location01Icon}
-                    size={16}
-                  />
-                </View>
-                <ThemedText className="shrink" tone="muted">
-                  {data.addressText}
-                </ThemedText>
+            {/* Open status and address on one row. The status is short and
+                what people check first, so it never truncates; the address
+                takes what's left and ends in "..." if it's long. */}
+            {status || shortAddress ? (
+              <View className="flex-row items-center gap-4">
+                {status ? (
+                  <View className="shrink-0 flex-row items-center gap-1.5">
+                    <AppIcon
+                      color={
+                        {
+                          success: colors.success,
+                          warning: colors.warning,
+                          danger: colors.danger,
+                        }[status.tone]
+                      }
+                      icon={Clock01Icon}
+                      size={16}
+                    />
+                    <ThemedText
+                      numberOfLines={1}
+                      tone={status.tone}
+                      weight="medium"
+                    >
+                      {status.label}
+                    </ThemedText>
+                  </View>
+                ) : null}
+                {shortAddress ? (
+                  <Pressable
+                    accessibilityLabel={`Address: ${shortAddress}. Get directions`}
+                    accessibilityRole="link"
+                    className="flex-1 flex-row items-center gap-1.5"
+                    disabled={!mapsUrl}
+                    hitSlop={8}
+                    onPress={() => mapsUrl && void Linking.openURL(mapsUrl)}
+                  >
+                    <AppIcon
+                      color={colors.muted}
+                      icon={Location01Icon}
+                      size={16}
+                    />
+                    <ThemedText
+                      className="shrink"
+                      numberOfLines={1}
+                      tone="muted"
+                    >
+                      {shortAddress}
+                    </ThemedText>
+                  </Pressable>
+                ) : null}
               </View>
             ) : null}
             {data.verificationStatus === "business_verified" ? (
