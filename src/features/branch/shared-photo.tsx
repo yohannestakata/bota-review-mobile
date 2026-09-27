@@ -10,6 +10,8 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import { useColors } from "@/lib/theme";
+
 import { HERO_HEIGHT, heroCovered } from "./hero-shared";
 
 // "Photo grows into the place page": the tapped card's cover is measured and a
@@ -86,9 +88,11 @@ export function usePhotoFlightTarget(branchId: string) {
 // One element moving across the screen: in-out with a soft landing.
 const FLIGHT = { duration: 420, easing: Easing.bezier(0.32, 0.72, 0, 1) };
 
-// The page's sheet overlaps the hero's bottom by this much (its -mt-6), with
-// rounded corners; landing just above it keeps those corners on top.
+// The page's sheet overlaps the hero's bottom by this much (its -mt-6) with
+// rounded top corners (rounded-t-3xl). The flight lands at the hero's full
+// height and fades in a matching strip, so its last frame is the real page.
 const SHEET_OVERLAP = 21;
+const SHEET_RADIUS = 21;
 
 /** Mounted once at the app root, above the navigator. */
 export function PhotoFlightHost() {
@@ -102,6 +106,7 @@ export function PhotoFlightHost() {
 
 function FlyingPhoto({ flight }: { flight: PhotoFlight }) {
   const { width } = useWindowDimensions();
+  const colors = useColors();
   const progress = useSharedValue(0);
   const mounted = useSyncExternalStore(subscribe, () => pageMounted);
   const [timedOut, setTimedOut] = useState(false);
@@ -137,11 +142,7 @@ function FlyingPhoto({ flight }: { flight: PhotoFlight }) {
       left: interpolate(p, [0, 1], [flight.from.x, 0]),
       top: interpolate(p, [0, 1], [flight.from.y, 0]),
       width: interpolate(p, [0, 1], [flight.from.width, width]),
-      height: interpolate(
-        p,
-        [0, 1],
-        [flight.from.height, HERO_HEIGHT - SHEET_OVERLAP],
-      ),
+      height: interpolate(p, [0, 1], [flight.from.height, HERO_HEIGHT]),
       borderRadius: interpolate(p, [0, 1], [flight.radius, 0]),
       overflow: "hidden",
       // Gone the instant it lands, even before JS unmounts it.
@@ -149,12 +150,32 @@ function FlyingPhoto({ flight }: { flight: PhotoFlight }) {
     };
   });
 
+  const sheetEdge = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.get(), [0.55, 1], [0, 1], "clamp"),
+  }));
+
   return (
     <Animated.View pointerEvents="none" style={style}>
       <Image
         contentFit="cover"
         source={flight.uri}
         style={{ width: "100%", height: "100%" }}
+      />
+      {/* The top edge of the page's sheet, with its rounded corners. */}
+      <Animated.View
+        style={[
+          {
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: SHEET_OVERLAP,
+            backgroundColor: colors.background,
+            borderTopLeftRadius: SHEET_RADIUS,
+            borderTopRightRadius: SHEET_RADIUS,
+          },
+          sheetEdge,
+        ]}
       />
     </Animated.View>
   );
