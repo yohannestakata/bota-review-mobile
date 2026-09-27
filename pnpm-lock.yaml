@@ -183,6 +183,9 @@ importers:
       '@babel/plugin-transform-react-jsx-development':
         specifier: ^7.29.7
         version: 7.29.7(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1)
+      '@sentry/cli':
+        specifier: 2.58.4
+        version: 2.58.4(supports-color@8.1.1)
       '@types/react':
         specifier: ~19.2.2
         version: 19.2.17
