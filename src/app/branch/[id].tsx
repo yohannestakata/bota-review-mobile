@@ -73,6 +73,7 @@ import { useRecentlyViewed } from "@/lib/use-recently-viewed";
 import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 import { usePhotoFlightTarget } from "@/features/branch/shared-photo";
 import { promptSignIn } from "@/lib/auth-gate";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 function Chip({ label }: { label: string }) {
   return (
@@ -574,7 +575,7 @@ export default function BranchDetailScreen() {
                       (item) => item.id === photo.id,
                     );
                     return (
-                      <Pressable
+                      <PressableScale
                         accessibilityLabel={`Photo ${galleryIndex + 1}, open gallery`}
                         accessibilityRole="imagebutton"
                         key={photo.id}
@@ -590,7 +591,7 @@ export default function BranchDetailScreen() {
                           style={{ width: 220, height: 150, borderRadius: 16 }}
                           transition={150}
                         />
-                      </Pressable>
+                      </PressableScale>
                     );
                   })}
                 </ScrollView>

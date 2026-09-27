@@ -2,7 +2,6 @@ import { Cancel01Icon, Flag02Icon } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
 import {
-  Pressable,
   StatusBar,
   StyleSheet,
   useWindowDimensions,
@@ -32,6 +31,7 @@ import { IconButton } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 
 import { ZoomableImage } from "./zoomable-image";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 export type GalleryPhoto = {
   id: string;
@@ -329,7 +329,7 @@ export function PhotoGallery({
                   keyExtractor={(item) => item.id}
                   ref={stripRef}
                   renderItem={({ item, index }) => (
-                    <Pressable
+                    <PressableScale
                       accessibilityLabel={`Photo ${index + 1} of ${photos.length}`}
                       accessibilityRole="button"
                       accessibilityState={{ selected: index === current }}
@@ -347,7 +347,7 @@ export function PhotoGallery({
                         }}
                         transition={150}
                       />
-                    </Pressable>
+                    </PressableScale>
                   )}
                   showsHorizontalScrollIndicator={false}
                   style={{ width, flexGrow: 0 }}

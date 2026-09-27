@@ -14,6 +14,7 @@ import { useColors } from "@/lib/theme";
 
 import type { BranchReview, ReviewReply } from "../api";
 import { PhotoViewer } from "./photo-viewer";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 const COLLAPSED_LINES = 4;
 const REPLY_PREVIEW_COUNT = 2;
@@ -237,7 +238,7 @@ export function ReviewRow({
             showsHorizontalScrollIndicator={false}
           >
             {photos.map((photo, index) => (
-              <Pressable
+              <PressableScale
                 accessibilityLabel={`Review photo ${index + 1}`}
                 accessibilityRole="imagebutton"
                 key={photo.id}
@@ -247,7 +248,7 @@ export function ReviewRow({
                   style={{ width: 96, height: 96, borderRadius: 12 }}
                   uri={photo.url}
                 />
-              </Pressable>
+              </PressableScale>
             ))}
           </ScrollView>
 
