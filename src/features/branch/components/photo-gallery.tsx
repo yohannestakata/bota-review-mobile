@@ -2,14 +2,19 @@ import { Cancel01Icon, Flag02Icon } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
 import {
-  FlatList,
   Pressable,
   StatusBar,
   StyleSheet,
   useWindowDimensions,
   View,
 } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+// Gesture Handler's FlatList, so the pager cooperates with pinch/pan inside it
+// instead of stealing the fingers (notably on Android).
+import {
+  FlatList,
+  Gesture,
+  GestureDetector,
+} from "react-native-gesture-handler";
 import Animated, {
   Easing,
   Extrapolation,
@@ -115,6 +120,8 @@ export function PhotoGallery({
     .enabled(!zoomed)
     .activeOffsetY([-15, 15])
     .failOffsetX([-15, 15])
+    // A second finger means pinch-to-zoom, never close.
+    .maxPointers(1)
     .onUpdate((e) => {
       dragY.set(e.translationY);
     })
