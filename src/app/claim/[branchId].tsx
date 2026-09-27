@@ -223,7 +223,10 @@ export default function ClaimBusinessScreen() {
       claim.mutate(body, {
         onSuccess: () => {
           analytics.track("claim_submitted", { branch_id: branchId });
-          toast.success("Claim received", "We'll check the details and get you set up.");
+          toast.success(
+            "Claim received",
+            "We'll check the details and get you set up.",
+          );
           router.back();
           resolve();
         },
@@ -262,6 +265,7 @@ export default function ClaimBusinessScreen() {
 
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
+          showsVerticalScrollIndicator={false}
           className="flex-1"
           contentContainerClassName="gap-5 px-6 pt-4"
           keyboardShouldPersistTaps="handled"

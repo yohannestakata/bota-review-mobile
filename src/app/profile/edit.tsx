@@ -127,6 +127,7 @@ export default function EditProfileScreen() {
 
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
+          showsVerticalScrollIndicator={false}
           className="flex-1"
           contentContainerClassName="gap-5 px-6 pt-4"
           keyboardShouldPersistTaps="handled"

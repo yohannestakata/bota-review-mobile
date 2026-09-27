@@ -129,7 +129,11 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <ScrollView className="flex-1" contentContainerClassName="pb-10 pt-4">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        className="flex-1"
+        contentContainerClassName="pb-10 pt-4"
+      >
         {/* Header */}
         <View className="px-6">
           <View className="flex-row items-center gap-4">

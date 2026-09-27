@@ -386,6 +386,7 @@ export default function WriteReviewScreen() {
 
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
+          showsVerticalScrollIndicator={false}
           className="flex-1"
           contentContainerClassName="gap-6 px-6 pt-4"
           keyboardShouldPersistTaps="handled"

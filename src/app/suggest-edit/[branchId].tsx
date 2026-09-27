@@ -286,7 +286,10 @@ export default function SuggestEditScreen() {
             branch_id: branchId,
             submission_type: body.type,
           });
-          toast.success("Good catch!", "We'll check it and tidy up the listing.");
+          toast.success(
+            "Good catch!",
+            "We'll check it and tidy up the listing.",
+          );
           router.back();
           resolve();
         },
@@ -304,6 +307,7 @@ export default function SuggestEditScreen() {
 
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
+          showsVerticalScrollIndicator={false}
           className="flex-1"
           contentContainerClassName="gap-5 px-6 pt-4"
           keyboardShouldPersistTaps="handled"

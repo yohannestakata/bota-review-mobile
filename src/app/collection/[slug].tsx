@@ -45,6 +45,7 @@ export default function CollectionScreen() {
         />
       ) : (
         <FlashList
+          showsVerticalScrollIndicator={false}
           contentContainerClassName="px-6 pb-10 pt-2"
           data={collection.data.branches}
           ItemSeparatorComponent={ListGapLg}

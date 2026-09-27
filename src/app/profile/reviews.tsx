@@ -48,7 +48,10 @@ export default function MyReviewsScreen() {
             },
             {
               onError: () =>
-                toast.error("Couldn't delete", "That didn't go through. Try again in a moment."),
+                toast.error(
+                  "Couldn't delete",
+                  "That didn't go through. Try again in a moment.",
+                ),
             },
           ),
       },
@@ -62,6 +65,7 @@ export default function MyReviewsScreen() {
       <BackHeader title="Your reviews" />
 
       <FlashList
+        showsVerticalScrollIndicator={false}
         contentContainerClassName="px-6 pb-10 pt-2"
         data={items}
         ItemSeparatorComponent={ListGapMd}

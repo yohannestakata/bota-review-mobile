@@ -264,6 +264,7 @@ export default function SubmissionsScreen() {
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
+          showsVerticalScrollIndicator={false}
           className="flex-1"
           contentContainerClassName="gap-4 px-6 pt-2"
           keyboardShouldPersistTaps="handled"

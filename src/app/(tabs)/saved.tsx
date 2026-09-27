@@ -61,6 +61,7 @@ export default function SavedScreen() {
       </View>
 
       <FlashList
+        showsVerticalScrollIndicator={false}
         contentContainerClassName="px-6 pb-10 pt-2"
         data={items}
         ItemSeparatorComponent={ListGapLg}

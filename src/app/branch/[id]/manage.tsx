@@ -292,6 +292,7 @@ export default function ManageListingScreen() {
       <ScreenHeader title="Manage listing" />
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
+          showsVerticalScrollIndicator={false}
           className="flex-1"
           contentContainerClassName="gap-7 px-6 pb-10 pt-2"
           keyboardShouldPersistTaps="handled"

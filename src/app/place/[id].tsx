@@ -64,6 +64,7 @@ export default function PlaceOverviewScreen() {
         />
       ) : (
         <FlashList
+          showsVerticalScrollIndicator={false}
           contentContainerClassName="px-6 pb-10 pt-2"
           data={place.data.branches}
           ItemSeparatorComponent={ListGapLg}

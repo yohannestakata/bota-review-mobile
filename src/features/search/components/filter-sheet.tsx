@@ -86,7 +86,7 @@ export const FilterSheet = forwardRef<FilterSheetRef, FilterSheetProps>(
     },
     ref,
   ) {
-  const colors = useColors();
+    const colors = useColors();
     const sheetRef = useRef<ComponentRef<typeof BottomSheetModal>>(null);
 
     // Present imperatively from the parent's button press (gorhom's recommended
@@ -148,6 +148,7 @@ export const FilterSheet = forwardRef<FilterSheetRef, FilterSheetProps>(
         </View>
 
         <BottomSheetScrollView
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: 24,
             paddingTop: 8,
