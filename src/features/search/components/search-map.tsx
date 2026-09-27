@@ -5,10 +5,13 @@ import {
   type CameraRef,
 } from "@maplibre/maplibre-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
+import { Location04Icon } from "@hugeicons/core-free-icons";
+
 import { FilledStar } from "@/components/ui/filled-star";
+import { AppIcon } from "@/components/ui/huge-icon";
 import { Photo, PhotoFallback } from "@/components/ui/photo";
 import { PressableScale } from "@/components/ui/pressable-scale";
 import { ThemedText } from "@/components/ui/themed-text";
@@ -19,11 +22,51 @@ import type { BranchCard } from "@/lib/api";
 import { haptics } from "@/lib/haptics";
 import { formatMenuPriceRange } from "@/lib/price";
 import { useColors } from "@/lib/theme";
+import { useLocation } from "@/lib/use-location";
 
 // Addis Ababa, for when no result has coordinates yet.
 const ADDIS: [number, number] = [38.7578, 9.0301];
 
 type Located = BranchCard & { lng: number; lat: number };
+type Cluster = { id: string; lng: number; lat: number; members: Located[] };
+
+// Pins closer than this on screen merge into one numbered bubble.
+const CLUSTER_RADIUS_PX = 44;
+
+// Web Mercator: lng/lat → pixel position at a zoom level.
+function project(lng: number, lat: number, zoom: number) {
+  const scale = 256 * 2 ** zoom;
+  const sin = Math.sin((lat * Math.PI) / 180);
+  return {
+    x: ((lng + 180) / 360) * scale,
+    y: (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * scale,
+  };
+}
+
+// Greedy screen-space clustering: each pin joins the first cluster whose
+// centre is within the radius at the current zoom, else starts its own.
+function cluster(pins: Located[], zoom: number): Cluster[] {
+  const out: (Cluster & { x: number; y: number })[] = [];
+  for (const pin of pins) {
+    const { x, y } = project(pin.lng, pin.lat, zoom);
+    const near = out.find(
+      (c) => Math.hypot(c.x - x, c.y - y) < CLUSTER_RADIUS_PX,
+    );
+    if (near) {
+      near.members.push(pin);
+    } else {
+      out.push({
+        id: pin.id,
+        lng: pin.lng,
+        lat: pin.lat,
+        x,
+        y,
+        members: [pin],
+      });
+    }
+  }
+  return out;
+}
 
 function located(branches: BranchCard[]): Located[] {
   return branches.flatMap((b) => {
@@ -57,6 +100,42 @@ export function SearchMap({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const pinPressedAt = useRef(0);
   const selected = pins.find((p) => p.id === selectedId) ?? null;
+  const [zoom, setZoom] = useState(12);
+  const clusters = useMemo(() => cluster(pins, zoom), [pins, zoom]);
+  const location = useLocation();
+  const wantsLocate = useRef(false);
+  const [locating, setLocating] = useState(false);
+
+  function flyToMe() {
+    if (location.coords) {
+      cameraRef.current?.easeTo({
+        center: [location.coords.lng, location.coords.lat],
+        zoom: Math.max(zoom, 14),
+        duration: 500,
+      });
+      return;
+    }
+    // No fix yet: ask (or open Settings), then fly once it arrives.
+    wantsLocate.current = true;
+    setLocating(true);
+    void location.request().then((ok) => {
+      if (!ok) {
+        wantsLocate.current = false;
+        setLocating(false);
+      }
+    });
+  }
+  useEffect(() => {
+    if (wantsLocate.current && location.coords) {
+      wantsLocate.current = false;
+      setLocating(false);
+      cameraRef.current?.easeTo({
+        center: [location.coords.lng, location.coords.lat],
+        zoom: 14,
+        duration: 500,
+      });
+    }
+  }, [location.coords]);
 
   // Frame every pin (leaving room for the card) once the map has loaded, and
   // again whenever the result set changes.
@@ -101,6 +180,11 @@ export function SearchMap({
           logo={false}
           mapStyle={mapStyle}
           onDidFinishLoadingMap={() => setMapReady(true)}
+          // Re-cluster at whole-zoom steps once the camera settles.
+          onRegionDidChange={(e) => {
+            const z = Math.round(e.nativeEvent.zoom * 2) / 2;
+            if (z !== zoom) setZoom(z);
+          }}
           onPress={() => {
             // A pin tap also reaches the map; don't let it undo the selection.
             if (Date.now() - pinPressedAt.current < 400) return;
@@ -112,7 +196,62 @@ export function SearchMap({
             initialViewState={{ center: ADDIS, zoom: 12 }}
             ref={cameraRef}
           />
-          {pins.map((pin) => {
+          {location.coords ? (
+            <ViewAnnotation
+              anchor="center"
+              id="me"
+              lngLat={[location.coords.lng, location.coords.lat]}
+            >
+              <View
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: 8,
+                  borderWidth: 3,
+                  borderColor: "#fff",
+                  backgroundColor: "#2563eb",
+                }}
+              />
+            </ViewAnnotation>
+          ) : null}
+          {clusters.map((group) => {
+            if (group.members.length > 1) {
+              return (
+                <ViewAnnotation
+                  anchor="center"
+                  id={`cluster-${group.id}`}
+                  key={`cluster-${group.id}-${group.members.length}`}
+                  lngLat={[group.lng, group.lat]}
+                  onPress={() => {
+                    pinPressedAt.current = Date.now();
+                    haptics.select();
+                    // Zoom in until this group starts to split apart.
+                    cameraRef.current?.easeTo({
+                      center: [group.lng, group.lat],
+                      zoom: zoom + 2,
+                      duration: 400,
+                    });
+                  }}
+                >
+                  <View
+                    className="items-center justify-center rounded-full"
+                    style={{
+                      minWidth: 34,
+                      height: 34,
+                      paddingHorizontal: 8,
+                      backgroundColor: colors.primary,
+                      borderWidth: 2,
+                      borderColor: colors.surface,
+                    }}
+                  >
+                    <ThemedText size="sm" tone="inverse" weight="bold">
+                      {group.members.length}
+                    </ThemedText>
+                  </View>
+                </ViewAnnotation>
+              );
+            }
+            const pin = group.members[0];
             const isSelected = pin.id === selectedId;
             return (
               <ViewAnnotation
@@ -180,6 +319,32 @@ export function SearchMap({
           </View>
         </View>
       ) : null}
+
+      {/* Center on me — above the preview card when one is showing. */}
+      <PressableScale
+        accessibilityLabel="Show my location"
+        accessibilityRole="button"
+        className="items-center justify-center rounded-full"
+        onPress={flyToMe}
+        style={[
+          {
+            position: "absolute",
+            right: 16,
+            bottom: selected ? 140 : 16,
+            width: 44,
+            height: 44,
+            backgroundColor: colors.surface,
+            borderWidth: 1,
+            borderColor: colors.border,
+          },
+        ]}
+      >
+        {locating ? (
+          <ActivityIndicator color={colors.muted} size="small" />
+        ) : (
+          <AppIcon color={colors.foreground} icon={Location04Icon} size={20} />
+        )}
+      </PressableScale>
 
       {selected ? <SelectedCard branch={selected} onOpen={onOpen} /> : null}
     </View>
