@@ -25,7 +25,7 @@ export function RatingInput({ value, onChange, size = 40 }: RatingInputProps) {
   const select = (x: number) => {
     const next = ratingAt(x);
     if (next === value) return;
-    haptics.select();
+    haptics.star();
     onChange(next);
   };
 

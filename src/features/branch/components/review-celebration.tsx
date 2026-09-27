@@ -126,7 +126,7 @@ export function ReviewCelebration({
         () =>
           index === rating - 1
             ? haptics.success()
-            : haptics.build(index, rating - 1),
+            : haptics.star(),
         FILL_START_MS + index * FILL_STAGGER_MS + FILL_MS * LAND_AT,
       ),
     );

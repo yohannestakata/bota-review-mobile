@@ -33,7 +33,7 @@ export function TapToRate({
   function slideTo(x: number) {
     const next = ratingAt(x);
     if (next === preview) return;
-    haptics.select();
+    haptics.star();
     setPreview(next);
   }
 
@@ -53,7 +53,7 @@ export function TapToRate({
   const tap = Gesture.Tap()
     .runOnJS(true)
     .onEnd((e) => {
-      haptics.select();
+      haptics.star();
       commit(ratingAt(e.x));
     });
 
