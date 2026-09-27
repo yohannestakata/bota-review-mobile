@@ -32,6 +32,20 @@ export function logOAuthRedirectCandidates() {
 
 // Clerk surfaces validation/auth failures as an `errors` array on the thrown
 // object. Pull out the most descriptive message for display.
+/**
+ * Clerk's "a session already exists" error: the person is signed in (e.g. the
+ * app briefly lost track while offline). Treat it as success, not a failure.
+ */
+export function isAlreadySignedInError(error: unknown) {
+  if (typeof error !== "object" || error === null || !("errors" in error)) {
+    return false;
+  }
+  const errors = (error as { errors?: { code?: string }[] }).errors;
+  return (
+    Array.isArray(errors) && errors.some((e) => e?.code === "session_exists")
+  );
+}
+
 export function getAuthMessage(error: unknown) {
   if (
     typeof error === "object" &&

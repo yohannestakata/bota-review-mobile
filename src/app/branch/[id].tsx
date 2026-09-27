@@ -71,6 +71,7 @@ import { useLocation } from "@/lib/use-location";
 import { useRecentlyViewed } from "@/lib/use-recently-viewed";
 import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 import { usePhotoFlightTarget } from "@/features/branch/shared-photo";
+import { promptSignIn } from "@/lib/auth-gate";
 
 function Chip({ label }: { label: string }) {
   return (
@@ -138,7 +139,7 @@ function RatingBreakdown({
 
 export default function BranchDetailScreen() {
   const colors = useColors();
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const { id, source } = useLocalSearchParams<{
     id: string;
     source?: string;
@@ -215,7 +216,7 @@ export default function BranchDetailScreen() {
 
   function requireSignIn(action: () => void) {
     if (!isSignedIn) {
-      router.push("/login");
+      promptSignIn(isLoaded);
       return;
     }
 

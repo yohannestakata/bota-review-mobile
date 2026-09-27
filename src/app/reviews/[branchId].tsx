@@ -20,13 +20,14 @@ import {
 } from "@/features/branch";
 import { useMe } from "@/features/profile";
 import { getErrorMessage } from "@/lib/api";
+import { promptSignIn } from "@/lib/auth-gate";
 
 export default function BranchReviewsScreen() {
   const { branchId, name } = useLocalSearchParams<{
     branchId: string;
     name?: string;
   }>();
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const reviews = useBranchReviews(branchId);
   const data = reviews.data ?? [];
   const reportReview = useReportReview();
@@ -35,7 +36,7 @@ export default function BranchReviewsScreen() {
 
   function onReportReview(reviewId: string) {
     if (!isSignedIn) {
-      router.push("/login");
+      promptSignIn(isLoaded);
       return;
     }
     Alert.alert("Flag this review?", "We'll give it a careful look.", [

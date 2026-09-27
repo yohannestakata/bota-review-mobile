@@ -1,5 +1,4 @@
 import { useAuth } from "@clerk/clerk-expo";
-import { router } from "expo-router";
 import { useCallback } from "react";
 
 import { analytics } from "@/lib/analytics";
@@ -7,6 +6,7 @@ import type { BranchCard as BranchCardData } from "@/lib/api";
 import { promptAndRegisterPush } from "@/lib/push-registration";
 
 import { useSavedBranchIds, useToggleSave } from "./queries";
+import { promptSignIn } from "@/lib/auth-gate";
 
 const EMPTY_SAVED = new Set<string>();
 
@@ -14,7 +14,7 @@ const EMPTY_SAVED = new Set<string>();
 // toggle + analytics. Returns the resolved saved-id set and the underlying
 // query (for refresh state).
 export function useSaveHandler() {
-  const { isSignedIn, getToken } = useAuth();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
   const saved = useSavedBranchIds();
   const toggleSave = useToggleSave();
   const savedIds = saved.data ?? EMPTY_SAVED;
@@ -22,7 +22,7 @@ export function useSaveHandler() {
   const onToggleSave = useCallback(
     (branch: BranchCardData) => {
       if (!isSignedIn) {
-        router.push("/login");
+        promptSignIn(isLoaded);
         return;
       }
       const wasSaved = savedIds.has(branch.id);
@@ -35,7 +35,7 @@ export function useSaveHandler() {
         void promptAndRegisterPush(getToken);
       }
     },
-    [getToken, isSignedIn, savedIds, toggleSave],
+    [getToken, isLoaded, isSignedIn, savedIds, toggleSave],
   );
 
   return { saved, savedIds, onToggleSave };

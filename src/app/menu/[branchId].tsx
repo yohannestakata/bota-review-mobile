@@ -13,13 +13,14 @@ import {
   totalItemCount,
   useBranchMenus,
 } from "@/features/branch";
+import { promptSignIn } from "@/lib/auth-gate";
 
 export default function MenuScreen() {
   const { branchId, name } = useLocalSearchParams<{
     branchId: string;
     name?: string;
   }>();
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const menus = useBranchMenus(branchId);
 
   const data = menus.data ?? [];
@@ -52,7 +53,7 @@ export default function MenuScreen() {
             label: "Add what you know",
             onPress: () => {
               if (!isSignedIn) {
-                router.push("/login");
+                promptSignIn(isLoaded);
                 return;
               }
               router.push({

@@ -21,6 +21,7 @@ import {
 import { useReportReview } from "@/features/branch";
 import { getErrorMessage } from "@/lib/api";
 import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
+import { promptSignIn } from "@/lib/auth-gate";
 
 function memberSince(date: string) {
   return new Date(date).toLocaleDateString(undefined, {
@@ -30,7 +31,7 @@ function memberSince(date: string) {
 }
 
 export default function PublicProfileScreen() {
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const me = useMe();
   const profile = usePublicProfile(id);
@@ -46,7 +47,7 @@ export default function PublicProfileScreen() {
 
   function onReportReview(reviewId: string) {
     if (!isSignedIn) {
-      router.push("/login");
+      promptSignIn(isLoaded);
       return;
     }
 

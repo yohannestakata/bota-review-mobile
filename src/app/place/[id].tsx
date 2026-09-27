@@ -21,12 +21,13 @@ import {
 import { analytics } from "@/lib/analytics";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
+import { promptSignIn } from "@/lib/auth-gate";
 
 const EMPTY_SAVED = new Set<string>();
 
 export default function PlaceOverviewScreen() {
   const colors = useColors();
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const place = usePlace(id);
   const pull = usePullToRefresh(() => place.refetch());
@@ -36,7 +37,7 @@ export default function PlaceOverviewScreen() {
   const onToggleSave = useCallback(
     (branch: BranchCardData) => {
       if (!isSignedIn) {
-        router.push("/login");
+        promptSignIn(isLoaded);
         return;
       }
 
@@ -46,7 +47,7 @@ export default function PlaceOverviewScreen() {
       });
       toggleSave.mutate({ branchId: branch.id, isSaved: wasSaved });
     },
-    [isSignedIn, savedIds, toggleSave],
+    [isLoaded, isSignedIn, savedIds, toggleSave],
   );
 
   return (

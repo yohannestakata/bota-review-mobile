@@ -117,6 +117,13 @@ export function getErrorMessage(error: unknown): string {
   return "Something went wrong on our end. Try again in a moment.";
 }
 
+/** An abort signal that fires after `ms` (AbortSignal.timeout isn't in RN). */
+export function timeoutSignal(ms: number) {
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), ms);
+  return controller.signal;
+}
+
 export async function apiFetch<T>(
   path: string,
   getToken: TokenGetter,
@@ -134,6 +141,9 @@ export async function apiFetch<T>(
   });
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
+    // Don't hang on a dead connection: fail so cached data and retries take
+    // over (uploads send a lot of data, so they get longer).
+    signal: init.signal ?? timeoutSignal(init.body ? 60_000 : 15_000),
     ...init,
     headers: {
       Accept: "application/json",

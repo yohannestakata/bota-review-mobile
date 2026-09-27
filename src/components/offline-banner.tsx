@@ -1,6 +1,5 @@
 import { WifiDisconnected02Icon } from "@hugeicons/core-free-icons";
 import { onlineManager } from "@tanstack/react-query";
-import * as Network from "expo-network";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
@@ -8,25 +7,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
+import { startConnectivityMonitoring } from "@/lib/connectivity";
 import { useColors } from "@/lib/theme";
 
-// Treat "connected but internet unreachable" as offline too. Unknown (undefined)
-// counts as online so we never flash the banner on launch.
-function isOnline(state: Network.NetworkState) {
-  return state.isConnected !== false && state.isInternetReachable !== false;
-}
-
-// Feed the device's real connectivity into TanStack Query: while offline,
-// queries pause instead of failing, and everything refetches on reconnect.
-onlineManager.setEventListener((setOnline) => {
-  const sub = Network.addNetworkStateListener((state) =>
-    setOnline(isOnline(state)),
-  );
-  void Network.getNetworkStateAsync().then((state) =>
-    setOnline(isOnline(state)),
-  );
-  return () => sub.remove();
-});
+startConnectivityMonitoring();
 
 // A slim pill near the bottom while the device is offline, so screens
 // showing cached data explain themselves instead of silently not updating.

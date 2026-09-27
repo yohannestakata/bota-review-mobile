@@ -10,17 +10,18 @@ import {
   type GalleryPhoto,
 } from "@/features/branch/components/photo-gallery";
 import { useColors } from "@/lib/theme";
+import { promptSignIn } from "@/lib/auth-gate";
 
 export default function PhotoGalleryScreen() {
   const colors = useColors();
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const { id, index } = useLocalSearchParams<{ id: string; index?: string }>();
   const branch = useBranch(id);
   const photos = branch.data?.photos ?? [];
 
   function report(photo: GalleryPhoto) {
     if (!isSignedIn) {
-      router.push("/login");
+      promptSignIn(isLoaded);
       return;
     }
     router.push({

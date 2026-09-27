@@ -15,6 +15,7 @@ import { ControlledTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   getAuthMessage,
+  isAlreadySignedInError,
   logOAuthRedirectCandidates,
   oauthRedirectUrl,
 } from "@/lib/auth";
@@ -156,6 +157,10 @@ export default function SignupScreen() {
       debugLog("auth", "Google OAuth failed", {
         message: err instanceof Error ? err.message : "Unknown error",
       });
+      if (isAlreadySignedInError(err)) {
+        router.replace("/");
+        return;
+      }
       accountForm.setError("root", { message: getAuthMessage(err) });
     } finally {
       setGoogleLoading(false);
