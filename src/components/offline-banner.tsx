@@ -61,7 +61,7 @@ export function OfflineBanner() {
           size={16}
         />
         <ThemedText size="sm" tone="inverse" weight="medium">
-          You&apos;re offline — showing saved results
+          You&apos;re offline. Showing saved results.
         </ThemedText>
       </View>
     </Animated.View>

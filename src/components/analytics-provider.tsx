@@ -31,7 +31,7 @@ const posthogClient = POSTHOG_KEY
 if (!POSTHOG_KEY) {
   debugLog(
     "analytics",
-    "EXPO_PUBLIC_POSTHOG_API_KEY missing — PostHog disabled",
+    "EXPO_PUBLIC_POSTHOG_API_KEY missing; PostHog disabled",
   );
 }
 

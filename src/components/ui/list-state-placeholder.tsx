@@ -62,7 +62,7 @@ export function StaleDataBanner({
       className={`flex-row items-center justify-between gap-3 rounded-2xl bg-surface-muted px-4 py-3 ${className}`}
     >
       <ThemedText className="flex-1" size="sm" tone="muted">
-        Showing saved results — couldn&apos;t refresh.
+        Showing saved results. Couldn&apos;t refresh.
       </ThemedText>
       <TextButton label="Retry" onPress={onRetry} />
     </View>

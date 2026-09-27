@@ -107,7 +107,7 @@ export async function getExpoPushToken(): Promise<string | null> {
 
   const projectId = resolveProjectId();
   if (!projectId) {
-    debugLog("notifications", "no EAS projectId — cannot issue push token");
+    debugLog("notifications", "no EAS projectId; cannot issue push token");
     return null;
   }
 

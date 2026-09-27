@@ -83,7 +83,7 @@ export default function SignupScreen() {
         router.replace("/");
       } else {
         verifyForm.setError("root", {
-          message: "That code didn't match — give it another go.",
+          message: "That code didn't match. Give it another go.",
         });
       }
     } catch (err) {

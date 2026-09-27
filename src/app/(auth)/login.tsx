@@ -116,7 +116,7 @@ export default function LoginScreen() {
 
   return (
     <AuthScreen
-      body="Pick up right where you left off — your saved spots and reviews are waiting."
+      body="Pick up right where you left off. Your saved spots and reviews are waiting."
       footer={
         <ThemedText className="text-center" tone="muted">
           New here?{" "}

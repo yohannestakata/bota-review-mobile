@@ -92,7 +92,7 @@ export function LocationPinField({
       )}
 
       <ThemedText size="xs" tone="muted">
-        Only if you're here now — it helps us place it on the map.
+        Only if you're here now. It helps us place it on the map.
       </ThemedText>
       {error ? (
         <ThemedText size="sm" tone="danger">
