@@ -1,6 +1,9 @@
-import type { StyleSpecification } from "@maplibre/maplibre-react-native";
+import {
+  TransformRequestManager,
+  type StyleSpecification,
+} from "@maplibre/maplibre-react-native";
 import { useQuery } from "@tanstack/react-query";
-import { useColorScheme } from "react-native";
+import { LogBox, useColorScheme } from "react-native";
 
 // Gebeta only publishes a light style, so dark mode derives one from it at
 // runtime: fetch the style JSON once, then remap every paint color.
@@ -10,6 +13,30 @@ export const GEBETA_API_KEY = process.env.EXPO_PUBLIC_GEBETA_API_KEY ?? "";
 // Gebeta's public style; its tile/glyph/sprite sources all live on this host.
 export const GEBETA_STYLE_URL =
   "https://tiles.gebeta.app/styles/standard/style.json?device=mobile";
+
+// Shared setup for every map (place page, search), registered once when this
+// module loads — any map component imports it for the style.
+//
+// Gebeta's tile server authenticates via an `Authorization: Bearer` header and
+// rejects any `?apiKey=` query param, so attach the header to every request to
+// the Gebeta host.
+if (GEBETA_API_KEY) {
+  TransformRequestManager.addHeader({
+    name: "Authorization",
+    value: `Bearer ${GEBETA_API_KEY}`,
+    match: "tiles\\.gebeta\\.app",
+  });
+}
+
+// Gebeta answers HTTP 500 (instead of an empty 204) whenever MapLibre asks for
+// a zoom outside a layer's declared range (e.g. `buildings` below z15, the
+// other layers above z14). The map still renders correctly; MapLibre just logs
+// each miss as an error, which floods dev with red boxes. Silence only those
+// lines — dev-only, a no-op in release builds.
+LogBox.ignoreLogs([
+  /tiles\.gebeta\.app/,
+  /Failed to load tile .* HTTP status code 500/,
+]);
 
 type Hsla = { h: number; s: number; l: number; a: number };
 type Role = "fill" | "line" | "text" | "halo";

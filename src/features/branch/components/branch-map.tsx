@@ -1,10 +1,9 @@
 import {
   Camera,
   Map as MapLibreMap,
-  TransformRequestManager,
   ViewAnnotation,
 } from "@maplibre/maplibre-react-native";
-import { LogBox, View } from "react-native";
+import { View } from "react-native";
 
 import { ThemedText } from "@/components/ui/themed-text";
 import Svg, { Circle, Path } from "react-native-svg";
@@ -25,24 +24,6 @@ function MapPin() {
       <Circle cx="12" cy="12" r="4.5" fill={colors.inverse} />
     </Svg>
   );
-}
-
-// Gebeta's tile server authenticates via an `Authorization: Bearer` header and
-// rejects any `?apiKey=` query param, so we drive MapLibre directly and attach
-// the header to every request to the Gebeta host. Registered once at import.
-// Gebeta's tile server answers HTTP 500 (instead of an empty 204) whenever
-// MapLibre asks for a zoom outside a layer's declared range (e.g. `buildings`
-// below z15, the other layers above z14). The map still renders correctly;
-// MapLibre just logs each miss as an error, which floods dev with a red
-// banner. Silence only log lines about that host — dev-only, no-op in release.
-LogBox.ignoreLogs([/tiles\.gebeta\.app/]);
-
-if (GEBETA_API_KEY) {
-  TransformRequestManager.addHeader({
-    name: "Authorization",
-    value: `Bearer ${GEBETA_API_KEY}`,
-    match: "tiles\\.gebeta\\.app",
-  });
 }
 
 type BranchMapProps = {
