@@ -62,7 +62,7 @@ export default function SearchScreen() {
   const [sort, setSort] = useState<Exclude<SearchSort, "distance">>("rating");
   const [openNow, setOpenNow] = useState(false);
   const [view, setView] = useState<"list" | "map">("list");
-  // Set by the map's "Search this area"; cleared when leaving the map.
+  // The visible map area, set as the map moves; cleared when leaving the map.
   const [area, setArea] = useState<
     [number, number, number, number] | undefined
   >(undefined);
@@ -403,6 +403,7 @@ export default function SearchScreen() {
             router.push(`/branch/${branch.id}?source=search`);
           }}
           areaActive={Boolean(area)}
+          loading={search.isFetching && !search.isFetchingNextPage}
           onSearchArea={setArea}
           results={results}
         />

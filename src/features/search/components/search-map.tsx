@@ -84,20 +84,23 @@ function located(branches: BranchCard[]): Located[] {
 /**
  * Search results as pins on a map. Tapping a pin highlights it and shows a
  * compact card for that place at the bottom; tapping the card opens it.
- * The camera frames all pins whenever the results change — except for an
- * area search, where the map stays put. After you pan or zoom, a "Search this
- * area" pill offers to load places inside the visible map.
+ * The camera frames all pins when the map opens. After that, moving the map
+ * (by hand, "center on me", or tapping a cluster) reloads the places inside
+ * the visible area once the map settles; the map itself stays put.
  */
 export function SearchMap({
   results,
   onOpen,
   onSearchArea,
   areaActive = false,
+  loading = false,
 }: {
   results: BranchCard[];
   onOpen: (branch: BranchCard) => void;
   onSearchArea?: (bbox: [number, number, number, number]) => void;
   areaActive?: boolean;
+  /** Results are refreshing (shows a small indicator; pins stay put). */
+  loading?: boolean;
 }) {
   const colors = useColors();
   const mapStyle = useMapStyle();
@@ -111,11 +114,19 @@ export function SearchMap({
   const location = useLocation();
   const wantsLocate = useRef(false);
   const [locating, setLocating] = useState(false);
-  // Latest visible area, and whether the user has moved since the last search.
-  const viewBounds = useRef<[number, number, number, number] | null>(null);
-  const [moved, setMoved] = useState(false);
+  // Moves the app starts on purpose (center on me, cluster tap) should load
+  // their area too; the initial fit-to-results must not.
+  const loadNextMove = useRef(false);
+  const areaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (areaTimer.current) clearTimeout(areaTimer.current);
+    },
+    [],
+  );
 
   function flyToMe() {
+    loadNextMove.current = true;
     if (location.coords) {
       cameraRef.current?.easeTo({
         center: [location.coords.lng, location.coords.lat],
@@ -193,9 +204,15 @@ export function SearchMap({
           onRegionDidChange={(e) => {
             const z = Math.round(e.nativeEvent.zoom * 2) / 2;
             if (z !== zoom) setZoom(z);
-            viewBounds.current = e.nativeEvent.bounds;
-            // Only a finger-driven move offers a new area search.
-            if (e.nativeEvent.userInteraction && onSearchArea) setMoved(true);
+            // Load what's in view shortly after a deliberate move settles
+            // (a quick follow-up pan restarts the wait).
+            const deliberate =
+              e.nativeEvent.userInteraction || loadNextMove.current;
+            if (!deliberate || !onSearchArea) return;
+            loadNextMove.current = false;
+            const bounds = e.nativeEvent.bounds;
+            if (areaTimer.current) clearTimeout(areaTimer.current);
+            areaTimer.current = setTimeout(() => onSearchArea(bounds), 500);
           }}
           onPress={() => {
             // A pin tap also reaches the map; don't let it undo the selection.
@@ -237,6 +254,7 @@ export function SearchMap({
                   onPress={() => {
                     pinPressedAt.current = Date.now();
                     haptics.select();
+                    loadNextMove.current = true;
                     // Zoom in until this group starts to split apart.
                     cameraRef.current?.easeTo({
                       center: [group.lng, group.lat],
@@ -334,10 +352,11 @@ export function SearchMap({
         </View>
       ) : null}
 
-      {moved && onSearchArea ? (
+      {loading ? (
         <Animated.View
           entering={FadeIn.duration(160)}
           exiting={FadeOut.duration(120)}
+          pointerEvents="none"
           style={{
             position: "absolute",
             top: 12,
@@ -346,33 +365,15 @@ export function SearchMap({
             alignItems: "center",
           }}
         >
-          <PressableScale
-            accessibilityRole="button"
-            className="rounded-full px-4 py-2.5"
-            onPress={() => {
-              if (!viewBounds.current) return;
-              haptics.select();
-              setSelectedId(null);
-              setMoved(false);
-              onSearchArea(viewBounds.current);
-            }}
-            style={{
-              backgroundColor: colors.surface,
-              boxShadow: [
-                {
-                  offsetX: 0,
-                  offsetY: 3,
-                  blurRadius: 12,
-                  spreadDistance: 0,
-                  color: "rgba(0,0,0,0.16)",
-                },
-              ],
-            }}
+          <View
+            className="flex-row items-center gap-2 rounded-full px-3.5 py-2"
+            style={{ backgroundColor: colors.surface }}
           >
-            <ThemedText size="sm" tone="brand" weight="semibold">
-              Search this area
+            <ActivityIndicator color={colors.muted} size="small" />
+            <ThemedText size="sm" tone="muted" weight="medium">
+              Finding places
             </ThemedText>
-          </PressableScale>
+          </View>
         </Animated.View>
       ) : null}
 
