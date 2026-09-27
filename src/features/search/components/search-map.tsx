@@ -469,14 +469,18 @@ function ResultCarousel({
   );
   // Set while a swipe is choosing the selection, so we don't scroll back.
   const fromSwipe = useRef(false);
+  // Scroll events outpace re-renders; remember what we last picked so one
+  // crossing selects (and buzzes) once.
+  const lastPicked = useRef(selectedId);
 
   useEffect(() => {
+    lastPicked.current = selectedId;
     if (fromSwipe.current) {
       fromSwipe.current = false;
       return;
     }
     listRef.current?.scrollToOffset({ offset: index * snap, animated: true });
-  }, [index, snap]);
+  }, [index, snap, selectedId]);
 
   return (
     <Animated.View
@@ -496,15 +500,20 @@ function ResultCarousel({
         horizontal
         initialScrollIndex={index}
         keyExtractor={(item) => item.id}
-        onMomentumScrollEnd={(e) => {
+        // Select a card as soon as it's more than halfway in — while the
+        // finger is still dragging or the snap is still settling — so the map
+        // starts moving with the swipe instead of after it.
+        onScroll={(e) => {
           const i = Math.round(e.nativeEvent.contentOffset.x / snap);
           const pin = pins[Math.min(Math.max(i, 0), pins.length - 1)];
-          if (pin && pin.id !== selectedId) {
+          if (pin && pin.id !== lastPicked.current) {
+            lastPicked.current = pin.id;
             fromSwipe.current = true;
             haptics.select();
             onSelect(pin);
           }
         }}
+        scrollEventThrottle={16}
         ref={listRef}
         renderItem={({ item }) => (
           <PlaceCard branch={item} onOpen={onOpen} width={cardWidth} />
