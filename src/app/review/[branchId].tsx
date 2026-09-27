@@ -44,6 +44,12 @@ import { promptAndRegisterPush } from "@/lib/push-registration";
 import { usePickImage } from "@/lib/use-pick-image";
 import { useColors } from "@/lib/theme";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
+import {
+  clearReviewDraft,
+  hasDraftContent,
+  loadReviewDraft,
+  saveReviewDraft,
+} from "@/features/branch/review-draft";
 
 const MIN_CHARS = 20;
 const MAX_CHARS = 2000;
@@ -116,7 +122,7 @@ export default function WriteReviewScreen() {
     rating?: string;
     text?: string;
   }>();
-  const { getToken } = useAuth();
+  const { getToken, userId } = useAuth();
   const pickImage = usePickImage();
   const isEdit = Boolean(reviewId);
   const createReview = useCreateReview(branchId);
@@ -145,7 +151,9 @@ export default function WriteReviewScreen() {
       },
     });
 
-  const trimmedLength = useWatch({ control, name: "text" }).trim().length;
+  const rating = useWatch({ control, name: "rating" });
+  const text = useWatch({ control, name: "text" });
+  const trimmedLength = text.trim().length;
   const visitDate = useWatch({ control, name: "visitDate" });
   const busy = createReview.isPending || updateReview.isPending || uploading;
   const textError = formState.errors.text?.message;
@@ -173,9 +181,91 @@ export default function WriteReviewScreen() {
     }
   }, [branchId]);
 
-  const attemptClose = useDiscardConfirm(
-    !posted && (formState.isDirty || photos.length > 0),
+  // Drafts: a new review autosaves on the device as it's written, so closing
+  // the screen (or the app) never loses it. Edits have the server copy.
+  const draftUser = !isEdit ? userId : null;
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const submittedRef = useRef(false);
+  const hasContent = hasDraftContent({ rating, text, visitDate, photos });
+
+  useEffect(() => {
+    if (!draftUser) return;
+    let cancelled = false;
+    void loadReviewDraft(draftUser, branchId).then((saved) => {
+      if (cancelled) return;
+      if (saved) {
+        reset(
+          {
+            // A star picked on the way in (quick-rate) beats the draft's.
+            rating: ratingParam ? Number(ratingParam) : saved.draft.rating,
+            text: saved.draft.text,
+            visitDate: saved.draft.visitDate,
+          },
+          { keepDefaultValues: true },
+        );
+        setPhotos(saved.photos);
+        setDraftRestored(true);
+      }
+      setDraftLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [draftUser, branchId, ratingParam, reset]);
+
+  const draft = { rating, text, visitDate, photos };
+  const latestDraft = useRef(draft);
+  useEffect(() => {
+    latestDraft.current = draft;
+    submittedRef.current = submitted;
+  });
+
+  // Save shortly after each change (and once more on the way out, below).
+  useEffect(() => {
+    if (!draftUser || !draftLoaded || submitted) return;
+    const timer = setTimeout(() => {
+      saveReviewDraft(draftUser, branchId, { rating, text, visitDate, photos });
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [
+    draftUser,
+    draftLoaded,
+    submitted,
+    branchId,
+    rating,
+    text,
+    visitDate,
+    photos,
+  ]);
+
+  useEffect(
+    () => () => {
+      if (draftUser && !submittedRef.current) {
+        saveReviewDraft(draftUser, branchId, latestDraft.current);
+      }
+    },
+    [draftUser, branchId],
   );
+
+  function startOver() {
+    reset({ rating: 0, text: "", visitDate: undefined });
+    setPhotos([]);
+    setDraftRestored(false);
+    if (draftUser) clearReviewDraft(draftUser, branchId);
+  }
+
+  // Edits confirm before discarding; new reviews just keep their draft.
+  const confirmClose = useDiscardConfirm(
+    isEdit && !posted && (formState.isDirty || photos.length > 0),
+  );
+  function attemptClose() {
+    if (draftUser && !posted && hasContent) {
+      toast.success("Draft saved", "It'll be here when you come back.");
+    }
+    confirmClose();
+  }
 
   async function pickPhotos() {
     const result = await pickImage({
@@ -226,6 +316,9 @@ export default function WriteReviewScreen() {
         text: values.text,
         ...(values.visitDate ? { visitDate: values.visitDate } : {}),
       });
+      // Posted — the draft has done its job.
+      setSubmitted(true);
+      if (draftUser) clearReviewDraft(draftUser, branchId);
       analytics.track("review_submitted", {
         branch_id: branchId,
         rating: values.rating,
@@ -400,6 +493,15 @@ export default function WriteReviewScreen() {
                 label="Try again"
                 onPress={() => void existingReview.refetch()}
               />
+            </View>
+          ) : null}
+
+          {draftRestored ? (
+            <View className="flex-row items-center justify-between gap-3 rounded-2xl bg-personalized px-4 py-3">
+              <ThemedText className="shrink" size="sm" weight="medium">
+                Picked up where you left off
+              </ThemedText>
+              <TextButton label="Start over" onPress={startOver} />
             </View>
           ) : null}
 
