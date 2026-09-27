@@ -112,9 +112,36 @@ export function MilestoneBadges({
     return () => clearTimeout(timer);
   }, [tip]);
 
+  // Every badge's on-screen spot while a tooltip is open, so a tap on
+  // another badge (which lands on the overlay) switches to its tooltip.
+  const badgeRefs = useRef(new Map<string, View>());
+  const badgeRects = useRef(new Map<string, Rect>());
+
   function showTip(milestone: Milestone, rect: Rect) {
     haptics.select();
     setTip({ milestone, rect });
+    badgeRects.current.clear();
+    badgeRefs.current.forEach((view, id) =>
+      view.measureInWindow((x, y, width, height) =>
+        badgeRects.current.set(id, { x, y, width, height }),
+      ),
+    );
+  }
+
+  function onOverlayPress(x: number, y: number) {
+    for (const [id, r] of badgeRects.current) {
+      const hit =
+        x >= r.x && x <= r.x + r.width && y >= r.y && y <= r.y + r.height;
+      if (!hit) continue;
+      const milestone = ordered.find((m) => m.id === id);
+      // Tapping the open badge again closes it; another badge switches.
+      if (milestone && milestone.id !== tip?.milestone.id) {
+        showTip(milestone, r);
+        return;
+      }
+      break;
+    }
+    setTip(null);
   }
 
   const tipWidth = Math.min(TIP_MAX_WIDTH, screenWidth - EDGE * 2);
@@ -139,6 +166,10 @@ export function MilestoneBadges({
             key={milestone.id}
             milestone={milestone}
             onPress={(rect) => showTip(milestone, rect)}
+            registerRef={(view) => {
+              if (view) badgeRefs.current.set(milestone.id, view);
+              else badgeRefs.current.delete(milestone.id);
+            }}
           />
         ))}
       </ScrollView>
@@ -151,10 +182,13 @@ export function MilestoneBadges({
         transparent
         visible={tip !== null}
       >
-        {/* Any tap outside the bubble (including on the badge) closes it. */}
+        {/* A tap outside the bubble closes it, or switches to the badge
+            that was tapped. */}
         <Pressable
           accessibilityLabel="Close"
-          onPress={() => setTip(null)}
+          onPress={(e) =>
+            onOverlayPress(e.nativeEvent.pageX, e.nativeEvent.pageY)
+          }
           style={StyleSheet.absoluteFill}
         />
         {tip ? (
@@ -208,13 +242,15 @@ function Badge({
   milestone,
   isNew,
   onPress,
+  registerRef,
 }: {
   milestone: Milestone;
   isNew: boolean;
   onPress: (rect: Rect) => void;
+  registerRef: (view: View | null) => void;
 }) {
   const { earned, progress } = milestone;
-  const ref = useRef<View>(null);
+  const ref = useRef<View | null>(null);
 
   return (
     <Pressable
@@ -235,7 +271,10 @@ function Badge({
           onPress({ x, y, width, height }),
         )
       }
-      ref={ref}
+      ref={(view) => {
+        ref.current = view;
+        registerRef(view);
+      }}
       style={{ width: BADGE_WIDTH }}
     >
       <MilestoneMedallion milestone={milestone} showNewDot={isNew} />
