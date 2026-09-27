@@ -2,7 +2,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import { zodFormResolver } from "@/lib/zod-resolver";
 import { Calendar03Icon } from "@hugeicons/core-free-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState, type ComponentProps } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -30,6 +30,7 @@ import {
   useUpdateReview,
   type PickedPhoto,
 } from "@/features/branch";
+import { Photo, PhotoFallback } from "@/components/ui/photo";
 import { useSaves } from "@/features/home";
 import {
   getMyMilestones,
@@ -131,6 +132,18 @@ export default function WriteReviewScreen() {
   // Edit mode is populated from the source of truth (GET /reviews/:id), with the
   // route params used only as instant placeholders until the fetch resolves.
   const existingReview = useReview(reviewId);
+  // The place being reviewed, shown under the title so it's never unclear
+  // (usually cached from the place page).
+  const place = useQuery({
+    queryKey: branchKeys.detail(branchId),
+    queryFn: () => getBranch(branchId, getToken),
+    enabled: Boolean(branchId),
+  });
+  const placeCover =
+    place.data?.photos.find((p) => p.isCover)?.url ??
+    place.data?.photos[0]?.url ??
+    null;
+  const placeArea = place.data?.neighborhood?.name ?? place.data?.label ?? null;
 
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -485,6 +498,31 @@ export default function WriteReviewScreen() {
         title={isEdit ? "Edit review" : "Write a review"}
       />
 
+      {place.data ? (
+        <View className="flex-row items-center gap-3 border-b border-border px-6 pb-3">
+          <View className="size-11 overflow-hidden rounded-xl bg-placeholder">
+            {placeCover ? (
+              <Photo
+                style={{ width: "100%", height: "100%" }}
+                uri={placeCover}
+              />
+            ) : (
+              <PhotoFallback iconSize={18} />
+            )}
+          </View>
+          <View className="flex-1">
+            <ThemedText numberOfLines={1} weight="semibold">
+              {place.data.place.name}
+            </ThemedText>
+            {placeArea ? (
+              <ThemedText numberOfLines={1} size="sm" tone="muted">
+                {placeArea}
+              </ThemedText>
+            ) : null}
+          </View>
+        </View>
+      ) : null}
+
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -492,7 +530,10 @@ export default function WriteReviewScreen() {
           contentContainerClassName="gap-6 px-6 pt-4"
           keyboardShouldPersistTaps="handled"
         >
-          {isEdit && existingReview.isError && !ownCopy && !myReviews.isPending ? (
+          {isEdit &&
+          existingReview.isError &&
+          !ownCopy &&
+          !myReviews.isPending ? (
             <View className="gap-2 rounded-2xl bg-danger-soft p-4">
               <ThemedText size="sm" tone="danger" weight="medium">
                 Couldn&apos;t load your saved review.
