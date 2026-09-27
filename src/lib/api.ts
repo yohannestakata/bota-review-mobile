@@ -244,6 +244,9 @@ export type BranchCard = {
   isOpenNow?: boolean;
   /** Weekly hours, sent alongside isOpenNow (e.g. { mon: [["07:00","20:00"]] }). */
   hours?: Record<string, [string, string][]> | null;
+  /** Sent by search/browse for the map view (numeric strings). */
+  latitude?: string | null;
+  longitude?: string | null;
   verificationStatus?: "unverified" | "editor_verified" | "business_verified";
 };
 

@@ -1,6 +1,8 @@
 import {
   Cancel01Icon,
   FilterHorizontalIcon,
+  ListViewIcon,
+  MapsIcon,
   Search01Icon,
   SpoonAndForkIcon,
 } from "@hugeicons/core-free-icons";
@@ -31,6 +33,7 @@ import {
   type FilterSheetRef,
   SearchResultsSkeleton,
   SearchSuggestions,
+  SearchMap,
   useSearch,
   type SearchSort,
 } from "@/features/search";
@@ -58,6 +61,7 @@ export default function SearchScreen() {
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [sort, setSort] = useState<Exclude<SearchSort, "distance">>("rating");
   const [openNow, setOpenNow] = useState(false);
+  const [view, setView] = useState<"list" | "map">("list");
   const [nearby, setNearby] = useState(false);
   const filterSheetRef = useRef<FilterSheetRef>(null);
 
@@ -325,6 +329,25 @@ export default function SearchScreen() {
             }}
             selected={openNow}
           />
+
+          {/* List / Map toggle, pushed to the end of the row. */}
+          <Pressable
+            accessibilityLabel={view === "map" ? "Show list" : "Show map"}
+            accessibilityRole="button"
+            className="size-10 items-center justify-center rounded-full border border-placeholder bg-surface"
+            style={{ marginLeft: "auto" }}
+            hitSlop={4}
+            onPress={() => {
+              haptics.select();
+              setView((v) => (v === "map" ? "list" : "map"));
+            }}
+          >
+            <AppIcon
+              color={colors.foreground}
+              icon={view === "map" ? ListViewIcon : MapsIcon}
+              size={18}
+            />
+          </Pressable>
         </View>
 
         {activeChips.length > 0 ? (
@@ -353,143 +376,153 @@ export default function SearchScreen() {
         ) : null}
       </View>
 
-      <FlashList
-        contentContainerClassName="px-6 pb-10 pt-2"
-        showsVerticalScrollIndicator={false}
-        data={results}
-        ItemSeparatorComponent={ListGapLg}
-        keyboardShouldPersistTaps="handled"
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={
-          nearbyPending ? (
-            <View className="mt-24 items-center px-6">
-              <ThemedText className="text-center" tone="muted">
-                Finding places near you…
-              </ThemedText>
-            </View>
-          ) : search.isPending ? (
-            <SearchResultsSkeleton belowSuggestions={!active} />
-          ) : search.isError ? (
-            <ListErrorState
-              errorText="Couldn't load places. Check your connection and try again."
-              onRetry={() => search.refetch()}
-            />
-          ) : !active ? (
-            <EmptyState
-              action={{
-                label: "Suggest a place",
-                onPress: () => router.navigate("/submissions"),
-              }}
-              body="Know a great spot? Add it and we'll get it listed."
-              icon={SpoonAndForkIcon}
-              title="No places yet"
-            />
-          ) : (
-            <EmptyState
-              action={
-                hasFilters
-                  ? { label: "Clear filters", onPress: clearFilters }
-                  : undefined
-              }
-              body={
-                debouncedQ.length >= 2
-                  ? "Check the spelling, or if it's not on Bota yet, add it and help everyone find it."
-                  : "Try loosening a filter or two."
-              }
-              icon={Search01Icon}
-              secondaryAction={
-                debouncedQ.length >= 2
-                  ? {
-                      label: `Add "${debouncedQ}" to Bota`,
-                      onPress: () =>
-                        router.navigate({
-                          pathname: "/submissions",
-                          params: { placeName: debouncedQ },
-                        }),
-                    }
-                  : undefined
-              }
-              title={
-                debouncedQ.length >= 2
-                  ? `No matches for "${debouncedQ}"`
-                  : "No places match these filters"
-              }
-            />
-          )
-        }
-        ListHeaderComponent={
-          !active || results.length > 0 ? (
-            <View className="mb-5 gap-3">
-              {!active ? (
-                <SearchSuggestions
-                  cuisines={(cuisines.data ?? []).slice(0, 8)}
-                  onClearRecent={recentSearches.clear}
-                  onPickCuisine={(id) => {
-                    analytics.track("filter_applied", {
-                      filter_type: "cuisine",
-                      filter_value: id,
-                    });
-                    setCuisineIds([id]);
-                  }}
-                  onPickRecent={setText}
-                  recent={recentSearches.items}
-                />
-              ) : null}
-              {results.length > 0 &&
-              search.failureCount > 0 &&
-              !search.isFetching &&
-              !search.isFetchNextPageError ? (
-                <StaleDataBanner onRetry={() => search.refetch()} />
-              ) : null}
-              {results.length > 0 ? (
-                <ThemedText size="xl" weight="bold">
-                  {active ? "Results" : "Explore places"}
+      {view === "map" ? (
+        <SearchMap
+          onOpen={(branch) => {
+            rememberSearch(debouncedQ);
+            router.push(`/branch/${branch.id}?source=search`);
+          }}
+          results={results}
+        />
+      ) : (
+        <FlashList
+          contentContainerClassName="px-6 pb-10 pt-2"
+          showsVerticalScrollIndicator={false}
+          data={results}
+          ItemSeparatorComponent={ListGapLg}
+          keyboardShouldPersistTaps="handled"
+          keyExtractor={(item) => item.id}
+          ListEmptyComponent={
+            nearbyPending ? (
+              <View className="mt-24 items-center px-6">
+                <ThemedText className="text-center" tone="muted">
+                  Finding places near you…
                 </ThemedText>
-              ) : null}
-            </View>
-          ) : null
-        }
-        ListFooterComponent={
-          search.isFetchingNextPage ? (
-            <View className="items-center py-6">
-              <ActivityIndicator color={colors.foreground} />
-            </View>
-          ) : search.isFetchNextPageError ? (
-            <View className="items-center gap-2 py-6">
-              <ThemedText size="sm" tone="muted">
-                Couldn&apos;t load more places.
-              </ThemedText>
-              <TextButton
-                label="Try again"
-                onPress={() => void search.fetchNextPage()}
+              </View>
+            ) : search.isPending ? (
+              <SearchResultsSkeleton belowSuggestions={!active} />
+            ) : search.isError ? (
+              <ListErrorState
+                errorText="Couldn't load places. Check your connection and try again."
+                onRetry={() => search.refetch()}
               />
-            </View>
-          ) : null
-        }
-        onEndReached={() => {
-          if (
-            search.hasNextPage &&
-            !search.isFetchingNextPage &&
-            !search.isPlaceholderData
-          ) {
-            void search.fetchNextPage();
+            ) : !active ? (
+              <EmptyState
+                action={{
+                  label: "Suggest a place",
+                  onPress: () => router.navigate("/submissions"),
+                }}
+                body="Know a great spot? Add it and we'll get it listed."
+                icon={SpoonAndForkIcon}
+                title="No places yet"
+              />
+            ) : (
+              <EmptyState
+                action={
+                  hasFilters
+                    ? { label: "Clear filters", onPress: clearFilters }
+                    : undefined
+                }
+                body={
+                  debouncedQ.length >= 2
+                    ? "Check the spelling, or if it's not on Bota yet, add it and help everyone find it."
+                    : "Try loosening a filter or two."
+                }
+                icon={Search01Icon}
+                secondaryAction={
+                  debouncedQ.length >= 2
+                    ? {
+                        label: `Add "${debouncedQ}" to Bota`,
+                        onPress: () =>
+                          router.navigate({
+                            pathname: "/submissions",
+                            params: { placeName: debouncedQ },
+                          }),
+                      }
+                    : undefined
+                }
+                title={
+                  debouncedQ.length >= 2
+                    ? `No matches for "${debouncedQ}"`
+                    : "No places match these filters"
+                }
+              />
+            )
           }
-        }}
-        onEndReachedThreshold={0.4}
-        onRefresh={pull.onRefresh}
-        refreshing={pull.refreshing}
-        renderItem={({ item }) => (
-          <BranchCard
-            branch={item}
-            isSaved={savedIds.has(item.id)}
-            onPress={(branch) => {
-              rememberSearch(debouncedQ);
-              router.push(`/branch/${branch.id}?source=search`);
-            }}
-            onToggleSave={onToggleSave}
-          />
-        )}
-      />
+          ListHeaderComponent={
+            !active || results.length > 0 ? (
+              <View className="mb-5 gap-3">
+                {!active ? (
+                  <SearchSuggestions
+                    cuisines={(cuisines.data ?? []).slice(0, 8)}
+                    onClearRecent={recentSearches.clear}
+                    onPickCuisine={(id) => {
+                      analytics.track("filter_applied", {
+                        filter_type: "cuisine",
+                        filter_value: id,
+                      });
+                      setCuisineIds([id]);
+                    }}
+                    onPickRecent={setText}
+                    recent={recentSearches.items}
+                  />
+                ) : null}
+                {results.length > 0 &&
+                search.failureCount > 0 &&
+                !search.isFetching &&
+                !search.isFetchNextPageError ? (
+                  <StaleDataBanner onRetry={() => search.refetch()} />
+                ) : null}
+                {results.length > 0 ? (
+                  <ThemedText size="xl" weight="bold">
+                    {active ? "Results" : "Explore places"}
+                  </ThemedText>
+                ) : null}
+              </View>
+            ) : null
+          }
+          ListFooterComponent={
+            search.isFetchingNextPage ? (
+              <View className="items-center py-6">
+                <ActivityIndicator color={colors.foreground} />
+              </View>
+            ) : search.isFetchNextPageError ? (
+              <View className="items-center gap-2 py-6">
+                <ThemedText size="sm" tone="muted">
+                  Couldn&apos;t load more places.
+                </ThemedText>
+                <TextButton
+                  label="Try again"
+                  onPress={() => void search.fetchNextPage()}
+                />
+              </View>
+            ) : null
+          }
+          onEndReached={() => {
+            if (
+              search.hasNextPage &&
+              !search.isFetchingNextPage &&
+              !search.isPlaceholderData
+            ) {
+              void search.fetchNextPage();
+            }
+          }}
+          onEndReachedThreshold={0.4}
+          onRefresh={pull.onRefresh}
+          refreshing={pull.refreshing}
+          renderItem={({ item }) => (
+            <BranchCard
+              branch={item}
+              isSaved={savedIds.has(item.id)}
+              onPress={(branch) => {
+                rememberSearch(debouncedQ);
+                router.push(`/branch/${branch.id}?source=search`);
+              }}
+              onToggleSave={onToggleSave}
+            />
+          )}
+        />
+      )}
 
       <FilterSheet
         ref={filterSheetRef}
