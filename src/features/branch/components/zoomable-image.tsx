@@ -44,7 +44,8 @@ export function ZoomableImage({
   const tx = useSharedValue(0);
   const ty = useSharedValue(0);
   // Snapshot at gesture start.
-  const start = useSharedValue({ s: 1, x: 0, y: 0, fx: 0, fy: 0 });
+  // s: base scale (current scale = s * gesture scale); k: scale when anchored.
+  const start = useSharedValue({ s: 1, k: 1, x: 0, y: 0, fx: 0, fy: 0, n: 2 });
 
   // Paging away (or the gallery otherwise un-zooming) resets this photo.
   useEffect(() => {
@@ -94,18 +95,41 @@ export function ZoomableImage({
   const pinch = Gesture.Pinch()
     .onStart((e) => {
       const f = fromCenter(e.focalX, e.focalY);
-      start.set({ s: scale.get(), x: tx.get(), y: ty.get(), fx: f.x, fy: f.y });
+      start.set({
+        s: scale.get(),
+        k: scale.get(),
+        x: tx.get(),
+        y: ty.get(),
+        fx: f.x,
+        fy: f.y,
+        n: e.numberOfPointers,
+      });
     })
     .onUpdate((e) => {
-      const st = start.get();
+      let st = start.get();
       const f = fromCenter(e.focalX, e.focalY);
+      // A finger lifted or landed: the focal point jumps to a new spot, so
+      // re-anchor from where things are now instead of lurching.
+      if (e.numberOfPointers !== st.n) {
+        st = {
+          s: scale.get() / e.scale,
+          k: scale.get(),
+          x: tx.get(),
+          y: ty.get(),
+          fx: f.x,
+          fy: f.y,
+          n: e.numberOfPointers,
+        };
+        start.set(st);
+        return;
+      }
       // A little give past the limits while pinching; settle() snaps back.
       const s = Math.min(Math.max(st.s * e.scale, 0.8), MAX_SCALE * 1.2);
       // Keep the content point under the starting focal point under the
-      // (moving) fingers: t' = f' - (f0 - t0) * s' / s0.
+      // (moving) fingers: t' = f' - (f0 - t0) * s' / k (scale when anchored).
       scale.set(s);
-      tx.set(f.x - (st.fx - st.x) * (s / st.s));
-      ty.set(f.y - (st.fy - st.y) * (s / st.s));
+      tx.set(f.x - (st.fx - st.x) * (s / st.k));
+      ty.set(f.y - (st.fy - st.y) * (s / st.k));
     })
     .onEnd(() => {
       settle(scale.get(), tx.get(), ty.get());
@@ -117,7 +141,15 @@ export function ZoomableImage({
     .enabled(isZoomed)
     .maxPointers(1)
     .onStart(() => {
-      start.set({ s: scale.get(), x: tx.get(), y: ty.get(), fx: 0, fy: 0 });
+      start.set({
+        s: scale.get(),
+        x: tx.get(),
+        y: ty.get(),
+        k: scale.get(),
+        fx: 0,
+        fy: 0,
+        n: 1,
+      });
     })
     .onUpdate((e) => {
       const st = start.get();

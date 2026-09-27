@@ -1,12 +1,7 @@
 import { Cancel01Icon, Flag02Icon } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
-import {
-  StatusBar,
-  StyleSheet,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { StatusBar, StyleSheet, useWindowDimensions, View } from "react-native";
 // Gesture Handler's FlatList, so the pager cooperates with pinch/pan inside it
 // instead of stealing the fingers (notably on Android).
 import {
@@ -83,6 +78,7 @@ export function PhotoGallery({
   const [chromeVisible, setChromeVisible] = useState(true);
 
   const dragY = useSharedValue(0);
+  const pinching = useSharedValue(false);
   const chrome = useSharedValue(1);
 
   useEffect(() => {
@@ -131,9 +127,21 @@ export function PhotoGallery({
     // A second finger means pinch-to-zoom, never close.
     .maxPointers(1)
     .onUpdate((e) => {
+      // A second finger arrived: it's a pinch, so let go of the photo.
+      if (e.numberOfPointers > 1) {
+        pinching.set(true);
+        dragY.set(withSpring(0, { duration: 200, dampingRatio: 1 }));
+        return;
+      }
+      if (pinching.get()) return;
       dragY.set(e.translationY);
     })
     .onEnd((e) => {
+      if (pinching.get()) {
+        pinching.set(false);
+        dragY.set(withSpring(0, { duration: 200, dampingRatio: 1 }));
+        return;
+      }
       if (
         Math.abs(e.translationY) > DISMISS_DISTANCE ||
         Math.abs(e.velocityY) > DISMISS_VELOCITY
