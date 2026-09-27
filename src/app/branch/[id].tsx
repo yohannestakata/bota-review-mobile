@@ -350,14 +350,18 @@ export default function BranchDetailScreen() {
 
             {data.addressText ? (
               <View className="flex-row items-start gap-1.5">
-                <View className="mt-0.5">
+                {/* Centered on the first line (md line height), so it stays
+                    aligned when a long address wraps. */}
+                <View className="justify-center" style={{ height: 24 }}>
                   <AppIcon
                     color={colors.muted}
                     icon={Location01Icon}
-                    size={15}
+                    size={16}
                   />
                 </View>
-                <ThemedText tone="muted">{data.addressText}</ThemedText>
+                <ThemedText className="shrink" tone="muted">
+                  {data.addressText}
+                </ThemedText>
               </View>
             ) : null}
             {data.verificationStatus === "business_verified" ? (
