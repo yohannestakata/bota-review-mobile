@@ -337,22 +337,8 @@ export function SearchMap({
         </ThemedText>
       </View>
 
-      {pins.length === 0 ? (
-        <View
-          className="absolute left-0 right-0 top-12 items-center"
-          pointerEvents="none"
-        >
-          <View className="rounded-full bg-surface px-4 py-2">
-            <ThemedText size="sm" tone="muted">
-              {areaActive
-                ? "No places in this area yet"
-                : "No places with a location to show"}
-            </ThemedText>
-          </View>
-        </View>
-      ) : null}
-
-      {loading ? (
+      {/* One status pill: loading takes priority, then "nothing here". */}
+      {loading || pins.length === 0 ? (
         <Animated.View
           entering={FadeIn.duration(160)}
           exiting={FadeOut.duration(120)}
@@ -369,9 +355,15 @@ export function SearchMap({
             className="flex-row items-center gap-2 rounded-full px-3.5 py-2"
             style={{ backgroundColor: colors.surface }}
           >
-            <ActivityIndicator color={colors.muted} size="small" />
+            {loading ? (
+              <ActivityIndicator color={colors.muted} size="small" />
+            ) : null}
             <ThemedText size="sm" tone="muted" weight="medium">
-              Finding places
+              {loading
+                ? "Finding places"
+                : areaActive
+                  ? "No places in this area yet"
+                  : "No places with a location to show"}
             </ThemedText>
           </View>
         </Animated.View>
