@@ -22,6 +22,7 @@ const light = {
   rating: "#004733",
   favorite: "#e11d48",
   success: "#00885f",
+  warning: "#b45309",
   danger: "#dc2626",
   // Floating pills (toast, offline) — dark in both schemes, raised in dark.
   pill: "#10251e",
@@ -48,6 +49,7 @@ const dark: Palette = {
   rating: "#3cc08f",
   favorite: "#ff5c7c",
   success: "#3cc08f",
+  warning: "#f0a54a",
   danger: "#f26464",
   pill: "#34423a",
 };

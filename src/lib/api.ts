@@ -242,6 +242,8 @@ export type BranchCard = {
   displayOrder?: number;
   distanceKm?: number | null;
   isOpenNow?: boolean;
+  /** Weekly hours, sent alongside isOpenNow (e.g. { mon: [["07:00","20:00"]] }). */
+  hours?: Record<string, [string, string][]> | null;
   verificationStatus?: "unverified" | "editor_verified" | "business_verified";
 };
 

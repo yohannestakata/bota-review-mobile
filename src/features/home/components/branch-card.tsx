@@ -9,6 +9,7 @@ import { ThemedText } from "@/components/ui/themed-text";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 import { formatMenuPriceRange } from "@/lib/price";
 import { PressableScale } from "@/components/ui/pressable-scale";
+import { openBadge } from "@/features/branch/hours";
 import { usePrefetchBranch } from "@/features/branch/prefetch";
 
 type BranchCardProps = {
@@ -27,6 +28,7 @@ export function BranchCard({
   layout = "wide",
 }: BranchCardProps) {
   const prefetchBranch = usePrefetchBranch();
+  const badge = openBadge(branch);
   const subtitleParts = [branch.label, branch.neighborhood?.name].filter(
     (value): value is string => Boolean(value),
   );
@@ -73,14 +75,10 @@ export function BranchCard({
           <PhotoFallback iconSize={44} />
         )}
 
-        {branch.isOpenNow !== undefined ? (
+        {badge ? (
           <View className="absolute left-3 top-3 rounded-full bg-surface px-3 py-1">
-            <ThemedText
-              size="xs"
-              tone={branch.isOpenNow ? "success" : "danger"}
-              weight="medium"
-            >
-              {branch.isOpenNow ? "Open" : "Closed"}
+            <ThemedText size="xs" tone={badge.tone} weight="medium">
+              {badge.label}
             </ThemedText>
           </View>
         ) : null}

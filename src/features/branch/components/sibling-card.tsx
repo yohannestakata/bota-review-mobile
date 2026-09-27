@@ -7,6 +7,8 @@ import type { BranchCard as BranchCardData } from "@/lib/api";
 import { formatMenuPriceRange } from "@/lib/price";
 import { PressableScale } from "@/components/ui/pressable-scale";
 
+import { openBadge } from "../hours";
+
 type SiblingCardProps = {
   branch: BranchCardData;
   onPress: (branch: BranchCardData) => void;
@@ -16,6 +18,7 @@ type SiblingCardProps = {
 // neighborhood (the place is already obvious here) and without the save heart.
 export function SiblingCard({ branch, onPress }: SiblingCardProps) {
   const title = branch.neighborhood?.name ?? branch.label ?? "Location";
+  const badge = openBadge(branch);
   const price = formatMenuPriceRange(branch.menuPriceRange);
   const hasRating = branch.reviewCount > 0;
   const distance =
@@ -37,14 +40,10 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
           <PhotoFallback iconSize={32} />
         )}
 
-        {branch.isOpenNow !== undefined ? (
+        {badge ? (
           <View className="absolute left-2 top-2 rounded-full bg-surface px-2 py-0.5">
-            <ThemedText
-              size="xs"
-              tone={branch.isOpenNow ? "success" : "danger"}
-              weight="medium"
-            >
-              {branch.isOpenNow ? "Open" : "Closed"}
+            <ThemedText size="xs" tone={badge.tone} weight="medium">
+              {badge.label}
             </ThemedText>
           </View>
         ) : null}

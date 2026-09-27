@@ -1,6 +1,7 @@
 import {
   Add01Icon,
   ArrowRight01Icon,
+  Clock01Icon,
   Location01Icon,
   PencilEdit02Icon,
   SpoonAndForkIcon,
@@ -40,7 +41,7 @@ import {
   BranchHero,
   BranchMap,
   BranchStickyHeader,
-  isOpenNow,
+  openStatus,
   formatBirr,
   lowestPrice,
   OpeningHours,
@@ -275,7 +276,7 @@ export default function BranchDetailScreen() {
     .filter(Boolean)
     .join("  ·  ");
   const chips = [...data.cuisines, ...data.tags];
-  const openNow = isOpenNow(data.hours);
+  const status = openStatus(data.hours);
 
   const menuData = menus.data ?? [];
   const menuItemCount = totalItemCount(menuData);
@@ -338,15 +339,32 @@ export default function BranchDetailScreen() {
               {price ? (
                 <ThemedText tone="muted">{`·  ${price}`}</ThemedText>
               ) : null}
-              {data.hours ? (
+            </View>
+
+            {status ? (
+              <View className="flex-row items-start gap-1.5">
+                <View className="justify-center" style={{ height: 24 }}>
+                  <AppIcon
+                    color={
+                      {
+                        success: colors.success,
+                        warning: colors.warning,
+                        danger: colors.danger,
+                      }[status.tone]
+                    }
+                    icon={Clock01Icon}
+                    size={16}
+                  />
+                </View>
                 <ThemedText
-                  tone={openNow ? "success" : "danger"}
+                  className="shrink"
+                  tone={status.tone}
                   weight="medium"
                 >
-                  {`·  ${openNow ? "Open" : "Closed"}`}
+                  {status.label}
                 </ThemedText>
-              ) : null}
-            </View>
+              </View>
+            ) : null}
 
             {data.addressText ? (
               <View className="flex-row items-start gap-1.5">
