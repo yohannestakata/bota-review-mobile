@@ -21,6 +21,7 @@ import {
 } from "@/lib/auth";
 import { debugLog } from "@/lib/debug";
 import { emailField } from "@/lib/validation";
+import { analytics } from "@/lib/analytics";
 
 const accountSchema = z.object({
   email: emailField,
@@ -81,6 +82,7 @@ export default function SignupScreen() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
+        analytics.track("signed_up", { method: "email" });
         router.replace("/");
       } else {
         verifyForm.setError("root", {
@@ -143,6 +145,13 @@ export default function SignupScreen() {
 
       if (createdSessionId && activate) {
         await activate({ session: createdSessionId });
+        // Google on this screen may be an existing account signing in.
+        analytics.track(
+          result.signUp?.createdUserId ? "signed_up" : "signed_in",
+          {
+            method: "google",
+          },
+        );
         router.replace("/");
       } else if (result.signUp?.status === "missing_requirements") {
         // New user: Google gave us an email but not the username this instance

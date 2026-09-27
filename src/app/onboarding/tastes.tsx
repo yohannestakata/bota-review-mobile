@@ -17,6 +17,7 @@ import {
   useTasteOptionsQuery,
   useTastePreferences,
 } from "@/features/home";
+import { analytics } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 import { haptics } from "@/lib/haptics";
 import { useColors } from "@/lib/theme";
@@ -68,7 +69,11 @@ export default function TasteOnboardingScreen() {
   ).length;
   const isLast = step === STEPS.length - 1;
 
-  function finish() {
+  function finish(skipped: boolean) {
+    analytics.track("taste_onboarding_finished", {
+      picks: tastes.tasteOptionIds.length,
+      skipped,
+    });
     onboarding.markSeen();
     router.back();
   }
@@ -76,7 +81,7 @@ export default function TasteOnboardingScreen() {
   function next() {
     if (isLast) {
       if (tastes.tasteOptionIds.length > 0) haptics.success();
-      finish();
+      finish(false);
       return;
     }
     setStep((s) => s + 1);
@@ -119,7 +124,7 @@ export default function TasteOnboardingScreen() {
             />
           ))}
         </View>
-        <TextButton label="Skip" onPress={finish} tone="muted" />
+        <TextButton label="Skip" onPress={() => finish(true)} tone="muted" />
       </View>
 
       {loading ? (

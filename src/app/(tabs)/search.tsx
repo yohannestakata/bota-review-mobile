@@ -177,6 +177,16 @@ export default function SearchScreen() {
   }, [resultPages]);
   const firstPageCount = search.data?.pages[0]?.length ?? 0;
 
+  // One event per map-area load, once its results are in.
+  const trackedArea = useRef<string | null>(null);
+  useEffect(() => {
+    if (!area || search.isFetching) return;
+    const key = area.join(",");
+    if (trackedArea.current === key) return;
+    trackedArea.current = key;
+    analytics.track("map_area_searched", { result_count: results.length });
+  }, [area, search.isFetching, results.length]);
+
   // search_submitted / search_no_results — fire once per settled query (not per
   // keystroke), only for real text searches of 2+ characters.
   const lastTracked = useRef<string>("");
@@ -358,7 +368,9 @@ export default function SearchScreen() {
             hitSlop={4}
             onPress={() => {
               haptics.select();
-              setView((v) => (v === "map" ? "list" : "map"));
+              const next = view === "map" ? "list" : "map";
+              analytics.track("search_view_changed", { view: next });
+              setView(next);
               setArea(undefined);
             }}
           >
@@ -400,7 +412,7 @@ export default function SearchScreen() {
         <SearchMap
           onOpen={(branch) => {
             rememberSearch(debouncedQ);
-            router.push(`/branch/${branch.id}?source=search`);
+            router.push(`/branch/${branch.id}?source=search_map`);
           }}
           areaActive={Boolean(area)}
           loading={search.isFetching && !search.isFetchingNextPage}

@@ -30,6 +30,14 @@ export type AnalyticsEvents = {
   rate_nudge_dismissed: { branch_id: string };
   edit_suggested: { branch_id: string; submission_type: string };
   claim_submitted: { branch_id: string };
+  // Accounts: "signed_up" only when we know the account is new.
+  signed_in: { method: "email" | "google" };
+  signed_up: { method: "email" | "google" };
+  // First-launch taste picker.
+  taste_onboarding_finished: { picks: number; skipped: boolean };
+  // Search: list vs map, and map-area loads.
+  search_view_changed: { view: "list" | "map" };
+  map_area_searched: { result_count: number };
 };
 
 export type AnalyticsEventName = keyof AnalyticsEvents;

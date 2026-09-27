@@ -11,6 +11,7 @@ import { ControlledTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { getAuthMessage } from "@/lib/auth";
 import { debugLog } from "@/lib/debug";
+import { analytics } from "@/lib/analytics";
 
 const completeProfileSchema = z.object({
   username: z.string().trim().min(3, "At least 3 characters"),
@@ -46,6 +47,8 @@ export default function CompleteProfileScreen() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
+        // Finishing a Google sign-up that needed a username.
+        analytics.track("signed_up", { method: "google" });
         router.replace("/");
       } else {
         setError("root", {

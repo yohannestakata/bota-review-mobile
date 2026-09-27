@@ -224,7 +224,7 @@ export default function Index() {
         {forYou.data && forYou.data.items.length > 0 ? (
           <HomeSection
             onPressBranch={(branch) =>
-              router.push(`/branch/${branch.id}?source=home`)
+              router.push(`/branch/${branch.id}?source=home_for_you`)
             }
             onToggleSave={onToggleSave}
             savedIds={savedIds}
@@ -236,7 +236,7 @@ export default function Index() {
           <HomeSection
             key={section.type}
             onPressBranch={(branch) =>
-              router.push(`/branch/${branch.id}?source=home`)
+              router.push(`/branch/${branch.id}?source=home_${section.type}`)
             }
             onToggleSave={onToggleSave}
             savedIds={savedIds}
@@ -259,7 +259,9 @@ export default function Index() {
                 branch={branch}
                 isSaved={savedIds.has(branch.id)}
                 key={branch.id}
-                onPress={(b) => router.push(`/branch/${b.id}?source=home`)}
+                onPress={(b) =>
+                  router.push(`/branch/${b.id}?source=home_highly_rated`)
+                }
                 onToggleSave={onToggleSave}
               />
             ))}

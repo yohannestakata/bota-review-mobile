@@ -21,6 +21,7 @@ import {
 } from "@/lib/auth";
 import { debugLog } from "@/lib/debug";
 import { emailField } from "@/lib/validation";
+import { analytics } from "@/lib/analytics";
 
 const loginSchema = z.object({
   email: emailField,
@@ -53,6 +54,7 @@ export default function LoginScreen() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
+        analytics.track("signed_in", { method: "email" });
         router.replace("/");
       } else {
         setError("root", {
@@ -99,6 +101,7 @@ export default function LoginScreen() {
 
       if (createdSessionId && activate) {
         await activate({ session: createdSessionId });
+        analytics.track("signed_in", { method: "google" });
         router.replace("/");
       } else if (result.signUp?.status === "missing_requirements") {
         // New user: Google gave us an email but not the username this instance
