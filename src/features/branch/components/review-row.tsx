@@ -158,7 +158,10 @@ export function ReviewRow({
   const [showAllReplies, setShowAllReplies] = useState(false);
   // Older/cached branch-detail responses may predate review photos/replies.
   const photos = review.photos ?? [];
-  const replies = review.replies ?? [];
+  // Read like a conversation: oldest first (the API sends newest first).
+  const replies = [...(review.replies ?? [])].sort(
+    (a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt),
+  );
   // You can't reply to your own review (edit it instead).
   const isOwnReview = Boolean(
     currentUserId && review.user.id === currentUserId,
@@ -172,12 +175,10 @@ export function ReviewRow({
   const ownReply = currentUserId
     ? replies.find((reply) => reply.user.id === currentUserId)
     : undefined;
-  const previewReplies = ownReply
-    ? [ownReply, ...replies.filter((reply) => reply.id !== ownReply.id)].slice(
-        0,
-        REPLY_PREVIEW_COUNT,
-      )
-    : replies.slice(0, REPLY_PREVIEW_COUNT);
+  // The first few replies, plus your own if it's further down, kept in order.
+  const previewReplies = replies.filter(
+    (reply, index) => index < REPLY_PREVIEW_COUNT || reply.id === ownReply?.id,
+  );
   const visibleReplies = showAllReplies ? replies : previewReplies;
   const hiddenCount = replies.length - visibleReplies.length;
 
