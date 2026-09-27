@@ -22,7 +22,7 @@ type BranchCardProps = {
   isSaved: boolean;
   onToggleSave: (branch: BranchCardData) => void;
   onPress?: (branch: BranchCardData) => void;
-  layout?: "portrait" | "wide";
+  layout?: "portrait" | "square" | "wide";
 };
 
 export function BranchCard({
@@ -79,11 +79,9 @@ export function BranchCard({
   // Area · distance on one line, e.g. "Piassa · 1.2 km".
   const locationLine = [subtitle, distance].filter(Boolean).join(" · ");
 
-  const imageClass =
-    layout === "portrait"
-      ? "aspect-[4/5] rounded-2xl"
-      : "aspect-[4/3] rounded-2xl";
-  const textInset = layout === "portrait" ? 4 : 3;
+  const aspectRatio =
+    layout === "portrait" ? 4 / 5 : layout === "square" ? 1 : 4 / 3;
+  const textInset = layout === "wide" ? 3 : 4;
 
   return (
     <PressableScale
@@ -93,9 +91,10 @@ export function BranchCard({
       onPressIn={() => prefetchBranch(branch)}
     >
       <View
-        className={`w-full overflow-hidden bg-placeholder ${imageClass}`}
+        className="w-full overflow-hidden rounded-2xl bg-placeholder"
         collapsable={false}
         ref={photoRef}
+        style={{ aspectRatio }}
       >
         {branch.coverPhotoUrl ? (
           <Photo
@@ -114,8 +113,12 @@ export function BranchCard({
           </View>
         ) : null}
 
+        {/* Bottom-right, so the open/closed pill has the top to itself. */}
         <SaveHeartButton
-          className="absolute right-3 top-3 size-12"
+          className={`absolute bottom-3 right-3 ${
+            layout === "wide" ? "size-12" : "size-10"
+          }`}
+          iconSize={layout === "wide" ? 24 : 20}
           isSaved={isSaved}
           onPress={() => onToggleSave(branch)}
           style={shadows.cardControl}

@@ -45,7 +45,8 @@ export function HomeSection({
             <BranchCard
               branch={branch}
               isSaved={savedIds.has(branch.id)}
-              layout="portrait"
+              // "For you" carries a reason line, so a square photo keeps it compact.
+              layout={section.type === "for_you" ? "square" : "portrait"}
               onPress={onPressBranch}
               onToggleSave={onToggleSave}
             />
