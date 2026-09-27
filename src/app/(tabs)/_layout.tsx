@@ -17,7 +17,8 @@ import { AppIcon } from "@/components/ui/huge-icon";
 import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 import { AppLoadingSkeleton } from "@/components/app-loading-skeleton";
-import { getCurrentUser } from "@/lib/api";
+import { useIsRestoring } from "@tanstack/react-query";
+import { useMe } from "@/features/profile";
 import { debugLog } from "@/lib/debug";
 import { clearPushRegistration } from "@/lib/push-registration";
 
@@ -36,21 +37,24 @@ function TabsLoadingScreen() {
 
 export default function TabLayout() {
   const colors = useColors();
-  const { getToken, isLoaded, isSignedIn, userId } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const { signOut } = useClerk();
   const getTokenRef = useRef(getToken);
-  const [syncState, setSyncState] = useState<SyncState>("pending");
-  const [retryKey, setRetryKey] = useState(0);
   const [loggingOut, setLoggingOut] = useState(false);
+  // The backend user (GET /me, which also creates it on first sign-in). It's
+  // persisted with the rest of the cache, so once this phone has synced a user
+  // the tabs open instantly on later launches and re-sync in the background —
+  // no waiting on the network (or a cold server) just to enter the app.
+  const me = useMe();
+  const isRestoring = useIsRestoring();
 
   useEffect(() => {
     getTokenRef.current = getToken;
   }, [getToken]);
 
   const retry = useCallback(() => {
-    setSyncState("pending");
-    setRetryKey((key) => key + 1);
-  }, []);
+    void me.refetch();
+  }, [me]);
 
   const logout = useCallback(async () => {
     if (loggingOut) return;
@@ -65,55 +69,25 @@ export default function TabLayout() {
   }, [loggingOut, signOut]);
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function syncUser() {
-      if (!isLoaded) {
-        debugLog("tabs", "waiting for Clerk session", {
-          isLoaded,
-          isSignedIn,
-        });
-        setSyncState("pending");
-        return;
-      }
-
-      if (!isSignedIn) {
-        debugLog("tabs", "continuing with anonymous session");
-        setSyncState("ready");
-        return;
-      }
-
-      try {
-        const user = await getCurrentUser(getTokenRef.current);
-        debugLog("tabs", "backend user synced", {
-          role: user.role,
-          status: user.status,
-          trustLevel: user.trustLevel,
-        });
-        if (isMounted) {
-          setSyncState("ready");
-        }
-      } catch (error) {
-        // The Clerk session is valid but the backend rejected the token (or is
-        // unreachable). Surface it instead of failing open — entering the app
-        // here would silently mask a broken Clerk↔backend integration.
-        debugLog("tabs", "backend user sync failed", {
-          message: error instanceof Error ? error.message : "Unknown error",
-        });
-        if (isMounted) {
-          setSyncState("error");
-        }
-      }
+    if (me.isError) {
+      debugLog("tabs", "backend user sync failed", {
+        message: me.error instanceof Error ? me.error.message : "Unknown",
+        hasCachedUser: Boolean(me.data),
+      });
     }
+  }, [me.isError, me.error, me.data]);
 
-    void syncUser();
+  // Signed out: browse anonymously. Signed in: enter once we have the backend
+  // user, fresh or from the last session.
+  const syncState: SyncState = !isSignedIn
+    ? "ready"
+    : me.data
+      ? "ready"
+      : me.isError
+        ? "error"
+        : "pending";
 
-    return () => {
-      isMounted = false;
-    };
-  }, [isLoaded, isSignedIn, retryKey, userId]);
-
-  if (!isLoaded) {
+  if (!isLoaded || isRestoring) {
     return <TabsLoadingScreen />;
   }
 

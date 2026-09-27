@@ -1,7 +1,7 @@
 import "../../global.css";
 import { ClerkProvider } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { useFonts } from "expo-font";
 import * as Notifications from "expo-notifications";
 import { ObserveRoot, useObserve } from "expo-observe";
@@ -23,6 +23,13 @@ import { PhotoSourceHost } from "@/components/photo-source-host";
 import { debugLog } from "@/lib/debug";
 import { routeFromNotification } from "@/lib/notification-routing";
 import { queryClient } from "@/lib/query-client";
+import {
+  ClearCacheOnSignOut,
+  PERSIST_BUSTER,
+  PERSIST_MAX_AGE,
+  queryPersister,
+  shouldPersistQuery,
+} from "@/lib/query-persistence";
 import { useColors } from "@/lib/theme";
 
 void SplashScreen.preventAutoHideAsync();
@@ -110,7 +117,18 @@ function RootLayout() {
           tokenCache={tokenCache}
         >
           <AnalyticsProvider>
-            <QueryClientProvider client={queryClient}>
+            {/* Restores the last session's data from disk on launch, so
+                screens open filled in and refresh in the background. */}
+            <PersistQueryClientProvider
+              client={queryClient}
+              persistOptions={{
+                persister: queryPersister,
+                maxAge: PERSIST_MAX_AGE,
+                buster: PERSIST_BUSTER,
+                dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
+              }}
+            >
+              <ClearCacheOnSignOut />
               <BottomSheetModalProvider>
                 <AlertProvider>
                   <ToastProvider>
@@ -142,7 +160,7 @@ function RootLayout() {
                   </ToastProvider>
                 </AlertProvider>
               </BottomSheetModalProvider>
-            </QueryClientProvider>
+            </PersistQueryClientProvider>
           </AnalyticsProvider>
         </ClerkProvider>
       </KeyboardProvider>
