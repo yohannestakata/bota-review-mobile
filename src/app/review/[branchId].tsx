@@ -35,6 +35,7 @@ import {
   getMyMilestones,
   getMyReviews,
   MilestoneMedallion,
+  useMyReviews,
   useSeenMilestones,
 } from "@/features/profile";
 import { analytics } from "@/lib/analytics";
@@ -161,18 +162,25 @@ export default function WriteReviewScreen() {
   // Hydrate the form exactly once when the canonical review loads (edit mode).
   // The ref guard stops a slow/refetched response from clobbering edits already
   // in progress — otherwise a late fetch would reset() over the user's typing.
+  // GET /reviews/:id only serves published reviews, so a review still
+  // awaiting a check (or sent back) is filled from your own review list.
+  const myReviews = useMyReviews();
+  const ownCopy = isEdit
+    ? myReviews.data?.find((r) => r.id === reviewId)
+    : undefined;
+  const source = existingReview.data ?? ownCopy;
   const hydratedRef = useRef(false);
   useEffect(() => {
-    if (existingReview.data && !hydratedRef.current) {
+    if (source && !hydratedRef.current) {
       hydratedRef.current = true;
-      const r = existingReview.data;
+      const r = source;
       reset({
         rating: r.rating,
         text: r.text,
         visitDate: r.visitDate ? r.visitDate.slice(0, 10) : undefined,
       });
     }
-  }, [existingReview.data, reset]);
+  }, [source, reset]);
 
   // review_started — the screen was actually reached (write or edit).
   useEffect(() => {
@@ -484,7 +492,7 @@ export default function WriteReviewScreen() {
           contentContainerClassName="gap-6 px-6 pt-4"
           keyboardShouldPersistTaps="handled"
         >
-          {isEdit && existingReview.isError && !hydratedRef.current ? (
+          {isEdit && existingReview.isError && !ownCopy && !myReviews.isPending ? (
             <View className="gap-2 rounded-2xl bg-danger-soft p-4">
               <ThemedText size="sm" tone="danger" weight="medium">
                 Couldn&apos;t load your saved review.

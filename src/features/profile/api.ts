@@ -5,6 +5,7 @@ export type MyReview = {
   branchId: string;
   rating: number;
   text: string;
+  visitDate?: string | null;
   moderationStatus: "pending" | "approved" | "rejected" | "archived";
   createdAt: string;
   branch: {

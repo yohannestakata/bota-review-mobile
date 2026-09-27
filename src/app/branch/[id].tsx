@@ -29,7 +29,7 @@ import {
 } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/components/ui/empty-state";
-import { Button } from "@/components/ui/button";
+import { Button, TextButton } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { SectionTitle } from "@/components/ui/section-title";
 import { Stars } from "@/components/ui/stars";
@@ -59,7 +59,7 @@ import {
   useReplyActions,
   useReportReview,
 } from "@/features/branch";
-import { useMe } from "@/features/profile";
+import { useMe, useMyReviews } from "@/features/profile";
 import { useSavedBranchIds, useToggleSave } from "@/features/home";
 import { Alert } from "@/components/ui/alert";
 import { toast } from "@/components/ui/toast";
@@ -151,6 +151,7 @@ export default function BranchDetailScreen() {
   const toggleSave = useToggleSave();
   const ownClaims = useOwnClaims();
   const me = useMe();
+  const myReviews = useMyReviews();
 
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
@@ -277,6 +278,19 @@ export default function BranchDetailScreen() {
     .join("  ·  ");
   const chips = [...data.cuisines, ...data.tags];
   const status = openStatus(data.hours);
+  // Your own review of this place (any state but archived): the sticky button
+  // edits it instead of starting a duplicate, and it's pinned to the top.
+  const myReview = myReviews.data?.find(
+    (r) => r.branchId === data.id && r.moderationStatus !== "archived",
+  );
+  const editMyReview = () =>
+    myReview && router.push(`/review/${data.id}?reviewId=${myReview.id}`);
+  const isMine = (review: { user: { id: string } }) =>
+    Boolean(me.data?.id) && review.user.id === me.data?.id;
+  const orderedReviews = [
+    ...data.recentReviews.filter(isMine),
+    ...data.recentReviews.filter((r) => !isMine(r)),
+  ];
 
   const menuData = menus.data ?? [];
   const menuItemCount = totalItemCount(menuData);
@@ -671,12 +685,35 @@ export default function BranchDetailScreen() {
               </View>
             ) : null}
 
-            {data.recentReviews.length > 0 ? (
+            {myReview && !orderedReviews.some(isMine) ? (
+              // Yours isn't listed yet (awaiting a check, or sent back).
+              <View className="flex-row items-center gap-3 rounded-2xl bg-surface-muted px-4 py-4">
+                <View className="flex-1">
+                  <ThemedText weight="semibold">Your review is in</ThemedText>
+                  <ThemedText className="mt-0.5" size="sm" tone="muted">
+                    {myReview.moderationStatus === "rejected"
+                      ? "It needs a few changes before it can go up."
+                      : "It'll show here after a quick check."}
+                  </ThemedText>
+                </View>
+                <TextButton label="Edit" onPress={editMyReview} />
+              </View>
+            ) : null}
+
+            {orderedReviews.length > 0 ? (
               <View>
-                {data.recentReviews.map((review, index) => (
+                {orderedReviews.map((review, index) => (
                   <View key={review.id}>
                     {index > 0 ? (
                       <View className="my-5 h-px bg-border" />
+                    ) : null}
+                    {isMine(review) ? (
+                      <View className="mb-3 flex-row items-center justify-between">
+                        <ThemedText size="xs" tone="brand" weight="semibold">
+                          YOUR REVIEW
+                        </ThemedText>
+                        <TextButton label="Edit" onPress={editMyReview} />
+                      </View>
                     ) : null}
                     <ReviewRow
                       businessAvatarUrl={data.place.avatarUrl ?? undefined}
@@ -699,7 +736,7 @@ export default function BranchDetailScreen() {
               <ThemedText tone="muted">
                 No reviews yet. They&apos;ll show up here as guests weigh in.
               </ThemedText>
-            ) : (
+            ) : myReview ? null : (
               <View className="items-center rounded-2xl bg-surface-muted px-4 py-5">
                 <ThemedText weight="semibold">
                   Be the first to review
@@ -843,8 +880,12 @@ export default function BranchDetailScreen() {
         style={{ paddingBottom: insets.bottom + 12 }}
       >
         <Button
-          label="Write a review"
-          onPress={() => requireSignIn(() => router.push(`/review/${data.id}`))}
+          label={myReview ? "Edit your review" : "Write a review"}
+          onPress={() =>
+            myReview
+              ? editMyReview()
+              : requireSignIn(() => router.push(`/review/${data.id}`))
+          }
           size="sm"
         />
       </View>
