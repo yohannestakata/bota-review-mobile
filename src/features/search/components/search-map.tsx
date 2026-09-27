@@ -559,7 +559,10 @@ function PlaceCard({
           ],
         }}
       >
-        <View className="size-20 overflow-hidden rounded-xl bg-placeholder">
+        <View
+          className="overflow-hidden rounded-xl bg-placeholder"
+          style={{ width: 84, height: 84 }}
+        >
           {branch.coverPhotoUrl ? (
             <Photo
               style={{ width: "100%", height: "100%" }}
@@ -569,15 +572,12 @@ function PlaceCard({
             <PhotoFallback iconSize={24} />
           )}
         </View>
-        <View className="flex-1 gap-0.5">
+        {/* Three lines with room between them: name; rating and price;
+            open status and area. */}
+        <View className="flex-1 justify-center gap-1.5">
           <ThemedText numberOfLines={1} size="lg" weight="semibold">
             {branch.placeName}
           </ThemedText>
-          {area ? (
-            <ThemedText numberOfLines={1} size="sm" tone="muted">
-              {area}
-            </ThemedText>
-          ) : null}
           <View className="flex-row items-center gap-1">
             {branch.reviewCount > 0 ? (
               <>
@@ -600,9 +600,15 @@ function PlaceCard({
               </ThemedText>
             ) : null}
           </View>
-          {badge ? (
-            <ThemedText size="xs" tone={badge.tone} weight="medium">
-              {badge.label}
+          {badge || area ? (
+            <ThemedText numberOfLines={1} size="sm" tone="muted">
+              {badge ? (
+                <ThemedText size="sm" tone={badge.tone} weight="medium">
+                  {badge.label}
+                </ThemedText>
+              ) : null}
+              {badge && area ? " · " : ""}
+              {area ?? ""}
             </ThemedText>
           ) : null}
         </View>
