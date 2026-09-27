@@ -1,4 +1,5 @@
-import { shadows } from "@/lib/theme";
+import { SparklesIcon } from "@hugeicons/core-free-icons";
+import { shadows, useColors } from "@/lib/theme";
 import { Image } from "expo-image";
 import { useRef } from "react";
 import { View } from "react-native";
@@ -7,6 +8,7 @@ import { useReducedMotion } from "react-native-reanimated";
 import { Photo, PhotoFallback } from "@/components/ui/photo";
 import { FilledStar } from "@/components/ui/filled-star";
 import { SaveHeartButton } from "@/components/ui/save-heart-button";
+import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 import { formatMenuPriceRange } from "@/lib/price";
@@ -30,6 +32,7 @@ export function BranchCard({
   onPress,
   layout = "wide",
 }: BranchCardProps) {
+  const colors = useColors();
   const prefetchBranch = usePrefetchBranch();
   const reduced = useReducedMotion();
   const photoRef = useRef<View>(null);
@@ -175,17 +178,19 @@ export function BranchCard({
             </ThemedText>
           ) : null}
         </View>
-        {/* "For you" says why it picked this place. */}
+        {/* "For you": a quiet note when there's a specific reason. */}
         {branch.reason ? (
-          <ThemedText
-            className="mt-1"
-            numberOfLines={2}
-            size="xs"
-            tone="brand"
-            weight="medium"
-          >
-            {branch.reason}
-          </ThemedText>
+          <View className="mt-1 flex-row items-center gap-1">
+            <AppIcon color={colors.muted} icon={SparklesIcon} size={12} />
+            <ThemedText
+              className="shrink"
+              numberOfLines={1}
+              size="xs"
+              tone="muted"
+            >
+              {branch.reason}
+            </ThemedText>
+          </View>
         ) : null}
       </View>
     </PressableScale>
