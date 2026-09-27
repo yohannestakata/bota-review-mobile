@@ -30,6 +30,7 @@ import {
 } from "react-native-safe-area-context";
 
 import { EmptyState } from "@/components/ui/empty-state";
+import { ExpandableText } from "@/components/ui/expandable-text";
 import { Button, TextButton } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { SectionTitle } from "@/components/ui/section-title";
@@ -425,9 +426,11 @@ export default function BranchDetailScreen() {
 
           {/* Description */}
           {data.place.description ? (
-            <ThemedText className="mt-5 px-6 leading-6" tone="muted">
-              {data.place.description}
-            </ThemedText>
+            <ExpandableText
+              className="mt-5 px-6"
+              key={data.place.description}
+              text={data.place.description}
+            />
           ) : null}
 
           {/* Cuisines + tags */}
