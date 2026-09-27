@@ -18,7 +18,11 @@ import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 import { AppLoadingSkeleton } from "@/components/app-loading-skeleton";
 import { useIsRestoring } from "@tanstack/react-query";
-import { useTasteOnboarding, useTastePreferences } from "@/features/home";
+import {
+  useMigrateGuestTastes,
+  useTasteOnboarding,
+  useTastePreferences,
+} from "@/features/home";
 import { useMe } from "@/features/profile";
 import { debugLog } from "@/lib/debug";
 import { clearPushRegistration } from "@/lib/push-registration";
@@ -50,6 +54,7 @@ export default function TabLayout() {
   const isRestoring = useIsRestoring();
   const tastes = useTastePreferences();
   const onboarding = useTasteOnboarding();
+  const guestTastesSettled = useMigrateGuestTastes();
 
   useEffect(() => {
     getTokenRef.current = getToken;
@@ -80,12 +85,14 @@ export default function TabLayout() {
     }
   }, [me.isError, me.error, me.data]);
 
-  // First launch after signing in, with no tastes picked yet: offer the
-  // three-step taste picker once. Tastes live on the account, so someone who
-  // set them on another phone isn't asked again.
+  // First launch (signed in or not) with no tastes picked yet: offer the
+  // three-step taste picker once. Signed-in tastes live on the account, so
+  // someone who set them on another phone — or picked them as a guest before
+  // signing up — isn't asked again.
   const shouldOnboard =
-    isSignedIn === true &&
-    Boolean(me.data) &&
+    isLoaded &&
+    (isSignedIn ? Boolean(me.data) : true) &&
+    guestTastesSettled &&
     tastes.ready &&
     onboarding.ready &&
     !onboarding.seen &&

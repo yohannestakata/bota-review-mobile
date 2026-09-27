@@ -7,7 +7,7 @@ import Animated, {
   Keyframe,
   useReducedMotion,
 } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, TextButton } from "@/components/ui/button";
 import { PressableScale } from "@/components/ui/pressable-scale";
@@ -59,6 +59,7 @@ export default function TasteOnboardingScreen() {
   const tastes = useTastePreferences();
   const onboarding = useTasteOnboarding();
   const [step, setStep] = useState(0);
+  const insets = useSafeAreaInsets();
 
   const current = STEPS[step];
   const choices = (options.data ?? []).filter((o) => o.group === current.group);
@@ -97,7 +98,12 @@ export default function TasteOnboardingScreen() {
   const loading = options.isPending || !tastes.ready;
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <View
+      className="flex-1 bg-background"
+      // Explicit insets: in a full-screen modal SafeAreaView can measure 0 on
+      // first mount and slide the header under the status bar.
+      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+    >
       <View className="flex-row items-center justify-between px-6 pt-2">
         {/* Progress: one segment per step. */}
         <View className="flex-row gap-1.5">
@@ -192,6 +198,6 @@ export default function TasteOnboardingScreen() {
           />
         ) : null}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

@@ -41,6 +41,19 @@ export function getForYou(getToken: TokenGetter) {
   return apiFetch<HomeBranchSection>("/discovery/for-you", getToken);
 }
 
+// "For you" for someone signed out, from the tastes picked on their device.
+export function getGuestForYou(
+  tasteOptionIds: string[],
+  getToken: TokenGetter,
+) {
+  const query = new URLSearchParams();
+  tasteOptionIds.forEach((id) => query.append("tasteOptionId", id));
+  return apiFetch<HomeBranchSection>(
+    `/discovery/for-you/guest?${query.toString()}`,
+    getToken,
+  );
+}
+
 export function getTastePreferences(getToken: TokenGetter) {
   return apiFetch<TasteOption[]>("/me/taste-preferences", getToken);
 }
@@ -56,7 +69,8 @@ export function replaceTastePreferences(
 }
 
 export function getTasteOptions(getToken: TokenGetter) {
-  return apiFetch<TasteOption[]>("/me/taste-options", getToken);
+  // Public, so guests can pick tastes too.
+  return apiFetch<TasteOption[]>("/discovery/taste-options", getToken);
 }
 
 export type CollectionDetail = {

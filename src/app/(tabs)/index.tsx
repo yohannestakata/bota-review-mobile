@@ -64,7 +64,8 @@ export default function Index() {
   const pull = usePullToRefresh(() =>
     Promise.all([
       home.refetch(),
-      ...(isSignedIn ? [forYou.refetch(), saved.refetch()] : []),
+      forYou.refetch(),
+      ...(isSignedIn ? [saved.refetch()] : []),
     ]),
   );
 
@@ -170,7 +171,6 @@ export default function Index() {
         {/* Fallback for anyone who hasn't been through the taste onboarding. */}
         {home.isSuccess &&
         !isEmpty &&
-        isSignedIn &&
         tasteOnboarding.ready &&
         !tasteOnboarding.seen ? (
           <TastePickerCard

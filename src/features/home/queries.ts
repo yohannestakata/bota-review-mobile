@@ -10,6 +10,7 @@ import { debugLog } from "@/lib/debug";
 import {
   getCollection,
   getForYou,
+  getGuestForYou,
   getHome,
   getPlace,
   getSavedBranchIds,
@@ -18,7 +19,9 @@ import {
   getTasteOptions,
   saveBranch,
   unsaveBranch,
+  type TasteOption,
 } from "./api";
+import { readGuestTastes } from "./guest-tastes";
 
 export const homeKeys = {
   all: ["home"] as const,
@@ -47,29 +50,40 @@ export function useSaves() {
 }
 
 export function useForYou() {
-  const { getToken, isSignedIn, userId } = useAuth();
+  const { getToken, isLoaded, isSignedIn, userId } = useAuth();
+  // Guests: built from the tastes picked on this device.
+  const guestTastes = useTastePreferencesQuery();
+  const guestIds = isSignedIn
+    ? []
+    : (guestTastes.data ?? []).map((option) => option.id);
   return useQuery({
-    queryKey: homeKeys.forYou(userId),
-    queryFn: () => getForYou(getToken),
-    enabled: isSignedIn === true,
+    queryKey: isSignedIn
+      ? homeKeys.forYou(userId)
+      : [...homeKeys.forYou(null), ...guestIds],
+    queryFn: () =>
+      isSignedIn ? getForYou(getToken) : getGuestForYou(guestIds, getToken),
+    enabled: isLoaded && (isSignedIn === true || guestIds.length > 0),
   });
 }
 
+// Signed in: the account's tastes. Signed out: the picks stored on this device.
 export function useTastePreferencesQuery() {
-  const { getToken, isSignedIn, userId } = useAuth();
+  const { getToken, isLoaded, isSignedIn, userId } = useAuth();
   return useQuery({
     queryKey: homeKeys.tastes(userId),
-    queryFn: () => getTastePreferences(getToken),
-    enabled: isSignedIn === true,
+    queryFn: async (): Promise<TasteOption[]> =>
+      isSignedIn
+        ? getTastePreferences(getToken)
+        : (await readGuestTastes()).map((id) => ({ id }) as TasteOption),
+    enabled: isLoaded,
   });
 }
 
 export function useTasteOptionsQuery() {
-  const { getToken, isSignedIn } = useAuth();
+  const { getToken } = useAuth();
   return useQuery({
     queryKey: homeKeys.tasteOptions(),
     queryFn: () => getTasteOptions(getToken),
-    enabled: isSignedIn === true,
     staleTime: 30 * 60 * 1000,
   });
 }

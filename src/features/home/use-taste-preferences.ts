@@ -1,9 +1,12 @@
 import { useAuth } from "@clerk/clerk-expo";
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 
 import { toast } from "@/components/ui/toast";
 
 import { replaceTastePreferences, type TasteOption } from "./api";
+import { readGuestTastes, writeGuestTastes } from "./guest-tastes";
+import { markTasteOnboardingSeen } from "./taste-onboarding";
 import { homeKeys, useTastePreferencesQuery } from "./queries";
 
 // Taps apply to the cache instantly; the save goes out once tapping pauses.
@@ -45,7 +48,7 @@ function scheduleSave(
 }
 
 export function useTastePreferences() {
-  const { userId, getToken } = useAuth();
+  const { userId, getToken, isSignedIn } = useAuth();
   const query = useTastePreferencesQuery();
   const queryClient = useQueryClient();
   const tasteOptionIds = (query.data ?? []).map((option) => option.id);
@@ -59,6 +62,11 @@ export function useTastePreferences() {
       ? current.filter((option) => option.id !== tasteOptionId)
       : [...current, { id: tasteOptionId } as TasteOption];
     queryClient.setQueryData(key, next);
+    if (!isSignedIn) {
+      // Guests: kept on the device; "For you" re-keys on the new picks.
+      writeGuestTastes(next.map((option) => option.id));
+      return;
+    }
     version += 1;
     scheduleSave(queryClient, userId, getToken);
   }
@@ -68,4 +76,62 @@ export function useTastePreferences() {
     toggle,
     ready: query.isSuccess,
   };
+}
+
+/**
+ * On sign-in, move taste picks made while signed out onto the account — unless
+ * the account already has its own tastes, which win. Either way the device
+ * copy is cleared. Returns false until that check has run, so the taste
+ * onboarding doesn't open for someone whose picks are about to arrive.
+ */
+export function useMigrateGuestTastes() {
+  const { isLoaded, isSignedIn, userId, getToken } = useAuth();
+  const queryClient = useQueryClient();
+  const accountTastes = useTastePreferencesQuery();
+  const handledFor = useRef<string | null>(null);
+  const [settledFor, setSettledFor] = useState<string | null>(null);
+
+  const accountEmpty =
+    accountTastes.isSuccess && (accountTastes.data ?? []).length === 0;
+  const accountReady = accountTastes.isSuccess;
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !userId || !accountReady) return;
+    if (handledFor.current === userId) return;
+    handledFor.current = userId;
+
+    void (async () => {
+      const guestIds = await readGuestTastes();
+      if (guestIds.length > 0) {
+        if (accountEmpty) {
+          try {
+            const saved = await replaceTastePreferences(guestIds, getToken);
+            queryClient.setQueryData(homeKeys.tastes(userId), saved);
+            void queryClient.invalidateQueries({
+              queryKey: homeKeys.forYou(userId),
+            });
+          } catch {
+            // Keep the device copy to try again next launch.
+            setSettledFor(userId);
+            handledFor.current = null;
+            return;
+          }
+        }
+        // They've already told us their tastes — don't ask again.
+        markTasteOnboardingSeen(userId);
+        writeGuestTastes([]);
+      }
+      setSettledFor(userId);
+    })();
+  }, [
+    isLoaded,
+    isSignedIn,
+    userId,
+    accountReady,
+    accountEmpty,
+    getToken,
+    queryClient,
+  ]);
+
+  return !isSignedIn || settledFor === userId;
 }
