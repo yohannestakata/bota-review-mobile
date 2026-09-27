@@ -110,8 +110,18 @@ export function BranchCard({
         )}
 
         {badge ? (
-          <View className="absolute left-3 top-3 rounded-full bg-surface px-3 py-1">
-            <ThemedText size="xs" tone={badge.tone} weight="medium">
+          // One line, never wider than the photo (less both margins): a long
+          // label ends in "..." rather than wrapping or touching the edge.
+          <View
+            className="absolute left-3 top-3 rounded-full bg-surface px-3 py-1"
+            style={{ maxWidth: "85%" }}
+          >
+            <ThemedText
+              numberOfLines={1}
+              size="xs"
+              tone={badge.tone}
+              weight="medium"
+            >
               {badge.label}
             </ThemedText>
           </View>

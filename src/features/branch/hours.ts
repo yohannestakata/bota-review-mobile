@@ -162,13 +162,10 @@ export function openBadge(branch: {
 }): { label: string; tone: "success" | "warning" | "danger" } | null {
   const status = openStatus(branch.hours);
   if (status) {
+    // Cards are narrow: shorten the longest wording ("Opens tomorrow 6 AM").
     return {
-      label: status.label,
-      tone: status.closingSoon
-        ? "warning"
-        : status.isOpen
-          ? "success"
-          : "danger",
+      label: status.label.replace(/^Opens tomorrow /, "Opens tmrw "),
+      tone: status.tone,
     };
   }
   if (branch.isOpenNow === undefined) return null;
