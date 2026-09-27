@@ -39,6 +39,7 @@ export function TextField({
   const colors = useColors();
   const input = (
     <TextInput
+      maxFontSizeMultiplier={1.6}
       className={cn(
         suffix
           ? "flex-1 py-0 font-outfit text-md text-foreground"

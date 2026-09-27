@@ -71,6 +71,7 @@ export function PhoneInput({
         <ThemedText tone="muted">{COUNTRY_CODE}</ThemedText>
         <View className="mx-3 h-6 w-px bg-border" />
         <TextInput
+          maxFontSizeMultiplier={1.6}
           className="flex-1 py-0 font-outfit text-md text-foreground"
           keyboardType="phone-pad"
           maxLength={11}

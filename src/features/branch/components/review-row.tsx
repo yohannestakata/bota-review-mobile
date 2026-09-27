@@ -237,7 +237,12 @@ export function ReviewRow({
             showsHorizontalScrollIndicator={false}
           >
             {photos.map((photo, index) => (
-              <Pressable key={photo.id} onPress={() => setViewerIndex(index)}>
+              <Pressable
+                accessibilityLabel={`Review photo ${index + 1}`}
+                accessibilityRole="imagebutton"
+                key={photo.id}
+                onPress={() => setViewerIndex(index)}
+              >
                 <Photo
                   style={{ width: 96, height: 96, borderRadius: 12 }}
                   uri={photo.url}

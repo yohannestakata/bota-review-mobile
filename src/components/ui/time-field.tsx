@@ -6,6 +6,7 @@ import Animated, {
   FadeOut,
   SlideInDown,
   SlideOutDown,
+  useReducedMotion,
 } from "react-native-reanimated";
 
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ export function TimeField({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const reduced = useReducedMotion();
   const [androidShow, setAndroidShow] = useState(false);
   const [iosOpen, setIosOpen] = useState(false); // Modal mounted
   const [iosContent, setIosContent] = useState(false); // sheet/overlay rendered
@@ -90,11 +92,25 @@ export function TimeField({
                 exiting={FadeOut.duration(EXIT_MS)}
                 style={StyleSheet.absoluteFill}
               >
-                <Pressable className="flex-1 bg-black/40" onPress={dismiss} />
+                <Pressable
+                  accessibilityLabel="Dismiss"
+                  accessibilityRole="button"
+                  className="flex-1 bg-black/40"
+                  onPress={dismiss}
+                />
               </Animated.View>
               <Animated.View
-                entering={SlideInDown.duration(EXIT_MS)}
-                exiting={SlideOutDown.duration(EXIT_MS)}
+                // Reduce Motion: the sheet fades instead of sliding.
+                entering={
+                  reduced
+                    ? FadeIn.duration(EXIT_MS)
+                    : SlideInDown.duration(EXIT_MS)
+                }
+                exiting={
+                  reduced
+                    ? FadeOut.duration(EXIT_MS)
+                    : SlideOutDown.duration(EXIT_MS)
+                }
               >
                 <View className="gap-2 rounded-t-3xl bg-surface px-5 pb-8 pt-3">
                   <View className="items-center">

@@ -13,6 +13,7 @@ import { router, type Href, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Linking,
+  PixelRatio,
   Platform,
   Pressable,
   RefreshControl,
@@ -278,6 +279,9 @@ export default function BranchDetailScreen() {
     .join("  ·  ");
   const chips = [...data.cuisines, ...data.tags];
   const status = openStatus(data.hours);
+  // One line of md text (24pt), scaled like the text itself so the icons stay
+  // centred on it at large system text sizes (ThemedText caps at 1.6x).
+  const lineHeight = 24 * Math.min(PixelRatio.getFontScale(), 1.6);
   // Your own review of this place (any state but archived): the sticky button
   // edits it instead of starting a duplicate, and it's pinned to the top.
   const myReview = myReviews.data?.find(
@@ -357,7 +361,7 @@ export default function BranchDetailScreen() {
 
             {status ? (
               <View className="flex-row items-start gap-1.5">
-                <View className="justify-center" style={{ height: 24 }}>
+                <View className="justify-center" style={{ height: lineHeight }}>
                   <AppIcon
                     color={
                       {
@@ -384,7 +388,7 @@ export default function BranchDetailScreen() {
               <View className="flex-row items-start gap-1.5">
                 {/* Centered on the first line (md line height), so it stays
                     aligned when a long address wraps. */}
-                <View className="justify-center" style={{ height: 24 }}>
+                <View className="justify-center" style={{ height: lineHeight }}>
                   <AppIcon
                     color={colors.muted}
                     icon={Location01Icon}
@@ -563,6 +567,8 @@ export default function BranchDetailScreen() {
                     );
                     return (
                       <Pressable
+                        accessibilityLabel={`Photo ${galleryIndex + 1}, open gallery`}
+                        accessibilityRole="imagebutton"
                         key={photo.id}
                         onPress={() =>
                           router.push(

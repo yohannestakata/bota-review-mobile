@@ -69,7 +69,12 @@ export function LocationPinField({
               </ThemedText>
             </View>
           </View>
-          <Pressable hitSlop={8} onPress={() => onChange(null)}>
+          <Pressable
+            accessibilityLabel="Clear pinned location"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={() => onChange(null)}
+          >
             <AppIcon color={colors.muted} icon={Cancel01Icon} size={18} />
           </Pressable>
         </View>

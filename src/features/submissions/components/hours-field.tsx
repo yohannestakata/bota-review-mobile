@@ -90,6 +90,7 @@ export function HoursField({
                     </ThemedText>
                   ) : null}
                   <Switch
+                    accessibilityLabel={`Open on ${day.label}`}
                     onValueChange={(open) => update(day.key, { open })}
                     value={state_.open}
                   />

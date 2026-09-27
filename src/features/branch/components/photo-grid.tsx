@@ -60,6 +60,8 @@ export function PhotoGrid({
                 style={{ width: "100%", height: "100%" }}
               />
               <Pressable
+                accessibilityLabel="Remove photo"
+                accessibilityRole="button"
                 className="absolute right-1 top-1 size-6 items-center justify-center rounded-full bg-black/60"
                 hitSlop={4}
                 onPress={() => onRemove(photo.uri)}
@@ -72,6 +74,8 @@ export function PhotoGrid({
 
       {cell > 0 && (canAdd || adding) ? (
         <Pressable
+          accessibilityLabel="Add photos"
+          accessibilityRole="button"
           className="items-center justify-center rounded-xl border border-dashed border-subtle"
           disabled={adding}
           onPress={onAdd}

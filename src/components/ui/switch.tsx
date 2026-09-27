@@ -21,10 +21,13 @@ export function Switch({
   value,
   onValueChange,
   disabled = false,
+  accessibilityLabel,
 }: {
   value: boolean;
   onValueChange: (value: boolean) => void;
   disabled?: boolean;
+  /** What the switch controls, read by screen readers (e.g. "Open on Monday"). */
+  accessibilityLabel?: string;
 }) {
   const colors = useColors();
   const progress = useDerivedValue(() =>
@@ -45,6 +48,7 @@ export function Switch({
 
   return (
     <Pressable
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="switch"
       accessibilityState={{ checked: value, disabled }}
       disabled={disabled}

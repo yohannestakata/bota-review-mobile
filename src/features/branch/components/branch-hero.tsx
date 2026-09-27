@@ -51,7 +51,13 @@ export function BranchHero({ imageUrl, scrollY, onPress }: BranchHeroProps) {
         animatedStyle,
       ]}
     >
-      <Pressable disabled={!onPress} onPress={onPress} style={{ flex: 1 }}>
+      <Pressable
+        accessibilityLabel="Open photo gallery"
+        accessibilityRole="imagebutton"
+        disabled={!onPress}
+        onPress={onPress}
+        style={{ flex: 1 }}
+      >
         {imageUrl ? (
           <Photo style={{ width: "100%", height: "100%" }} uri={imageUrl} />
         ) : (

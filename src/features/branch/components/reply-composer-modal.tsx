@@ -128,6 +128,7 @@ function ReplyComposerContent({
             </View>
 
             <TextInput
+              maxFontSizeMultiplier={1.6}
               className="min-h-24 rounded-xl border border-placeholder bg-background px-3 py-2 font-outfit text-md text-foreground"
               maxLength={2000}
               multiline

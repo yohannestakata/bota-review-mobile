@@ -69,6 +69,8 @@ export function PublicReviewRow({
           >
             {review.photos.map((photo, index) => (
               <PressableScale
+                accessibilityLabel={`Review photo ${index + 1}`}
+                accessibilityRole="imagebutton"
                 key={photo.id}
                 onPress={() => setViewerIndex(index)}
               >

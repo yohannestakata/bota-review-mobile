@@ -51,11 +51,15 @@ const VARIANTS: Record<
   ghost: { container: "", tone: "brand", color: "primary" },
 };
 
+// Minimum heights (not fixed ones) so a label can wrap with a large system
+// text size instead of being clipped. Same values as h-16/h-14/h-12 here
+// (1rem = 14px in NativeWind), so buttons look unchanged at normal sizes.
 const SIZES: Record<Size, string> = {
-  md: "h-16",
-  sm: "h-14",
-  xs: "h-12 gap-1.5",
+  md: "py-2",
+  sm: "py-2",
+  xs: "gap-1.5 py-1.5",
 };
+const MIN_HEIGHT: Record<Size, number> = { md: 56, sm: 49, xs: 42 };
 
 // Horizontal padding per size, skipped entirely for the ghost variant so it
 // sits flush.
@@ -88,6 +92,7 @@ export function Button({
       className={`flex-row items-center justify-center gap-2 rounded-full ${SIZES[size]} ${variant === "ghost" ? "" : SIZE_PADDING[size]} ${v.container} ${isDisabled ? "opacity-40" : ""} ${className}`}
       disabled={isDisabled}
       onPress={onPress}
+      style={{ minHeight: MIN_HEIGHT[size] }}
     >
       {loading ? (
         <ActivityIndicator color={colors[v.color]} />

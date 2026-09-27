@@ -116,6 +116,8 @@ export function AlertProvider({ children }: { children: ReactNode }) {
       >
         <View className="flex-1 items-center justify-center px-6">
           <Pressable
+            accessibilityLabel="Dismiss"
+            accessibilityRole="button"
             className="absolute inset-0 bg-black/40"
             onPress={onBackdrop}
           />

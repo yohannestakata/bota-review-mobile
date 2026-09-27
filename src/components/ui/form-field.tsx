@@ -105,6 +105,7 @@ export function FormTextArea({
         {label}
       </ThemedText>
       <TextInput
+        maxFontSizeMultiplier={1.6}
         className={cn(
           "mt-2 min-h-24 rounded-xl border bg-surface px-4 py-3 font-outfit text-md text-foreground",
           surface === "muted" && "bg-background",

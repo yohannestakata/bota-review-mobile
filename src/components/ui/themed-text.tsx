@@ -76,6 +76,9 @@ export function ThemedText({
       // box has no room for and is clipped ("Write a" instead of "Write a
       // review") on some phones/font settings. "simple" measures consistently.
       textBreakStrategy="simple"
+      // Honour the system text size, up to a point: past 1.6x, fixed-size
+      // UI (tab bar, pills, cards) starts to break. Callers can override.
+      maxFontSizeMultiplier={1.6}
       className={classes(
         sizeClass[size],
         toneClass[tone],

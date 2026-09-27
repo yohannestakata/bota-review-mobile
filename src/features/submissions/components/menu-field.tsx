@@ -166,6 +166,10 @@ export function MenuField({
           >
             <View className="flex-row items-center gap-2">
               <Pressable
+                accessibilityLabel={
+                  item.imageUrl ? "Change dish photo" : "Add dish photo"
+                }
+                accessibilityRole="button"
                 className="h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-placeholder bg-background"
                 disabled={item.uploading}
                 onPress={() => pickImage(item.id)}
@@ -209,7 +213,12 @@ export function MenuField({
                 value={item.price}
               />
               {!singleItem && items.length > 1 ? (
-                <Pressable hitSlop={6} onPress={() => removeItem(item.id)}>
+                <Pressable
+                  accessibilityLabel="Remove menu item"
+                  accessibilityRole="button"
+                  hitSlop={6}
+                  onPress={() => removeItem(item.id)}
+                >
                   <AppIcon color={colors.muted} icon={Cancel01Icon} size={18} />
                 </Pressable>
               ) : null}

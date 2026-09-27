@@ -402,6 +402,7 @@ export default function ManageListingScreen() {
                           </ThemedText>
                         ) : null}
                         <Switch
+                          accessibilityLabel={`Open on ${label}`}
                           onValueChange={(isOpen) => setDay(day, { isOpen })}
                           value={state.isOpen}
                         />
@@ -513,6 +514,8 @@ export default function ManageListingScreen() {
                     </Pressable>
                   )}
                   <Pressable
+                    accessibilityLabel="Remove photo"
+                    accessibilityRole="button"
                     className="absolute right-1 top-1 size-6 items-center justify-center rounded-full bg-black/60"
                     hitSlop={4}
                     onPress={() => confirmRemovePhoto(photo.id)}
