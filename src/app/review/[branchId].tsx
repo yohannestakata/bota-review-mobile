@@ -30,7 +30,6 @@ import {
   useUpdateReview,
   type PickedPhoto,
 } from "@/features/branch";
-import { Photo, PhotoFallback } from "@/components/ui/photo";
 import { useSaves } from "@/features/home";
 import {
   getMyMilestones,
@@ -139,11 +138,6 @@ export default function WriteReviewScreen() {
     queryFn: () => getBranch(branchId, getToken),
     enabled: Boolean(branchId),
   });
-  const placeCover =
-    place.data?.photos.find((p) => p.isCover)?.url ??
-    place.data?.photos[0]?.url ??
-    null;
-  const placeArea = place.data?.neighborhood?.name ?? place.data?.label ?? null;
 
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -498,31 +492,6 @@ export default function WriteReviewScreen() {
         title={isEdit ? "Edit review" : "Write a review"}
       />
 
-      {place.data ? (
-        <View className="flex-row items-center gap-3 border-b border-border px-6 pb-3">
-          <View className="size-11 overflow-hidden rounded-xl bg-placeholder">
-            {placeCover ? (
-              <Photo
-                style={{ width: "100%", height: "100%" }}
-                uri={placeCover}
-              />
-            ) : (
-              <PhotoFallback iconSize={18} />
-            )}
-          </View>
-          <View className="flex-1">
-            <ThemedText numberOfLines={1} weight="semibold">
-              {place.data.place.name}
-            </ThemedText>
-            {placeArea ? (
-              <ThemedText numberOfLines={1} size="sm" tone="muted">
-                {placeArea}
-              </ThemedText>
-            ) : null}
-          </View>
-        </View>
-      ) : null}
-
       <KeyboardAvoidingView behavior="padding" className="flex-1">
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -555,9 +524,15 @@ export default function WriteReviewScreen() {
           ) : null}
 
           <View className="gap-3">
-            <ThemedText size="xl" weight="bold">
-              How was it?
-            </ThemedText>
+            {/* The place is named in the question, so it's always clear
+                what this review is for. */}
+            <View>
+              <ThemedText size="xl" weight="bold">
+                {place.data
+                  ? `How was ${place.data.place.name}?`
+                  : "How was it?"}
+              </ThemedText>
+            </View>
             <Controller
               control={control}
               name="rating"

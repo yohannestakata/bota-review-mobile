@@ -7,6 +7,7 @@ import { Photo } from "@/components/ui/photo";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { Avatar } from "@/components/ui/avatar";
 import { TextButton } from "@/components/ui/button";
+import { ExpandableText } from "@/components/ui/expandable-text";
 import { Stars } from "@/components/ui/stars";
 import { ThemedText } from "@/components/ui/themed-text";
 import { formatRelativeDate } from "@/lib/format-date";
@@ -21,48 +22,16 @@ const REPLY_PREVIEW_COUNT = 2;
 export const REPLY_AVATAR_SIZE = 28;
 export const REPLY_NAME_SIZE = "md" as const;
 
+// Review text, clamped with "Read more" (same measuring as descriptions).
 export function CollapsibleReviewText({ text }: { text: string }) {
-  const [expanded, setExpanded] = useState(false);
-  const [truncatable, setTruncatable] = useState<boolean | null>(null);
-
   return (
-    <View className="relative gap-1">
-      <ThemedText
-        className="leading-5"
-        numberOfLines={expanded ? undefined : COLLAPSED_LINES}
-        tone="muted"
-      >
-        {text}
-      </ThemedText>
-
-      {truncatable === null ? (
-        <ThemedText
-          accessibilityElementsHidden
-          className="absolute inset-x-0 leading-5 opacity-0"
-          importantForAccessibility="no-hide-descendants"
-          onTextLayout={(event) => {
-            setTruncatable(event.nativeEvent.lines.length > COLLAPSED_LINES);
-          }}
-          pointerEvents="none"
-          tone="muted"
-        >
-          {text}
-        </ThemedText>
-      ) : null}
-
-      {truncatable ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ expanded }}
-          hitSlop={6}
-          onPress={() => setExpanded((value) => !value)}
-        >
-          <ThemedText size="sm" weight="medium">
-            {expanded ? "Read less" : "Read more"}
-          </ThemedText>
-        </Pressable>
-      ) : null}
-    </View>
+    <ExpandableText
+      lessLabel="Read less"
+      lineHeightClass="leading-5"
+      lines={COLLAPSED_LINES}
+      moreLabel="Read more"
+      text={text}
+    />
   );
 }
 
