@@ -146,6 +146,14 @@ function RootLayout() {
                     >
                       {/* Fades in over the page, which stays visible beneath
                           so dragging a photo down to close reveals it. */}
+                      {/* First-launch taste picker: slides up over the tabs. */}
+                      <Stack.Screen
+                        name="onboarding/tastes"
+                        options={{
+                          gestureEnabled: false,
+                          presentation: "fullScreenModal",
+                        }}
+                      />
                       <Stack.Screen
                         name="branch/[id]/photos"
                         options={{

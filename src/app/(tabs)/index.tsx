@@ -22,6 +22,7 @@ import {
   RateRecentVisitCard,
   TastePickerCard,
   useHomeFeed,
+  useTasteOnboarding,
   useForYou,
   useSaveHandler,
   useTastePreferences,
@@ -45,6 +46,7 @@ export default function Index() {
   const home = useHomeFeed(location.coords);
   const forYou = useForYou();
   const taste = useTastePreferences();
+  const tasteOnboarding = useTasteOnboarding();
   const { saved, savedIds, onToggleSave } = useSaveHandler();
 
   useEffect(() => {
@@ -165,7 +167,12 @@ export default function Index() {
           <HomeSearchBar onPress={() => router.push("/search")} />
         </View>
 
-        {home.isSuccess && !isEmpty && isSignedIn ? (
+        {/* Fallback for anyone who hasn't been through the taste onboarding. */}
+        {home.isSuccess &&
+        !isEmpty &&
+        isSignedIn &&
+        tasteOnboarding.ready &&
+        !tasteOnboarding.seen ? (
           <TastePickerCard
             onToggle={taste.toggle}
             picks={taste.tasteOptionIds}
