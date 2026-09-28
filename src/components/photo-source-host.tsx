@@ -10,6 +10,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
 import {
+  Dimensions,
   Linking,
   Modal,
   Pressable,
@@ -71,7 +72,12 @@ export function PhotoSourceHost() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();
-  const { width: screenW, height: screenH } = useWindowDimensions();
+  // The overlay is drawn under the system bars (translucent modal), so the
+  // camera must fill the whole screen. On Android the window height leaves
+  // out the navigation bar, and the live preview would show through there.
+  const window = useWindowDimensions();
+  const screenW = window.width;
+  const screenH = Math.max(window.height, Dimensions.get("screen").height);
   const [permission, requestPermission] = useCameraPermissions();
 
   const [request, setRequest] = useState<Request | null>(null);
@@ -170,6 +176,17 @@ export function PhotoSourceHost() {
     expand.set(withTiming(1, reduced ? { duration: 0 } : EXPAND));
   }
 
+  function retake() {
+    setPhoto(null);
+    setPhase("camera");
+  }
+
+  // Back steps out one level: review → camera → sheet.
+  function goBack() {
+    if (phase === "review") retake();
+    else closeCamera();
+  }
+
   function closeCamera() {
     setPhoto(null);
     setPhase("sheet");
@@ -251,7 +268,7 @@ export function PhotoSourceHost() {
     <Modal
       animationType="none"
       navigationBarTranslucent
-      onRequestClose={() => (inCamera ? closeCamera() : dismiss())}
+      onRequestClose={() => (inCamera ? goBack() : dismiss())}
       statusBarTranslucent
       transparent
       visible={request !== null}
@@ -317,6 +334,8 @@ export function PhotoSourceHost() {
         >
           {cameraLive ? (
             <CameraView
+              // Paused under the taken photo.
+              active={phase !== "review"}
               enableTorch={false}
               facing={facing}
               flash={flash}
@@ -382,9 +401,7 @@ export function PhotoSourceHost() {
               <CircleButton
                 icon={ArrowLeft01Icon}
                 label={phase === "review" ? "Retake" : "Back"}
-                onPress={
-                  phase === "review" ? () => setPhoto(null) : closeCamera
-                }
+                onPress={goBack}
               />
               {phase === "camera" ? (
                 <View className="flex-row gap-3">
@@ -412,10 +429,7 @@ export function PhotoSourceHost() {
                 <View className="w-full flex-row items-center justify-between">
                   <TextButton
                     label="Retake"
-                    onPress={() => {
-                      setPhoto(null);
-                      setPhase("camera");
-                    }}
+                    onPress={retake}
                     size="md"
                     tone="inverse"
                   />
