@@ -100,7 +100,7 @@ export function usePhotoFlightTarget(branchId: string) {
 }
 
 // One element moving across the screen: in-out with a soft landing.
-const FLIGHT = { duration: 420, easing: Easing.bezier(0.32, 0.72, 0, 1) };
+const FLIGHT = { duration: 350, easing: Easing.bezier(0.32, 0.72, 0, 1) };
 
 // The page's sheet has rounded top corners (rounded-t-3xl) and overlaps the
 // hero's bottom. This copy is drawn above the page, so it draws the sheet's
@@ -129,7 +129,7 @@ function FlyingPhoto({ flight }: { flight: PhotoFlight }) {
 
   // Don't wait forever for a slow page.
   useEffect(() => {
-    const t = setTimeout(() => setTimedOut(true), 350);
+    const t = setTimeout(() => setTimedOut(true), 200);
     return () => clearTimeout(t);
   }, []);
 
