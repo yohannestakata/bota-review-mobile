@@ -37,7 +37,7 @@ export function NeighborhoodField({
     <View>
       <FormTextInput
         autoCapitalize="words"
-        label="Neighborhood"
+        label="Neighborhood (optional)"
         onBlur={() => setTimeout(() => setFocused(false), 150)}
         onChangeText={onChangeText}
         onFocus={() => setFocused(true)}

@@ -158,6 +158,7 @@ export default function SubmissionsScreen() {
   const cuisines = useCuisines();
   const tags = useTags();
 
+  const [moreOpen, setMoreOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<
     Record<ExtraSectionKey, boolean>
   >({
@@ -195,61 +196,68 @@ export default function SubmissionsScreen() {
     router.setParams({ placeId: "", placeName: "" });
   }, [placeId, placeName, setValue]);
 
-  const onSubmit = handleSubmit((values) => {
-    const details: PlaceMissingDetails = { placeName: values.placeName };
-    if (values.existingPlaceId)
-      details.existingPlaceId = values.existingPlaceId;
-    if (values.neighborhood) details.neighborhood = values.neighborhood;
-    if (values.description) details.description = values.description;
-    if (values.contactPhone) details.contactPhone = values.contactPhone;
-    if (values.contactEmail) details.contactEmail = values.contactEmail;
-    if (values.type) details.type = values.type;
-    if (values.hours.length) details.hours = values.hours;
-    if (values.menu.length) details.menu = values.menu;
-    if (values.cuisines.length) details.cuisines = values.cuisines;
-    if (values.tags.length) details.tags = values.tags;
-    if (values.coords) {
-      details.latitude = values.coords.lat;
-      details.longitude = values.coords.lng;
-    }
-    if (values.photos.length) details.photos = values.photos;
-    if (values.helpfulDetails.length) details.amenities = values.helpfulDetails;
+  const onSubmit = handleSubmit(
+    (values) => {
+      const details: PlaceMissingDetails = { placeName: values.placeName };
+      if (values.existingPlaceId)
+        details.existingPlaceId = values.existingPlaceId;
+      if (values.neighborhood) details.neighborhood = values.neighborhood;
+      if (values.description) details.description = values.description;
+      if (values.contactPhone) details.contactPhone = values.contactPhone;
+      if (values.contactEmail) details.contactEmail = values.contactEmail;
+      if (values.type) details.type = values.type;
+      if (values.hours.length) details.hours = values.hours;
+      if (values.menu.length) details.menu = values.menu;
+      if (values.cuisines.length) details.cuisines = values.cuisines;
+      if (values.tags.length) details.tags = values.tags;
+      if (values.coords) {
+        details.latitude = values.coords.lat;
+        details.longitude = values.coords.lng;
+      }
+      if (values.photos.length) details.photos = values.photos;
+      if (values.helpfulDetails.length)
+        details.amenities = values.helpfulDetails;
 
-    return new Promise<void>((resolve) => {
-      report.mutate(
-        { details },
-        {
-          onSuccess: () => {
-            reset(DEFAULT_VALUES);
-            setExpandedSections({
-              basics: false,
-              hoursMenu: false,
-              locationContact: false,
-              features: false,
-            });
-            toast.success("Tip received", "We'll scout it out and add it if it checks out.");
-            resolve();
+      return new Promise<void>((resolve) => {
+        report.mutate(
+          { details },
+          {
+            onSuccess: () => {
+              reset(DEFAULT_VALUES);
+              setExpandedSections({
+                basics: false,
+                hoursMenu: false,
+                locationContact: false,
+                features: false,
+              });
+              toast.success(
+                "Tip received",
+                "We'll scout it out and add it if it checks out.",
+              );
+              resolve();
+            },
+            onError: (err) => {
+              setError("root", { message: getErrorMessage(err) });
+              resolve();
+            },
           },
-          onError: (err) => {
-            setError("root", { message: getErrorMessage(err) });
-            resolve();
-          },
-        },
-      );
-    });
-  }, (errors) => {
-    // A blocking error may live in a collapsed section — open it so the user can
-    // see and fix it (otherwise the submit button just looks stuck).
-    if (errors.contactEmail || errors.contactPhone) {
-      setExpandedSections((current) => ({
-        ...current,
-        locationContact: true,
-      }));
-    }
-    setError("root", {
-      message: "Please fix the highlighted fields before sending.",
-    });
-  });
+        );
+      });
+    },
+    (errors) => {
+      // A blocking error may live in a collapsed section — open it so the user can
+      // see and fix it (otherwise the submit button just looks stuck).
+      if (errors.contactEmail || errors.contactPhone) {
+        setExpandedSections((current) => ({
+          ...current,
+          locationContact: true,
+        }));
+      }
+      setError("root", {
+        message: "Please fix the highlighted fields before sending.",
+      });
+    },
+  );
 
   if (!isSignedIn) {
     return (
@@ -274,8 +282,7 @@ export default function SubmissionsScreen() {
               Spotted a gem?
             </ThemedText>
             <ThemedText className="mt-1" tone="muted">
-              Place name is enough. Add the area or details only if you know
-              them.
+              Just the name is enough. Anything else helps.
             </ThemedText>
           </View>
           <Controller
@@ -321,202 +328,206 @@ export default function SubmissionsScreen() {
             )}
           />
 
-          <View className="mt-2 gap-1">
-            <ThemedText weight="semibold">Know a little more?</ThemedText>
-            <ThemedText size="sm" tone="muted">
-              Add details only if they are handy.
-            </ThemedText>
-          </View>
-
           <View>
-            {EXTRA_SECTIONS.map((section) => (
-              <View key={section.key}>
-                <SectionToggle
-                  description={section.description}
-                  expanded={expandedSections[section.key]}
-                  onPress={() =>
-                    setExpandedSections((current) => ({
-                      ...current,
-                      [section.key]: !current[section.key],
-                    }))
-                  }
-                  title={section.title}
-                />
-
-                {section.key === "basics" && expandedSections.basics ? (
-                  <View className="gap-4 pb-4">
-                    <ControlledTextArea
-                      control={control}
-                      inputClassName="min-h-28"
-                      label="What is it like?"
-                      maxLength={500}
-                      name="description"
-                      placeholder="What kind of place is it? What's good there?"
-                      surface="muted"
+            <SectionToggle
+              description="Type, hours, menu, location, features"
+              expanded={moreOpen}
+              onPress={() => setMoreOpen((open) => !open)}
+              title="More details (optional)"
+            />
+            {moreOpen ? (
+              <View style={{ paddingLeft: 14 }}>
+                {EXTRA_SECTIONS.map((section) => (
+                  <View key={section.key}>
+                    <SectionToggle
+                      description={section.description}
+                      expanded={expandedSections[section.key]}
+                      onPress={() =>
+                        setExpandedSections((current) => ({
+                          ...current,
+                          [section.key]: !current[section.key],
+                        }))
+                      }
+                      title={section.title}
                     />
 
-                    <View className="gap-2">
-                      <ThemedText size="sm" weight="medium">
-                        What kind of place?
-                      </ThemedText>
-                      <Controller
-                        control={control}
-                        name="type"
-                        render={({ field }) => (
-                          <View className="flex-row flex-wrap gap-2">
-                            {PLACE_TYPES.map((option) => (
-                              <ChipButton
-                                key={option.value}
-                                label={option.label}
-                                onPress={() =>
-                                  field.onChange(
-                                    field.value === option.value
-                                      ? undefined
-                                      : option.value,
-                                  )
-                                }
-                                selected={field.value === option.value}
-                              />
-                            ))}
+                    {section.key === "basics" && expandedSections.basics ? (
+                      <View className="gap-4 pb-4">
+                        <ControlledTextArea
+                          control={control}
+                          inputClassName="min-h-28"
+                          label="What is it like?"
+                          maxLength={500}
+                          name="description"
+                          placeholder="What kind of place is it? What's good there?"
+                          surface="muted"
+                        />
+
+                        <View className="gap-2">
+                          <ThemedText size="sm" weight="medium">
+                            What kind of place?
+                          </ThemedText>
+                          <Controller
+                            control={control}
+                            name="type"
+                            render={({ field }) => (
+                              <View className="flex-row flex-wrap gap-2">
+                                {PLACE_TYPES.map((option) => (
+                                  <ChipButton
+                                    key={option.value}
+                                    label={option.label}
+                                    onPress={() =>
+                                      field.onChange(
+                                        field.value === option.value
+                                          ? undefined
+                                          : option.value,
+                                      )
+                                    }
+                                    selected={field.value === option.value}
+                                  />
+                                ))}
+                              </View>
+                            )}
+                          />
+                        </View>
+
+                        {cuisines.data && cuisines.data.length > 0 ? (
+                          <View className="gap-2">
+                            <ThemedText size="sm" weight="medium">
+                              Cuisines
+                            </ThemedText>
+                            <Controller
+                              control={control}
+                              name="cuisines"
+                              render={({ field }) => (
+                                <ChipGroup
+                                  onChange={field.onChange}
+                                  options={cuisines.data.map((cuisine) => ({
+                                    value: cuisine.slug,
+                                    label: cuisine.name,
+                                  }))}
+                                  value={field.value}
+                                />
+                              )}
+                            />
                           </View>
-                        )}
-                      />
-                    </View>
+                        ) : null}
+                      </View>
+                    ) : null}
 
-                    {cuisines.data && cuisines.data.length > 0 ? (
-                      <View className="gap-2">
-                        <ThemedText size="sm" weight="medium">
-                          Cuisines
-                        </ThemedText>
+                    {section.key === "hoursMenu" &&
+                    expandedSections.hoursMenu ? (
+                      <View className="gap-4 pb-4">
                         <Controller
                           control={control}
-                          name="cuisines"
+                          name="hours"
                           render={({ field }) => (
-                            <ChipGroup
+                            <HoursField
                               onChange={field.onChange}
-                              options={cuisines.data.map((cuisine) => ({
-                                value: cuisine.slug,
-                                label: cuisine.name,
-                              }))}
-                              value={field.value}
+                              value={field.value ?? []}
                             />
                           )}
                         />
-                      </View>
-                    ) : null}
-                  </View>
-                ) : null}
 
-                {section.key === "hoursMenu" && expandedSections.hoursMenu ? (
-                  <View className="gap-4 pb-4">
-                    <Controller
-                      control={control}
-                      name="hours"
-                      render={({ field }) => (
-                        <HoursField
-                          onChange={field.onChange}
-                          value={field.value ?? []}
-                        />
-                      )}
-                    />
-
-                    <Controller
-                      control={control}
-                      name="menu"
-                      render={({ field }) => (
-                        <MenuField
-                          onChange={field.onChange}
-                          value={field.value ?? []}
-                        />
-                      )}
-                    />
-                  </View>
-                ) : null}
-
-                {section.key === "locationContact" &&
-                expandedSections.locationContact ? (
-                  <View className="gap-4 pb-4">
-                    <Controller
-                      control={control}
-                      name="coords"
-                      render={({ field }) => (
-                        <LocationPinField
-                          onChange={field.onChange}
-                          value={field.value}
-                        />
-                      )}
-                    />
-
-                    <View className="gap-3">
-                      <ControlledPhoneInput
-                        control={control}
-                        label="Contact phone"
-                        name="contactPhone"
-                        surface="muted"
-                      />
-                      <ControlledTextInput
-                        autoCapitalize="none"
-                        autoComplete="email"
-                        control={control}
-                        keyboardType="email-address"
-                        label="Contact email"
-                        name="contactEmail"
-                        placeholder="Their email, if you know it"
-                        surface="muted"
-                      />
-                    </View>
-                  </View>
-                ) : null}
-
-                {section.key === "features" && expandedSections.features ? (
-                  <View className="gap-4 pb-4">
-                    {tags.data && tags.data.length > 0 ? (
-                      <View className="gap-2">
-                        <ThemedText size="sm" weight="medium">
-                          Tags
-                        </ThemedText>
                         <Controller
                           control={control}
-                          name="tags"
+                          name="menu"
                           render={({ field }) => (
-                            <ChipGroup
+                            <MenuField
                               onChange={field.onChange}
-                              options={tags.data.map((tag) => ({
-                                value: tag.slug,
-                                label: tag.name,
-                              }))}
-                              value={field.value}
+                              value={field.value ?? []}
                             />
                           )}
                         />
                       </View>
                     ) : null}
 
-                    {amenities.data && amenities.data.length > 0 ? (
-                      <View className="gap-2">
-                        <ThemedText size="sm" weight="medium">
-                          Amenities
-                        </ThemedText>
+                    {section.key === "locationContact" &&
+                    expandedSections.locationContact ? (
+                      <View className="gap-4 pb-4">
                         <Controller
                           control={control}
-                          name="helpfulDetails"
+                          name="coords"
                           render={({ field }) => (
-                            <ChipGroup
+                            <LocationPinField
                               onChange={field.onChange}
-                              options={amenities.data.map((amenity) => ({
-                                value: amenity.slug,
-                                label: amenity.name,
-                              }))}
                               value={field.value}
                             />
                           )}
                         />
+
+                        <View className="gap-3">
+                          <ControlledPhoneInput
+                            control={control}
+                            label="Contact phone"
+                            name="contactPhone"
+                            surface="muted"
+                          />
+                          <ControlledTextInput
+                            autoCapitalize="none"
+                            autoComplete="email"
+                            control={control}
+                            keyboardType="email-address"
+                            label="Contact email"
+                            name="contactEmail"
+                            placeholder="Their email, if you know it"
+                            surface="muted"
+                          />
+                        </View>
+                      </View>
+                    ) : null}
+
+                    {section.key === "features" && expandedSections.features ? (
+                      <View className="gap-4 pb-4">
+                        {tags.data && tags.data.length > 0 ? (
+                          <View className="gap-2">
+                            <ThemedText size="sm" weight="medium">
+                              Tags
+                            </ThemedText>
+                            <Controller
+                              control={control}
+                              name="tags"
+                              render={({ field }) => (
+                                <ChipGroup
+                                  onChange={field.onChange}
+                                  options={tags.data.map((tag) => ({
+                                    value: tag.slug,
+                                    label: tag.name,
+                                  }))}
+                                  value={field.value}
+                                />
+                              )}
+                            />
+                          </View>
+                        ) : null}
+
+                        {amenities.data && amenities.data.length > 0 ? (
+                          <View className="gap-2">
+                            <ThemedText size="sm" weight="medium">
+                              Amenities
+                            </ThemedText>
+                            <Controller
+                              control={control}
+                              name="helpfulDetails"
+                              render={({ field }) => (
+                                <ChipGroup
+                                  onChange={field.onChange}
+                                  options={amenities.data.map((amenity) => ({
+                                    value: amenity.slug,
+                                    label: amenity.name,
+                                  }))}
+                                  value={field.value}
+                                />
+                              )}
+                            />
+                          </View>
+                        ) : null}
                       </View>
                     ) : null}
                   </View>
-                ) : null}
+                ))}
               </View>
-            ))}
+            ) : null}
           </View>
 
           {formState.errors.root ? (

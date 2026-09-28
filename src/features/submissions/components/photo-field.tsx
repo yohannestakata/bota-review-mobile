@@ -68,9 +68,10 @@ export function PhotoField({
   return (
     <View className="gap-2">
       <ThemedText size="sm" weight="medium">
-        Photos
+        Photos (optional)
       </ThemedText>
       <PhotoGrid
+        cellSize={72}
         adding={busy}
         canAdd={value.length < MAX_PHOTOS && !busy}
         onAdd={add}

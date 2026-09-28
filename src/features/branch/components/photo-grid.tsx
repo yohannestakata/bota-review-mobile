@@ -22,6 +22,8 @@ type PhotoGridProps = {
   adding?: boolean;
   onAdd: () => void;
   onRemove: (uri: string) => void;
+  /** Fixed cell size for a slim row instead of filling three columns. */
+  cellSize?: number;
 };
 
 // A 3-column grid of square cells. Cell size is derived from the measured row
@@ -32,10 +34,12 @@ export function PhotoGrid({
   adding = false,
   onAdd,
   onRemove,
+  cellSize,
 }: PhotoGridProps) {
   const colors = useColors();
   const [rowWidth, setRowWidth] = useState(0);
-  const cell = rowWidth > 0 ? (rowWidth - GAP * (COLUMNS - 1)) / COLUMNS : 0;
+  const cell =
+    cellSize ?? (rowWidth > 0 ? (rowWidth - GAP * (COLUMNS - 1)) / COLUMNS : 0);
 
   function onLayout(event: LayoutChangeEvent) {
     setRowWidth(event.nativeEvent.layout.width);
@@ -84,7 +88,11 @@ export function PhotoGrid({
           {adding ? (
             <ActivityIndicator color={colors.primary} />
           ) : (
-            <AppIcon color={colors.muted} icon={Add01Icon} size={26} />
+            <AppIcon
+              color={colors.muted}
+              icon={Add01Icon}
+              size={cellSize ? 22 : 26}
+            />
           )}
         </Pressable>
       ) : null}

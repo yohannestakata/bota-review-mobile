@@ -216,7 +216,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="submissions"
         options={{
-          title: "Submissions",
+          title: "Add",
           tabBarIcon: ({ color }) => (
             <AppIcon
               color={color as string}
