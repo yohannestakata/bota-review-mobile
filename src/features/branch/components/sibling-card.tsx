@@ -8,15 +8,21 @@ import { formatMenuPriceRange } from "@/lib/price";
 import { PressableScale } from "@/components/ui/pressable-scale";
 
 import { openBadge } from "../hours";
+import { usePrefetchBranch } from "../prefetch";
+import { usePhotoFlight } from "../shared-photo";
 
 type SiblingCardProps = {
   branch: BranchCardData;
   onPress: (branch: BranchCardData) => void;
+  /** For the heart that fades in as the photo flies to the page. */
+  isSaved?: boolean;
 };
 
 // "Other locations" rail card. Same data + styling as BranchCard, but titled by
 // neighborhood (the place is already obvious here) and without the save heart.
-export function SiblingCard({ branch, onPress }: SiblingCardProps) {
+export function SiblingCard({ branch, onPress, isSaved }: SiblingCardProps) {
+  const prefetch = usePrefetchBranch();
+  const { ref: photoRef, open: flyOpen } = usePhotoFlight();
   const title = branch.neighborhood?.name ?? branch.label ?? "Location";
   const badge = openBadge(branch);
   const price = formatMenuPriceRange(branch.menuPriceRange);
@@ -29,8 +35,26 @@ export function SiblingCard({ branch, onPress }: SiblingCardProps) {
       : null;
 
   return (
-    <PressableScale className="w-56" onPress={() => onPress(branch)}>
-      <View className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-placeholder">
+    <PressableScale
+      className="w-56"
+      onPress={() =>
+        flyOpen(
+          {
+            branchId: branch.id,
+            uri: branch.coverPhotoUrl,
+            radius: 14, // rounded-2xl
+            saved: isSaved,
+          },
+          () => onPress(branch),
+        )
+      }
+      onPressIn={() => prefetch(branch)}
+    >
+      <View
+        className="w-full overflow-hidden rounded-2xl bg-placeholder"
+        ref={photoRef}
+        style={{ aspectRatio: 4 / 3 }}
+      >
         {branch.coverPhotoUrl ? (
           <Photo
             style={{ width: "100%", height: "100%" }}

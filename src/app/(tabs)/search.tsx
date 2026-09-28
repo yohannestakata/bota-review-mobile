@@ -66,7 +66,7 @@ export default function SearchScreen() {
   const [area, setArea] = useState<
     [number, number, number, number] | undefined
   >(undefined);
-  const [nearby, setNearby] = useState(false);
+  const [nearbyWanted, setNearby] = useState(false);
   const filterSheetRef = useRef<FilterSheetRef>(null);
 
   const debouncedQ = useDebouncedValue(text.trim(), 300);
@@ -94,23 +94,24 @@ export default function SearchScreen() {
     recentSearches.add(q);
   }
 
+  // If location is revoked/unavailable with no usable fix, don't leave the
+  // "Nearby" chip looking active while the sort has quietly fallen back to
+  // rating: show it off and say why. (Stale coords keep working as-is.)
+  const locationLost = nearbyWanted && coords == null && status === "denied";
+  const nearby = nearbyWanted && !locationLost;
   // "Nearby" only sorts by distance once we actually have coordinates.
   const sortByDistance = nearby && coords != null;
   // Waiting on a granted-but-not-yet-resolved location fix.
   const nearbyPending = nearby && coords == null && status !== "denied";
 
-  // If location is revoked/unavailable with no usable fix, don't leave the
-  // "Nearby" chip looking active while the sort has quietly fallen back to
-  // rating — turn it off and say why. (Stale coords keep working as-is.)
   useEffect(() => {
-    if (nearby && coords == null && status === "denied") {
-      setNearby(false);
+    if (locationLost) {
       Alert.alert(
         "Location is off",
         "Turn location back on to sort by distance.",
       );
     }
-  }, [nearby, coords, status]);
+  }, [locationLost]);
 
   const params = useMemo(
     () => ({

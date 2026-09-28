@@ -1,11 +1,12 @@
 import { Image } from "expo-image";
-import { useEffect, useState, useSyncExternalStore } from "react";
-import { useWindowDimensions } from "react-native";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useWindowDimensions, type View } from "react-native";
 import Animated, {
   Easing,
   interpolate,
   runOnJS,
   useAnimatedStyle,
+  useReducedMotion,
   withTiming,
 } from "react-native-reanimated";
 
@@ -97,6 +98,45 @@ export function usePhotoFlightTarget(branchId: string) {
       emit();
     }
   }, [branchId]);
+}
+
+/**
+ * For a card that opens a place: put `ref` on its cover photo and call
+ * `open` on press. The cover's on-screen position is handed to the place
+ * page so the photo flies from here into its header. Reduce Motion (or no
+ * photo) just opens the page.
+ */
+export function usePhotoFlight() {
+  const reduced = useReducedMotion();
+  const ref = useRef<View>(null);
+
+  function open(
+    card: {
+      branchId: string;
+      uri: string | null | undefined;
+      radius: number;
+      saved?: boolean;
+    },
+    navigate: () => void,
+  ) {
+    const { uri } = card;
+    if (reduced || !uri || !ref.current) {
+      navigate();
+      return;
+    }
+    ref.current.measureInWindow((x, y, width, height) => {
+      startPhotoFlight({
+        branchId: card.branchId,
+        uri,
+        from: { x, y, width, height },
+        radius: card.radius,
+        saved: card.saved,
+      });
+      navigate();
+    });
+  }
+
+  return { ref, open };
 }
 
 /**

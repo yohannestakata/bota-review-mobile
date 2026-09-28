@@ -673,6 +673,7 @@ export default function BranchDetailScreen() {
                         {siblings.data.map((sibling) => (
                           <SiblingCard
                             branch={sibling}
+                            isSaved={savedIds?.has(sibling.id)}
                             key={sibling.id}
                             onPress={(b) => router.push(`/branch/${b.id}`)}
                           />

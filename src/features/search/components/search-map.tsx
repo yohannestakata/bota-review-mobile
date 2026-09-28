@@ -23,6 +23,8 @@ import { ThemedText } from "@/components/ui/themed-text";
 import { openBadge } from "@/features/branch/hours";
 import { GEBETA_API_KEY, useMapStyle } from "@/features/branch/map-style";
 import { usePrefetchBranch } from "@/features/branch/prefetch";
+import { usePhotoFlight } from "@/features/branch/shared-photo";
+import { useSavedBranchIds } from "@/features/home";
 import { AREA_PAGE_SIZE } from "../queries";
 import type { BranchCard } from "@/lib/api";
 import { haptics } from "@/lib/haptics";
@@ -541,6 +543,8 @@ function PlaceCard({
   width: number;
 }) {
   const prefetch = usePrefetchBranch();
+  const saved = useSavedBranchIds();
+  const { ref: photoRef, open: flyOpen } = usePhotoFlight();
   const badge = openBadge(branch);
   const price = formatMenuPriceRange(branch.menuPriceRange);
   const area = branch.neighborhood?.name ?? branch.label;
@@ -551,7 +555,17 @@ function PlaceCard({
         accessibilityLabel={`Open ${branch.placeName}`}
         accessibilityRole="button"
         className="flex-row items-center gap-3 rounded-2xl bg-surface p-3"
-        onPress={() => onOpen(branch)}
+        onPress={() =>
+          flyOpen(
+            {
+              branchId: branch.id,
+              uri: branch.coverPhotoUrl,
+              radius: 10.5, // rounded-xl
+              saved: saved.data?.has(branch.id),
+            },
+            () => onOpen(branch),
+          )
+        }
         onPressIn={() => prefetch(branch)}
         style={{
           boxShadow: [
@@ -567,6 +581,7 @@ function PlaceCard({
       >
         <View
           className="overflow-hidden rounded-xl bg-placeholder"
+          ref={photoRef}
           style={{ width: 84, height: 84 }}
         >
           {branch.coverPhotoUrl ? (

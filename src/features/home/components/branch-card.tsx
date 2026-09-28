@@ -1,9 +1,7 @@
 import { SparklesIcon } from "@hugeicons/core-free-icons";
 import { shadows, useColors } from "@/lib/theme";
 import { Image } from "expo-image";
-import { useRef } from "react";
 import { View } from "react-native";
-import { useReducedMotion } from "react-native-reanimated";
 
 import { Photo, PhotoFallback } from "@/components/ui/photo";
 import { FilledStar } from "@/components/ui/filled-star";
@@ -15,7 +13,7 @@ import { formatMenuPriceRange } from "@/lib/price";
 import { PressableScale } from "@/components/ui/pressable-scale";
 import { openBadge } from "@/features/branch/hours";
 import { usePrefetchBranch } from "@/features/branch/prefetch";
-import { startPhotoFlight } from "@/features/branch/shared-photo";
+import { usePhotoFlight } from "@/features/branch/shared-photo";
 
 type BranchCardProps = {
   branch: BranchCardData;
@@ -37,27 +35,19 @@ export function BranchCard({
 }: BranchCardProps) {
   const colors = useColors();
   const prefetchBranch = usePrefetchBranch();
-  const reduced = useReducedMotion();
-  const photoRef = useRef<View>(null);
+  const { ref: photoRef, open: flyOpen } = usePhotoFlight();
 
-  // Hand the cover's on-screen position to the place page, so the photo can
-  // fly from here into its header. Reduce Motion (or no photo) just opens it.
+  // The cover flies from here into the place page's header.
   function open() {
-    const uri = branch.coverPhotoUrl;
-    if (reduced || !uri || !photoRef.current) {
-      onPress?.(branch);
-      return;
-    }
-    photoRef.current.measureInWindow((x, y, width, height) => {
-      startPhotoFlight({
+    flyOpen(
+      {
         branchId: branch.id,
-        uri,
-        from: { x, y, width, height },
+        uri: branch.coverPhotoUrl,
         radius: 16,
         saved: isSaved,
-      });
-      onPress?.(branch);
-    });
+      },
+      () => onPress?.(branch),
+    );
   }
   const badge = openBadge(branch);
   const subtitleParts = [branch.label, branch.neighborhood?.name].filter(

@@ -54,7 +54,7 @@ export default function SavedScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View className="px-6 pb-2 pt-2">
+      <View className="px-6 pb-2" style={{ paddingTop: 20 }}>
         <ThemedText size="3xl" weight="bold">
           Saved
         </ThemedText>
