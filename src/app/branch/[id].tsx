@@ -77,7 +77,10 @@ import {
   SHEET_OVERLAP,
   sheetTravel,
 } from "@/features/branch/hero-shared";
-import { usePhotoFlightTarget } from "@/features/branch/shared-photo";
+import {
+  usePhotoFlightDone,
+  usePhotoFlightTarget,
+} from "@/features/branch/shared-photo";
 import { promptSignIn } from "@/lib/auth-gate";
 import { PressableScale } from "@/components/ui/pressable-scale";
 
@@ -169,6 +172,7 @@ export default function BranchDetailScreen() {
   // Opened from a card: its photo flies in (drawn at the app root) to become
   // the hero; the hero hides its own copy until the flight lands.
   usePhotoFlightTarget(id);
+  const flightDone = usePhotoFlightDone();
   const { height: screenH } = useWindowDimensions();
   const travel = sheetTravel(screenH);
   const sheetRise = useAnimatedStyle(() => ({
@@ -527,394 +531,418 @@ export default function BranchDetailScreen() {
               </>
             ) : null}
 
-            {/* Amenities */}
-            {data.amenities.length > 0 ? (
+            {/* Below the fold: built once a card photo has landed, so the
+                flight isn't competing with them for frames. */}
+            {flightDone ? (
               <>
-                <View className="mt-7">
-                  <Divider />
-                </View>
-                <View className="mt-6 gap-3 px-6">
-                  <ThemedText size="xl" weight="bold">
-                    Amenities
-                  </ThemedText>
-                  <AmenityList amenities={data.amenities} />
-                </View>
-              </>
-            ) : null}
+                {/* Amenities */}
+                {data.amenities.length > 0 ? (
+                  <>
+                    <View className="mt-7">
+                      <Divider />
+                    </View>
+                    <View className="mt-6 gap-3 px-6">
+                      <ThemedText size="xl" weight="bold">
+                        Amenities
+                      </ThemedText>
+                      <AmenityList amenities={data.amenities} />
+                    </View>
+                  </>
+                ) : null}
 
-            {/* Hours */}
-            {data.hours ? (
-              <>
-                <View className="mt-7">
-                  <Divider />
-                </View>
-                <View className="mt-6 gap-3 px-6">
-                  <ThemedText size="xl" weight="bold">
-                    Hours
-                  </ThemedText>
-                  <OpeningHours hours={data.hours} />
-                </View>
-              </>
-            ) : null}
+                {/* Hours */}
+                {data.hours ? (
+                  <>
+                    <View className="mt-7">
+                      <Divider />
+                    </View>
+                    <View className="mt-6 gap-3 px-6">
+                      <ThemedText size="xl" weight="bold">
+                        Hours
+                      </ThemedText>
+                      <OpeningHours hours={data.hours} />
+                    </View>
+                  </>
+                ) : null}
 
-            {/* Location */}
-            {data.latitude && data.longitude ? (
-              <>
-                <View className="mt-7">
-                  <Divider />
-                </View>
-                <View className="mt-6 gap-3 px-6">
-                  <View className="flex-row items-center justify-between">
-                    <ThemedText size="xl" weight="bold">
-                      Location
-                    </ThemedText>
-                    <Button
-                      label="Open in Maps"
-                      onPress={() =>
-                        openInDefaultMaps(
-                          data.latitude,
-                          data.longitude,
-                          data.place.name,
-                        )
-                      }
-                      rightIcon={ArrowRight01Icon}
-                      size="xs"
-                      variant="ghost"
-                    />
-                  </View>
-                  <BranchMap
-                    latitude={data.latitude}
-                    longitude={data.longitude}
-                    onInteractionChange={setMapActive}
-                  />
-                </View>
-              </>
-            ) : null}
-
-            {/* Photos */}
-            {detailPhotos.length > 0 ? (
-              <>
-                <View className="mt-7">
-                  <Divider />
-                </View>
-                <View className="mt-6 gap-3">
-                  <SectionTitle className="px-6">Photos</SectionTitle>
-                  <ScrollView
-                    contentContainerClassName="gap-3 px-6"
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                  >
-                    {detailPhotos.map((photo) => {
-                      const galleryIndex = data.photos.findIndex(
-                        (item) => item.id === photo.id,
-                      );
-                      return (
-                        <PressableScale
-                          accessibilityLabel={`Photo ${galleryIndex + 1}, open gallery`}
-                          accessibilityRole="imagebutton"
-                          key={photo.id}
+                {/* Location */}
+                {data.latitude && data.longitude ? (
+                  <>
+                    <View className="mt-7">
+                      <Divider />
+                    </View>
+                    <View className="mt-6 gap-3 px-6">
+                      <View className="flex-row items-center justify-between">
+                        <ThemedText size="xl" weight="bold">
+                          Location
+                        </ThemedText>
+                        <Button
+                          label="Open in Maps"
                           onPress={() =>
-                            router.push(
-                              `/branch/${data.id}/photos?index=${galleryIndex}`,
+                            openInDefaultMaps(
+                              data.latitude,
+                              data.longitude,
+                              data.place.name,
                             )
                           }
+                          rightIcon={ArrowRight01Icon}
+                          size="xs"
+                          variant="ghost"
+                        />
+                      </View>
+                      <BranchMap
+                        latitude={data.latitude}
+                        longitude={data.longitude}
+                        onInteractionChange={setMapActive}
+                      />
+                    </View>
+                  </>
+                ) : null}
+
+                {/* Photos */}
+                {detailPhotos.length > 0 ? (
+                  <>
+                    <View className="mt-7">
+                      <Divider />
+                    </View>
+                    <View className="mt-6 gap-3">
+                      <SectionTitle className="px-6">Photos</SectionTitle>
+                      <ScrollView
+                        contentContainerClassName="gap-3 px-6"
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                      >
+                        {detailPhotos.map((photo) => {
+                          const galleryIndex = data.photos.findIndex(
+                            (item) => item.id === photo.id,
+                          );
+                          return (
+                            <PressableScale
+                              accessibilityLabel={`Photo ${galleryIndex + 1}, open gallery`}
+                              accessibilityRole="imagebutton"
+                              key={photo.id}
+                              onPress={() =>
+                                router.push(
+                                  `/branch/${data.id}/photos?index=${galleryIndex}`,
+                                )
+                              }
+                            >
+                              <Image
+                                contentFit="cover"
+                                source={photo.url}
+                                style={{
+                                  width: 220,
+                                  height: 150,
+                                  borderRadius: 16,
+                                }}
+                                transition={150}
+                              />
+                            </PressableScale>
+                          );
+                        })}
+                      </ScrollView>
+                    </View>
+                  </>
+                ) : null}
+
+                {/* Other locations of the same place (chains) */}
+                {siblings.data && siblings.data.length > 0 ? (
+                  <>
+                    <View className="mt-7">
+                      <Divider />
+                    </View>
+                    <View className="mt-6 gap-3">
+                      <View className="flex-row items-center justify-between px-6">
+                        <ThemedText size="xl" weight="bold">
+                          Other locations
+                        </ThemedText>
+                        <Pressable
+                          hitSlop={8}
+                          onPress={() => router.push(`/place/${data.place.id}`)}
                         >
-                          <Image
-                            contentFit="cover"
-                            source={photo.url}
-                            style={{
-                              width: 220,
-                              height: 150,
-                              borderRadius: 16,
-                            }}
-                            transition={150}
-                          />
-                        </PressableScale>
-                      );
-                    })}
-                  </ScrollView>
-                </View>
-              </>
-            ) : null}
-
-            {/* Other locations of the same place (chains) */}
-            {siblings.data && siblings.data.length > 0 ? (
-              <>
-                <View className="mt-7">
-                  <Divider />
-                </View>
-                <View className="mt-6 gap-3">
-                  <View className="flex-row items-center justify-between px-6">
-                    <ThemedText size="xl" weight="bold">
-                      Other locations
-                    </ThemedText>
-                    <Pressable
-                      hitSlop={8}
-                      onPress={() => router.push(`/place/${data.place.id}`)}
-                    >
-                      <ThemedText tone="brand" weight="semibold">
-                        See all
-                      </ThemedText>
-                    </Pressable>
-                  </View>
-                  <ScrollView
-                    contentContainerClassName="gap-3 px-6"
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                  >
-                    {siblings.data.map((sibling) => (
-                      <SiblingCard
-                        branch={sibling}
-                        key={sibling.id}
-                        onPress={(b) => router.push(`/branch/${b.id}`)}
-                      />
-                    ))}
-                  </ScrollView>
-                </View>
-              </>
-            ) : siblings.isSuccess ? (
-              <>
-                <View className="mt-7">
-                  <Divider />
-                </View>
-                <View className="mt-6 px-6">
-                  <Pressable
-                    className="flex-row items-center gap-3 rounded-2xl border border-placeholder p-4"
-                    onPress={() =>
-                      router.push({
-                        pathname: "/submissions",
-                        params: {
-                          placeId: data.place.id,
-                          placeName: data.place.name,
-                        },
-                      })
-                    }
-                  >
-                    <AppIcon
-                      color={colors.foreground}
-                      icon={Add01Icon}
-                      size={20}
-                    />
-                    <View className="flex-1">
-                      <ThemedText weight="medium">
-                        Add another location
-                      </ThemedText>
-                      <ThemedText size="sm" tone="muted">
-                        Know another {data.place.name} spot? Put it on Bota.
-                      </ThemedText>
-                    </View>
-                  </Pressable>
-                </View>
-              </>
-            ) : null}
-
-            {/* Reviews */}
-            <View className="mt-7">
-              <Divider />
-            </View>
-            <View className="mt-6 gap-4 px-6">
-              <ThemedText size="xl" weight="bold">
-                Reviews
-              </ThemedText>
-
-              {hasRating ? (
-                <View className="rounded-2xl bg-surface-muted p-4">
-                  <View className="flex-row items-center gap-5">
-                    <View className="items-start gap-1">
-                      <ThemedText size="4xl" weight="bold">
-                        {ratingValue.toFixed(1)}
-                      </ThemedText>
-                      <Stars size={16} value={ratingValue} />
-                      <ThemedText size="sm" tone="muted">
-                        {data.reviewCount}{" "}
-                        {data.reviewCount === 1 ? "review" : "reviews"}
-                      </ThemedText>
-                    </View>
-                    <RatingBreakdown
-                      items={data.ratingBreakdown ?? []}
-                      total={data.reviewCount}
-                    />
-                  </View>
-                </View>
-              ) : null}
-
-              {myReview && !orderedReviews.some(isMine) ? (
-                // Yours isn't listed yet (awaiting a check, or sent back).
-                <View className="flex-row items-center gap-3 rounded-2xl bg-surface-muted px-4 py-4">
-                  <View className="flex-1">
-                    <ThemedText weight="semibold">Your review is in</ThemedText>
-                    <ThemedText className="mt-0.5" size="sm" tone="muted">
-                      {myReview.moderationStatus === "rejected"
-                        ? "It needs a few changes before it can go up."
-                        : "It'll show here after a quick check."}
-                    </ThemedText>
-                  </View>
-                  <TextButton label="Edit" onPress={editMyReview} />
-                </View>
-              ) : null}
-
-              {orderedReviews.length > 0 ? (
-                <View>
-                  {orderedReviews.map((review, index) => (
-                    <View key={review.id}>
-                      {index > 0 ? (
-                        <View className="my-5 h-px bg-border" />
-                      ) : null}
-                      {isMine(review) ? (
-                        <View className="mb-3 flex-row items-center justify-between">
-                          <ThemedText size="xs" tone="brand" weight="semibold">
-                            YOUR REVIEW
+                          <ThemedText tone="brand" weight="semibold">
+                            See all
                           </ThemedText>
-                          <TextButton label="Edit" onPress={editMyReview} />
-                        </View>
-                      ) : null}
-                      <ReviewRow
-                        businessAvatarUrl={data.place.avatarUrl ?? undefined}
-                        businessName={data.place.name}
-                        currentUserId={me.data?.id}
-                        onReply={
-                          isSignedIn ? replyActions.startReply : undefined
-                        }
-                        onReportReply={
-                          isSignedIn ? replyActions.reportReply : undefined
-                        }
-                        onReport={onReportReview}
-                        onUserPress={(userId) =>
-                          router.push(`/profile/${userId}` as Href)
-                        }
-                        review={review}
-                      />
+                        </Pressable>
+                      </View>
+                      <ScrollView
+                        contentContainerClassName="gap-3 px-6"
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                      >
+                        {siblings.data.map((sibling) => (
+                          <SiblingCard
+                            branch={sibling}
+                            key={sibling.id}
+                            onPress={(b) => router.push(`/branch/${b.id}`)}
+                          />
+                        ))}
+                      </ScrollView>
                     </View>
-                  ))}
+                  </>
+                ) : siblings.isSuccess ? (
+                  <>
+                    <View className="mt-7">
+                      <Divider />
+                    </View>
+                    <View className="mt-6 px-6">
+                      <Pressable
+                        className="flex-row items-center gap-3 rounded-2xl border border-placeholder p-4"
+                        onPress={() =>
+                          router.push({
+                            pathname: "/submissions",
+                            params: {
+                              placeId: data.place.id,
+                              placeName: data.place.name,
+                            },
+                          })
+                        }
+                      >
+                        <AppIcon
+                          color={colors.foreground}
+                          icon={Add01Icon}
+                          size={20}
+                        />
+                        <View className="flex-1">
+                          <ThemedText weight="medium">
+                            Add another location
+                          </ThemedText>
+                          <ThemedText size="sm" tone="muted">
+                            Know another {data.place.name} spot? Put it on Bota.
+                          </ThemedText>
+                        </View>
+                      </Pressable>
+                    </View>
+                  </>
+                ) : null}
+
+                {/* Reviews */}
+                <View className="mt-7">
+                  <Divider />
                 </View>
-              ) : isOwnBranch ? (
-                <ThemedText tone="muted">
-                  No reviews yet. They&apos;ll show up here as guests weigh in.
-                </ThemedText>
-              ) : myReview ? null : (
-                <View className="items-center rounded-2xl bg-surface-muted px-4 py-5">
-                  <ThemedText weight="semibold">
-                    Be the first to review
+                <View className="mt-6 gap-4 px-6">
+                  <ThemedText size="xl" weight="bold">
+                    Reviews
                   </ThemedText>
-                  <ThemedText
-                    className="mt-1 text-center"
-                    size="sm"
-                    tone="muted"
-                  >
-                    Tap or slide to rate your visit.
-                  </ThemedText>
-                  <View className="mt-3">
-                    <TapToRate
-                      onRate={(star) =>
+
+                  {hasRating ? (
+                    <View className="rounded-2xl bg-surface-muted p-4">
+                      <View className="flex-row items-center gap-5">
+                        <View className="items-start gap-1">
+                          <ThemedText size="4xl" weight="bold">
+                            {ratingValue.toFixed(1)}
+                          </ThemedText>
+                          <Stars size={16} value={ratingValue} />
+                          <ThemedText size="sm" tone="muted">
+                            {data.reviewCount}{" "}
+                            {data.reviewCount === 1 ? "review" : "reviews"}
+                          </ThemedText>
+                        </View>
+                        <RatingBreakdown
+                          items={data.ratingBreakdown ?? []}
+                          total={data.reviewCount}
+                        />
+                      </View>
+                    </View>
+                  ) : null}
+
+                  {myReview && !orderedReviews.some(isMine) ? (
+                    // Yours isn't listed yet (awaiting a check, or sent back).
+                    <View className="flex-row items-center gap-3 rounded-2xl bg-surface-muted px-4 py-4">
+                      <View className="flex-1">
+                        <ThemedText weight="semibold">
+                          Your review is in
+                        </ThemedText>
+                        <ThemedText className="mt-0.5" size="sm" tone="muted">
+                          {myReview.moderationStatus === "rejected"
+                            ? "It needs a few changes before it can go up."
+                            : "It'll show here after a quick check."}
+                        </ThemedText>
+                      </View>
+                      <TextButton label="Edit" onPress={editMyReview} />
+                    </View>
+                  ) : null}
+
+                  {orderedReviews.length > 0 ? (
+                    <View>
+                      {orderedReviews.map((review, index) => (
+                        <View key={review.id}>
+                          {index > 0 ? (
+                            <View className="my-5 h-px bg-border" />
+                          ) : null}
+                          {isMine(review) ? (
+                            <View className="mb-3 flex-row items-center justify-between">
+                              <ThemedText
+                                size="xs"
+                                tone="brand"
+                                weight="semibold"
+                              >
+                                YOUR REVIEW
+                              </ThemedText>
+                              <TextButton label="Edit" onPress={editMyReview} />
+                            </View>
+                          ) : null}
+                          <ReviewRow
+                            businessAvatarUrl={
+                              data.place.avatarUrl ?? undefined
+                            }
+                            businessName={data.place.name}
+                            currentUserId={me.data?.id}
+                            onReply={
+                              isSignedIn ? replyActions.startReply : undefined
+                            }
+                            onReportReply={
+                              isSignedIn ? replyActions.reportReply : undefined
+                            }
+                            onReport={onReportReview}
+                            onUserPress={(userId) =>
+                              router.push(`/profile/${userId}` as Href)
+                            }
+                            review={review}
+                          />
+                        </View>
+                      ))}
+                    </View>
+                  ) : isOwnBranch ? (
+                    <ThemedText tone="muted">
+                      No reviews yet. They&apos;ll show up here as guests weigh
+                      in.
+                    </ThemedText>
+                  ) : myReview ? null : (
+                    <View className="items-center rounded-2xl bg-surface-muted px-4 py-5">
+                      <ThemedText weight="semibold">
+                        Be the first to review
+                      </ThemedText>
+                      <ThemedText
+                        className="mt-1 text-center"
+                        size="sm"
+                        tone="muted"
+                      >
+                        Tap or slide to rate your visit.
+                      </ThemedText>
+                      <View className="mt-3">
+                        <TapToRate
+                          onRate={(star) =>
+                            requireSignIn(() =>
+                              router.push(`/review/${data.id}?rating=${star}`),
+                            )
+                          }
+                        />
+                      </View>
+                    </View>
+                  )}
+
+                  {data.reviewCount > data.recentReviews.length ? (
+                    <Button
+                      label={`See all ${data.reviewCount} reviews`}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/reviews/[branchId]",
+                          params: { branchId: data.id, name: data.place.name },
+                        })
+                      }
+                      size="sm"
+                      variant="outline"
+                    />
+                  ) : null}
+                </View>
+
+                {!isOwnBranch ? (
+                  <View className="mt-8 px-6">
+                    <Button
+                      label="Suggest an edit or report closed"
+                      onPress={() =>
                         requireSignIn(() =>
-                          router.push(`/review/${data.id}?rating=${star}`),
+                          router.push({
+                            pathname: "/suggest-edit/[branchId]",
+                            params: {
+                              branchId: data.id,
+                              name: data.place.name,
+                            },
+                          }),
                         )
                       }
+                      size="sm"
+                      tone="muted"
+                      variant="outline"
                     />
                   </View>
-                </View>
-              )}
+                ) : null}
 
-              {data.reviewCount > data.recentReviews.length ? (
-                <Button
-                  label={`See all ${data.reviewCount} reviews`}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/reviews/[branchId]",
-                      params: { branchId: data.id, name: data.place.name },
-                    })
-                  }
-                  size="sm"
-                  variant="outline"
-                />
-              ) : null}
-            </View>
-
-            {!isOwnBranch ? (
-              <View className="mt-8 px-6">
-                <Button
-                  label="Suggest an edit or report closed"
-                  onPress={() =>
-                    requireSignIn(() =>
-                      router.push({
-                        pathname: "/suggest-edit/[branchId]",
-                        params: { branchId: data.id, name: data.place.name },
-                      }),
-                    )
-                  }
-                  size="sm"
-                  tone="muted"
-                  variant="outline"
-                />
-              </View>
-            ) : null}
-
-            {isOwnBranch ? (
-              <View className="mt-4 px-6">
-                <Pressable
-                  className="flex-row items-center justify-between rounded-2xl border border-placeholder bg-surface p-4"
-                  onPress={() =>
-                    router.push({
-                      pathname: "/branch/[id]/manage",
-                      params: { id: data.id },
-                    })
-                  }
-                >
-                  <View className="flex-1">
-                    <ThemedText weight="medium">Manage your listing</ThemedText>
-                    <ThemedText size="sm" tone="muted">
-                      Update details, menu, hours, and photos.
-                    </ThemedText>
+                {isOwnBranch ? (
+                  <View className="mt-4 px-6">
+                    <Pressable
+                      className="flex-row items-center justify-between rounded-2xl border border-placeholder bg-surface p-4"
+                      onPress={() =>
+                        router.push({
+                          pathname: "/branch/[id]/manage",
+                          params: { id: data.id },
+                        })
+                      }
+                    >
+                      <View className="flex-1">
+                        <ThemedText weight="medium">
+                          Manage your listing
+                        </ThemedText>
+                        <ThemedText size="sm" tone="muted">
+                          Update details, menu, hours, and photos.
+                        </ThemedText>
+                      </View>
+                      <AppIcon
+                        color={colors.muted}
+                        icon={ArrowRight01Icon}
+                        size={18}
+                      />
+                    </Pressable>
                   </View>
-                  <AppIcon
-                    color={colors.muted}
-                    icon={ArrowRight01Icon}
-                    size={18}
-                  />
-                </Pressable>
-              </View>
-            ) : null}
+                ) : null}
 
-            {/* Owner-targeted claim entry (Google/Yelp pattern): a quiet, distinct
+                {/* Owner-targeted claim entry (Google/Yelp pattern): a quiet, distinct
               card low on the page — clear copy + value prop, hidden once the
               branch is owner-verified. */}
-            {data.verificationStatus !== "business_verified" ? (
-              <View className="mt-4 px-6">
-                <Pressable
-                  className="flex-row items-start gap-3 rounded-2xl border border-placeholder p-4"
-                  onPress={() =>
-                    requireSignIn(() =>
-                      router.push({
-                        pathname: "/claim/[branchId]",
-                        params: { branchId: data.id, name: data.place.name },
-                      }),
-                    )
-                  }
-                >
-                  <View className="mt-0.5">
-                    <AppIcon
-                      color={colors.foreground}
-                      icon={PencilEdit02Icon}
-                      size={22}
-                    />
+                {data.verificationStatus !== "business_verified" ? (
+                  <View className="mt-4 px-6">
+                    <Pressable
+                      className="flex-row items-start gap-3 rounded-2xl border border-placeholder p-4"
+                      onPress={() =>
+                        requireSignIn(() =>
+                          router.push({
+                            pathname: "/claim/[branchId]",
+                            params: {
+                              branchId: data.id,
+                              name: data.place.name,
+                            },
+                          }),
+                        )
+                      }
+                    >
+                      <View className="mt-0.5">
+                        <AppIcon
+                          color={colors.foreground}
+                          icon={PencilEdit02Icon}
+                          size={22}
+                        />
+                      </View>
+                      <View className="flex-1">
+                        <ThemedText weight="medium">
+                          Is this your business?
+                        </ThemedText>
+                        <ThemedText size="sm" tone="muted">
+                          Claim it to verify ownership and manage listing
+                          details.
+                        </ThemedText>
+                      </View>
+                      <View className="mt-0.5">
+                        <AppIcon
+                          color={colors.muted}
+                          icon={ArrowRight01Icon}
+                          size={18}
+                        />
+                      </View>
+                    </Pressable>
                   </View>
-                  <View className="flex-1">
-                    <ThemedText weight="medium">
-                      Is this your business?
-                    </ThemedText>
-                    <ThemedText size="sm" tone="muted">
-                      Claim it to verify ownership and manage listing details.
-                    </ThemedText>
-                  </View>
-                  <View className="mt-0.5">
-                    <AppIcon
-                      color={colors.muted}
-                      icon={ArrowRight01Icon}
-                      size={18}
-                    />
-                  </View>
-                </Pressable>
-              </View>
+                ) : null}
+              </>
             ) : null}
           </View>
         </Animated.View>
