@@ -129,7 +129,7 @@ function FlyingPhoto({ flight }: { flight: PhotoFlight }) {
 
   // Don't wait forever for a slow page.
   useEffect(() => {
-    const t = setTimeout(() => setTimedOut(true), 200);
+    const t = setTimeout(() => setTimedOut(true), 350);
     return () => clearTimeout(t);
   }, []);
 
