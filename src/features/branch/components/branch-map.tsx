@@ -11,6 +11,7 @@ import Svg, { Circle, Path } from "react-native-svg";
 import { useColors } from "@/lib/theme";
 
 import { GEBETA_API_KEY, useMapStyle } from "../map-style";
+import { usePhotoFlightDone } from "../shared-photo";
 
 // A filled teardrop map pin with a white center dot; its tip sits on the point.
 function MapPin() {
@@ -44,6 +45,7 @@ export function BranchMap({
 }: BranchMapProps) {
   // Gebeta's light style, or a darkened copy of it in dark mode.
   const mapStyle = useMapStyle();
+  const flightDone = usePhotoFlightDone();
   const lat = Number(latitude);
   const lng = Number(longitude);
   const hasCoords =
@@ -61,7 +63,7 @@ export function BranchMap({
       onTouchEnd={() => onInteractionChange?.(false)}
       onTouchStart={() => onInteractionChange?.(true)}
     >
-      {mapStyle ? (
+      {mapStyle && flightDone ? (
         <MapLibreMap
           attribution={false}
           compass={false}

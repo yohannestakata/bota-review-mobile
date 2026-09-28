@@ -99,6 +99,15 @@ export function usePhotoFlightTarget(branchId: string) {
   }, [branchId]);
 }
 
+/**
+ * False while a card photo is flying in. Heavy native views (the map) wait
+ * for this: creating them mid-flight stalls the UI thread and the photo
+ * visibly stops short, then jumps into place.
+ */
+export function usePhotoFlightDone() {
+  return useSyncExternalStore(subscribe, () => current === null);
+}
+
 // One element moving across the screen: in-out with a soft landing.
 const FLIGHT = { duration: 350, easing: Easing.bezier(0.32, 0.72, 0, 1) };
 
