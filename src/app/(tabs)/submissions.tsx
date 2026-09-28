@@ -274,7 +274,8 @@ export default function SubmissionsScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           className="flex-1"
-          contentContainerClassName="gap-4 px-6 pt-2"
+          contentContainerClassName="gap-4 px-6"
+          contentContainerStyle={{ paddingTop: 20 }}
           keyboardShouldPersistTaps="handled"
         >
           <View className="pb-1">
