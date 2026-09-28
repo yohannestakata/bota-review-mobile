@@ -1,10 +1,6 @@
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { shadows } from "@/lib/theme";
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IconButton } from "@/components/ui/button";
@@ -12,12 +8,12 @@ import { SaveHeartButton } from "@/components/ui/save-heart-button";
 
 import { heroCovered } from "../hero-shared";
 
-const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
-
 type BranchHeaderButtonsProps = {
   isSaved: boolean;
   onBack: () => void;
   onToggleSave: () => void;
+  /** A non-interactive copy, drawn by the card-photo flight as it lands. */
+  preview?: boolean;
 };
 
 // Floating back/save controls. Kept outside the ScrollView so they stay fixed
@@ -26,21 +22,20 @@ export function BranchHeaderButtons({
   isSaved,
   onBack,
   onToggleSave,
+  preview = false,
 }: BranchHeaderButtonsProps) {
   const insets = useSafeAreaInsets();
-  // While a card's photo flies in over the page these sit hidden, then fade in
-  // as it lands instead of popping on top of it.
+  // While a card's photo flies in over the page these sit hidden under it;
+  // the flight fades in a preview copy on top, and these take over on the
+  // landing frame.
   const fade = useAnimatedStyle(() => ({
-    opacity:
-      heroCovered.get() === 1
-        ? 0
-        : withTiming(1, { duration: 180, easing: EASE_OUT }),
+    opacity: preview || heroCovered.get() === 0 ? 1 : 0,
   }));
 
   return (
     <Animated.View
       className="absolute left-0 right-0 flex-row items-center justify-between px-4"
-      pointerEvents="box-none"
+      pointerEvents={preview ? "none" : "box-none"}
       style={[{ top: insets.top + 8 }, fade]}
     >
       <IconButton

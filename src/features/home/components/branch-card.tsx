@@ -54,6 +54,7 @@ export function BranchCard({
         uri,
         from: { x, y, width, height },
         radius: 16,
+        saved: isSaved,
       });
       onPress?.(branch);
     });

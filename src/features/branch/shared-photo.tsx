@@ -6,16 +6,25 @@ import Animated, {
   interpolate,
   runOnJS,
   useAnimatedStyle,
-  useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 
 import { useColors } from "@/lib/theme";
 
-import { HERO_HEIGHT, heroCovered } from "./hero-shared";
+import { BranchHeaderButtons } from "./components/branch-header-buttons";
+
+import {
+  flightProgress,
+  HERO_HEIGHT,
+  heroCovered,
+  SHEET_OVERLAP,
+  sheetTravel,
+} from "./hero-shared";
 
 // "Photo grows into the place page": the tapped card's cover is measured and a
-// copy flies from there to the place page's hero while the page fades in.
+// copy flies from there to the place page's hero while the page's sheet rises
+// from the bottom to meet it. Both follow `flightProgress`, so they land on
+// the same frame.
 //
 // The flying copy is drawn by PhotoFlightHost at the app root — above every
 // screen — so it's fully visible from the first frame. The swap to the real
@@ -31,6 +40,8 @@ export type PhotoFlight = {
   uri: string;
   from: Rect;
   radius: number;
+  /** Whether the place is saved, for the heart the flight fades in. */
+  saved?: boolean;
 };
 
 let current: PhotoFlight | null = null;
@@ -51,6 +62,7 @@ function endFlight() {
   current = null;
   pageMounted = false;
   heroCovered.set(0);
+  flightProgress.set(1);
   if (safety) clearTimeout(safety);
   emit();
 }
@@ -60,6 +72,8 @@ export function startPhotoFlight(flight: PhotoFlight) {
   current = flight;
   pageMounted = false;
   heroCovered.set(1);
+  // Holds the page's sheet below the screen until the flight starts.
+  flightProgress.set(0);
   // Never leave a stray photo on screen if the page doesn't show up.
   if (safety) clearTimeout(safety);
   safety = setTimeout(endFlight, 2500);
@@ -88,11 +102,13 @@ export function usePhotoFlightTarget(branchId: string) {
 // One element moving across the screen: in-out with a soft landing.
 const FLIGHT = { duration: 420, easing: Easing.bezier(0.32, 0.72, 0, 1) };
 
-// The page's sheet overlaps the hero's bottom by this much (its -mt-6) with
-// rounded top corners (rounded-t-3xl). The flight lands at the hero's full
-// height and fades in a matching strip, so its last frame is the real page.
-const SHEET_OVERLAP = 21;
+// The page's sheet has rounded top corners (rounded-t-3xl) and overlaps the
+// hero's bottom. This copy is drawn above the page, so it draws the sheet's
+// top edge itself wherever the rising sheet reaches it; its last frame is
+// then exactly the real page.
 const SHEET_RADIUS = 21;
+
+const noop = () => {};
 
 /** Mounted once at the app root, above the navigator. */
 export function PhotoFlightHost() {
@@ -105,9 +121,9 @@ export function PhotoFlightHost() {
 }
 
 function FlyingPhoto({ flight }: { flight: PhotoFlight }) {
-  const { width } = useWindowDimensions();
+  const { width, height: screenH } = useWindowDimensions();
   const colors = useColors();
-  const progress = useSharedValue(0);
+  const progress = flightProgress;
   const mounted = useSyncExternalStore(subscribe, () => pageMounted);
   const [timedOut, setTimedOut] = useState(false);
 
@@ -150,33 +166,59 @@ function FlyingPhoto({ flight }: { flight: PhotoFlight }) {
     };
   });
 
-  const sheetEdge = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.get(), [0.55, 1], [0, 1], "clamp"),
+  // The sheet's top edge, relative to this copy; clipped away until the
+  // sheet reaches the photo's bottom.
+  const travel = sheetTravel(screenH);
+  const sheetEdge = useAnimatedStyle(() => {
+    const p = progress.get();
+    const photoTop = interpolate(p, [0, 1], [flight.from.y, 0]);
+    const sheetTop = HERO_HEIGHT - SHEET_OVERLAP + (1 - p) * travel;
+    return { top: sheetTop - photoTop };
+  });
+
+  // The page's back and heart buttons sit under this copy, so it fades in its
+  // own over the last stretch; the real ones show on the landing frame.
+  const buttons = useAnimatedStyle(() => ({
+    opacity:
+      interpolate(progress.get(), [0.6, 1], [0, 1], "clamp") *
+      heroCovered.get(),
   }));
 
   return (
-    <Animated.View pointerEvents="none" style={style}>
-      <Image
-        contentFit="cover"
-        source={flight.uri}
-        style={{ width: "100%", height: "100%" }}
-      />
-      {/* The top edge of the page's sheet, with its rounded corners. */}
+    <>
+      <Animated.View pointerEvents="none" style={style}>
+        <Image
+          contentFit="cover"
+          source={flight.uri}
+          style={{ width: "100%", height: "100%" }}
+        />
+        {/* The top edge of the page's sheet, with its rounded corners. */}
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              left: 0,
+              right: 0,
+              height: SHEET_OVERLAP * 2,
+              backgroundColor: colors.background,
+              borderTopLeftRadius: SHEET_RADIUS,
+              borderTopRightRadius: SHEET_RADIUS,
+            },
+            sheetEdge,
+          ]}
+        />
+      </Animated.View>
       <Animated.View
-        style={[
-          {
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: SHEET_OVERLAP,
-            backgroundColor: colors.background,
-            borderTopLeftRadius: SHEET_RADIUS,
-            borderTopRightRadius: SHEET_RADIUS,
-          },
-          sheetEdge,
-        ]}
-      />
-    </Animated.View>
+        pointerEvents="none"
+        style={[{ position: "absolute", top: 0, left: 0, right: 0 }, buttons]}
+      >
+        <BranchHeaderButtons
+          isSaved={flight.saved ?? false}
+          onBack={noop}
+          onToggleSave={noop}
+          preview
+        />
+      </Animated.View>
+    </>
   );
 }
