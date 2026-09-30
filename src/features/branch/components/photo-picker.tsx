@@ -4,6 +4,7 @@ import {
   Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
+import { useState } from "react";
 import { ActivityIndicator, Pressable, View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
@@ -13,6 +14,7 @@ import { useColors } from "@/lib/theme";
 import type { PickedPhoto } from "../api";
 
 const THUMB = 72;
+const GAP = 8;
 
 type PhotoPickerProps = {
   label: string;
@@ -24,6 +26,8 @@ type PhotoPickerProps = {
   onRemove: (uri: string) => void;
   /** Section-heading label (review screen) instead of a field label. */
   heading?: boolean;
+  /** Size thumbnails so `max` of them fill the row, instead of 72pt. */
+  fill?: boolean;
 };
 
 // Add-photos control for forms. Empty, it's one row styled like a text field
@@ -38,8 +42,14 @@ export function PhotoPicker({
   onAdd,
   onRemove,
   heading = false,
+  fill = false,
 }: PhotoPickerProps) {
   const colors = useColors();
+  const [rowWidth, setRowWidth] = useState(0);
+  const thumb =
+    fill && rowWidth > 0
+      ? Math.floor((rowWidth - GAP * (max - 1)) / max)
+      : THUMB;
   const canAdd = photos.length < max && !adding;
 
   return (
@@ -85,12 +95,16 @@ export function PhotoPicker({
           </ThemedText>
         </Pressable>
       ) : (
-        <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+        <View
+          className="flex-row flex-wrap"
+          onLayout={(e) => setRowWidth(e.nativeEvent.layout.width)}
+          style={{ gap: GAP }}
+        >
           {photos.map((photo, index) => (
             <View
               className="overflow-hidden rounded-xl bg-placeholder"
               key={photo.uri}
-              style={{ width: THUMB, height: THUMB }}
+              style={{ width: thumb, height: thumb }}
             >
               <Image
                 accessibilityLabel={`Photo ${index + 1}`}
@@ -125,7 +139,7 @@ export function PhotoPicker({
               className="items-center justify-center rounded-xl border border-placeholder bg-surface"
               disabled={adding}
               onPress={onAdd}
-              style={{ width: THUMB, height: THUMB }}
+              style={{ width: thumb, height: thumb }}
             >
               {adding ? (
                 <ActivityIndicator color={colors.primary} size="small" />

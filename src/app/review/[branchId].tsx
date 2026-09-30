@@ -611,6 +611,7 @@ export default function WriteReviewScreen() {
 
           {!isEdit ? (
             <PhotoPicker
+              fill
               heading
               label="Add a few photos"
               max={MAX_PHOTOS}
