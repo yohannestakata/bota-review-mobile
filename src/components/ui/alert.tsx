@@ -3,6 +3,7 @@ import { Modal, Pressable, View } from "react-native";
 
 import { ThemedText } from "@/components/ui/themed-text";
 import { cn } from "@/lib/cn";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 export type AlertButtonStyle = "default" | "cancel" | "destructive";
 
@@ -49,7 +50,7 @@ function DialogButton({
   const style = button.style ?? "default";
 
   return (
-    <Pressable
+    <PressableScale
       className={cn(
         "h-14 flex-row items-center justify-center rounded-full",
         full ? "w-full" : "flex-1",
@@ -65,7 +66,7 @@ function DialogButton({
       >
         {button.text}
       </ThemedText>
-    </Pressable>
+    </PressableScale>
   );
 }
 

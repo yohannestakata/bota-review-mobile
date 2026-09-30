@@ -11,6 +11,7 @@ import Animated, {
 
 import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
+import { PressableFade } from "@/components/ui/pressable-scale";
 
 const EXIT_MS = 220;
 
@@ -53,7 +54,7 @@ export function TimeField({
   const [draft, setDraft] = useState<Date>(() => parseTime(value));
 
   const field = (
-    <Pressable
+    <PressableFade
       className="h-9 justify-center rounded-lg border border-placeholder bg-surface px-3"
       onPress={() => {
         setDraft(parseTime(value));
@@ -66,7 +67,7 @@ export function TimeField({
       }}
     >
       <ThemedText size="sm">{formatDisplayTime(value)}</ThemedText>
-    </Pressable>
+    </PressableFade>
   );
 
   if (Platform.OS === "ios") {

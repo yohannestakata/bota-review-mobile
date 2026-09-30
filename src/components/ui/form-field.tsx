@@ -7,13 +7,14 @@ import {
   type FieldPath,
   type FieldValues,
 } from "react-hook-form";
-import { Pressable, TextInput, View } from "react-native";
+import { TextInput, View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { TextField } from "@/components/ui/text-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { cn } from "@/lib/cn";
 import { useColors } from "@/lib/theme";
+import { PressableFade } from "@/components/ui/pressable-scale";
 
 type NativeTextInputProps = ComponentProps<typeof TextInput>;
 
@@ -70,7 +71,7 @@ export function FormTextInput({
           {...props}
         />
         {secureTextEntry ? (
-          <Pressable
+          <PressableFade
             accessibilityLabel={
               passwordVisible ? "Hide password" : "Show password"
             }
@@ -84,7 +85,7 @@ export function FormTextInput({
               icon={passwordVisible ? ViewOffIcon : EyeIcon}
               size={20}
             />
-          </Pressable>
+          </PressableFade>
         ) : null}
       </View>
       <FieldError error={error} />

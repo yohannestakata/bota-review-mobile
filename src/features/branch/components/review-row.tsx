@@ -1,7 +1,7 @@
 import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
 import { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
 import { Photo } from "@/components/ui/photo";
 import { AppIcon } from "@/components/ui/huge-icon";
@@ -15,7 +15,7 @@ import { useColors } from "@/lib/theme";
 
 import type { BranchReview, ReviewReply } from "../api";
 import { PhotoViewer } from "./photo-viewer";
-import { PressableScale } from "@/components/ui/pressable-scale";
+import { PressableFade, PressableScale } from "@/components/ui/pressable-scale";
 
 const COLLAPSED_LINES = 4;
 const REPLY_PREVIEW_COUNT = 2;
@@ -85,14 +85,14 @@ function ReplyItem({
           </ThemedText>
         </View>
         {showReport ? (
-          <Pressable
+          <PressableFade
             accessibilityLabel="Report reply"
             accessibilityRole="button"
             hitSlop={12}
             onPress={onReport}
           >
             <AppIcon color={colors.muted} icon={MoreHorizontalIcon} size={18} />
-          </Pressable>
+          </PressableFade>
         ) : null}
       </View>
 
@@ -155,7 +155,7 @@ export function ReviewRow({
   return (
     <View className="gap-3">
       <View className="flex-row items-start gap-3">
-        <Pressable
+        <PressableFade
           className="flex-1 flex-row items-center gap-3"
           disabled={!onUserPress}
           onPress={() => onUserPress?.(review.user.id)}
@@ -184,16 +184,16 @@ export function ReviewRow({
               </ThemedText>
             </View>
           </View>
-        </Pressable>
+        </PressableFade>
         {onReport ? (
-          <Pressable
+          <PressableFade
             accessibilityLabel="Report review"
             accessibilityRole="button"
             hitSlop={12}
             onPress={() => onReport(review.id)}
           >
             <AppIcon color={colors.muted} icon={MoreHorizontalIcon} size={18} />
-          </Pressable>
+          </PressableFade>
         ) : null}
       </View>
 

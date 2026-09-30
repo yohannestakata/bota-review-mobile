@@ -13,7 +13,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Linking,
   Platform,
-  Pressable,
   RefreshControl,
   ScrollView,
   useWindowDimensions,
@@ -82,7 +81,7 @@ import {
   usePhotoFlightTarget,
 } from "@/features/branch/shared-photo";
 import { promptSignIn } from "@/lib/auth-gate";
-import { PressableScale } from "@/components/ui/pressable-scale";
+import { PressableFade, PressableScale } from "@/components/ui/pressable-scale";
 
 function Chip({ label }: { label: string }) {
   return (
@@ -422,7 +421,7 @@ export default function BranchDetailScreen() {
                     </View>
                   ) : null}
                   {shortAddress ? (
-                    <Pressable
+                    <PressableFade
                       accessibilityLabel={`Address: ${shortAddress}. Get directions`}
                       accessibilityRole="link"
                       className="flex-1 flex-row items-center gap-1.5"
@@ -442,7 +441,7 @@ export default function BranchDetailScreen() {
                       >
                         {shortAddress}
                       </ThemedText>
-                    </Pressable>
+                    </PressableFade>
                   ) : null}
                 </View>
               ) : null}
@@ -657,14 +656,14 @@ export default function BranchDetailScreen() {
                         <ThemedText size="xl" weight="bold">
                           Other locations
                         </ThemedText>
-                        <Pressable
+                        <PressableFade
                           hitSlop={8}
                           onPress={() => router.push(`/place/${data.place.id}`)}
                         >
                           <ThemedText tone="brand" weight="semibold">
                             See all
                           </ThemedText>
-                        </Pressable>
+                        </PressableFade>
                       </View>
                       <ScrollView
                         contentContainerClassName="gap-3 px-6"
@@ -688,7 +687,7 @@ export default function BranchDetailScreen() {
                       <Divider />
                     </View>
                     <View className="mt-6 px-6">
-                      <Pressable
+                      <PressableScale
                         className="flex-row items-center gap-3 rounded-2xl border border-placeholder p-4"
                         onPress={() =>
                           router.push({
@@ -713,7 +712,7 @@ export default function BranchDetailScreen() {
                             Know another {data.place.name} spot? Put it on Bota.
                           </ThemedText>
                         </View>
-                      </Pressable>
+                      </PressableScale>
                     </View>
                   </>
                 ) : null}
@@ -873,7 +872,7 @@ export default function BranchDetailScreen() {
 
                 {isOwnBranch ? (
                   <View className="mt-4 px-6">
-                    <Pressable
+                    <PressableScale
                       className="flex-row items-center justify-between rounded-2xl border border-placeholder bg-surface p-4"
                       onPress={() =>
                         router.push({
@@ -895,7 +894,7 @@ export default function BranchDetailScreen() {
                         icon={ArrowRight01Icon}
                         size={18}
                       />
-                    </Pressable>
+                    </PressableScale>
                   </View>
                 ) : null}
 
@@ -904,7 +903,7 @@ export default function BranchDetailScreen() {
               branch is owner-verified. */}
                 {data.verificationStatus !== "business_verified" ? (
                   <View className="mt-4 px-6">
-                    <Pressable
+                    <PressableScale
                       className="flex-row items-start gap-3 rounded-2xl border border-placeholder p-4"
                       onPress={() =>
                         requireSignIn(() =>
@@ -941,7 +940,7 @@ export default function BranchDetailScreen() {
                           size={18}
                         />
                       </View>
-                    </Pressable>
+                    </PressableScale>
                   </View>
                 ) : null}
               </>

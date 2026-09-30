@@ -6,7 +6,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, ScrollView, View } from "react-native";
 
 import { ChipButton } from "@/components/ui/button";
 import { AppIcon } from "@/components/ui/huge-icon";
@@ -16,6 +16,7 @@ import { useColors } from "@/lib/theme";
 import { usePickImage } from "@/lib/use-pick-image";
 
 import { uploadSubmissionPhoto, type SubmissionMenuItem } from "../api";
+import { PressableFade, PressableScale } from "@/components/ui/pressable-scale";
 
 type Item = {
   id: string;
@@ -165,7 +166,7 @@ export function MenuField({
             key={item.id}
           >
             <View className="flex-row items-center gap-2">
-              <Pressable
+              <PressableScale
                 accessibilityLabel={
                   item.imageUrl ? "Change dish photo" : "Add dish photo"
                 }
@@ -189,7 +190,7 @@ export function MenuField({
                     size={20}
                   />
                 )}
-              </Pressable>
+              </PressableScale>
               <TextField
                 className="flex-1"
                 onChangeText={(name) => setItem(item.id, { name })}
@@ -213,14 +214,14 @@ export function MenuField({
                 value={item.price}
               />
               {!singleItem && items.length > 1 ? (
-                <Pressable
+                <PressableFade
                   accessibilityLabel="Remove menu item"
                   accessibilityRole="button"
                   hitSlop={6}
                   onPress={() => removeItem(item.id)}
                 >
                   <AppIcon color={colors.muted} icon={Cancel01Icon} size={18} />
-                </Pressable>
+                </PressableFade>
               ) : null}
             </View>
 
@@ -265,7 +266,7 @@ export function MenuField({
       </View>
 
       {!singleItem ? (
-        <Pressable
+        <PressableFade
           className="flex-row items-center gap-1.5 self-start"
           hitSlop={6}
           onPress={() => apply([...items, makeItem()])}
@@ -274,7 +275,7 @@ export function MenuField({
           <ThemedText size="sm" weight="medium">
             Add item
           </ThemedText>
-        </Pressable>
+        </PressableFade>
       ) : null}
     </View>
   );

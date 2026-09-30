@@ -2,7 +2,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import { Add01Icon } from "@hugeicons/core-free-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ListErrorState } from "@/components/ui/list-state-placeholder";
@@ -22,6 +22,7 @@ import { analytics } from "@/lib/analytics";
 import type { BranchCard as BranchCardData } from "@/lib/api";
 import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 import { promptSignIn } from "@/lib/auth-gate";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 const EMPTY_SAVED = new Set<string>();
 
@@ -87,7 +88,7 @@ export default function PlaceOverviewScreen() {
             </View>
           }
           ListFooterComponent={
-            <Pressable
+            <PressableScale
               className="mt-5 flex-row items-center gap-3 rounded-2xl border border-placeholder p-4"
               onPress={() =>
                 router.push({
@@ -103,7 +104,7 @@ export default function PlaceOverviewScreen() {
                   Know another {place.data.name} spot? Put it on Bota.
                 </ThemedText>
               </View>
-            </Pressable>
+            </PressableScale>
           }
           onRefresh={pull.onRefresh}
           refreshing={pull.refreshing}

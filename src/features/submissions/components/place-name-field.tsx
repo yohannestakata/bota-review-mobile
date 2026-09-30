@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 import { FormTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { PlaceSearchResult } from "@/lib/api";
 
 import { useSearchPlaces } from "../queries";
+import { PressableFade } from "@/components/ui/pressable-scale";
 
 type PlaceNameFieldProps = {
   name: string;
@@ -52,19 +53,18 @@ export function PlaceNameField({
               Adding a new location to this place
             </ThemedText>
           </View>
-          <Pressable hitSlop={8} onPress={() => onSelectPlace(null)}>
+          <PressableFade hitSlop={8} onPress={() => onSelectPlace(null)}>
             <ThemedText size="sm" tone="brand" weight="medium">
               Change
             </ThemedText>
-          </Pressable>
+          </PressableFade>
         </View>
       </View>
     );
   }
 
   const results = search.data ?? [];
-  const showResults =
-    focused && name.trim().length >= 2 && results.length > 0;
+  const showResults = focused && name.trim().length >= 2 && results.length > 0;
 
   return (
     <View>
@@ -87,7 +87,7 @@ export function PlaceNameField({
             </ThemedText>
           </View>
           {results.map((place, index) => (
-            <Pressable
+            <PressableFade
               className={`px-5 py-3 ${index > 0 ? "border-t border-placeholder" : ""}`}
               key={place.id}
               onPress={() => {
@@ -100,7 +100,7 @@ export function PlaceNameField({
                 {place.branchCount} location
                 {place.branchCount === 1 ? "" : "s"} on Bota
               </ThemedText>
-            </Pressable>
+            </PressableFade>
           ))}
         </View>
       ) : null}

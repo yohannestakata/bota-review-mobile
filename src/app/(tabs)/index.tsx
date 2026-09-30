@@ -7,7 +7,7 @@ import {
 import { useColors } from "@/lib/theme";
 import { router } from "expo-router";
 import { useEffect, useMemo } from "react";
-import { Pressable, RefreshControl, ScrollView, View } from "react-native";
+import { RefreshControl, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
@@ -35,6 +35,7 @@ import { ThemedText } from "@/components/ui/themed-text";
 import { debugLog } from "@/lib/debug";
 import { useLocation } from "@/lib/use-location";
 import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
+import { PressableFade } from "@/components/ui/pressable-scale";
 
 const GREETING_SEED = Math.random();
 
@@ -127,7 +128,7 @@ export default function Index() {
       >
         <View className="mt-5 px-6">
           <View className="flex-row items-center justify-between">
-            <Pressable
+            <PressableFade
               accessibilityLabel={isSignedIn ? "Open profile" : "Sign in"}
               accessibilityRole="button"
               hitSlop={8}
@@ -152,7 +153,7 @@ export default function Index() {
                   />
                 </View>
               )}
-            </Pressable>
+            </PressableFade>
             <LocationPill
               label={location.label}
               onPress={() => void location.request()}

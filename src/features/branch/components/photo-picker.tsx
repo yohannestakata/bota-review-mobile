@@ -5,13 +5,14 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useColors } from "@/lib/theme";
 
 import type { PickedPhoto } from "../api";
+import { PressableFade, PressableScale } from "@/components/ui/pressable-scale";
 
 const THUMB = 72;
 const GAP = 8;
@@ -75,7 +76,7 @@ export function PhotoPicker({
       </View>
 
       {photos.length === 0 ? (
-        <Pressable
+        <PressableFade
           accessibilityLabel={`Add photos, up to ${max}`}
           accessibilityRole="button"
           className="h-14 flex-row items-center gap-3 rounded-xl border border-placeholder bg-surface px-4"
@@ -93,7 +94,7 @@ export function PhotoPicker({
           <ThemedText size="sm" tone="muted">
             Up to {max}
           </ThemedText>
-        </Pressable>
+        </PressableFade>
       ) : (
         <View
           className="flex-row flex-wrap"
@@ -112,7 +113,7 @@ export function PhotoPicker({
                 source={photo.uri}
                 style={{ width: "100%", height: "100%" }}
               />
-              <Pressable
+              <PressableFade
                 accessibilityLabel={`Remove photo ${index + 1}`}
                 accessibilityRole="button"
                 className="absolute items-center justify-center rounded-full bg-black/60"
@@ -128,12 +129,12 @@ export function PhotoPicker({
                 }}
               >
                 <AppIcon color={colors.inverse} icon={Cancel01Icon} size={10} />
-              </Pressable>
+              </PressableFade>
             </View>
           ))}
 
           {canAdd || adding ? (
-            <Pressable
+            <PressableScale
               accessibilityLabel="Add another photo"
               accessibilityRole="button"
               className="items-center justify-center rounded-xl border border-placeholder bg-surface"
@@ -146,7 +147,7 @@ export function PhotoPicker({
               ) : (
                 <AppIcon color={colors.foreground} icon={Add01Icon} size={22} />
               )}
-            </Pressable>
+            </PressableScale>
           ) : null}
         </View>
       )}

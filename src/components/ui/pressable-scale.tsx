@@ -58,3 +58,41 @@ export const PressableScale = forwardRef<
     />
   );
 });
+
+// The same feedback for things that shouldn't change size (text links, icon
+// buttons, list rows): dims to 60% on press-in, same timing and scroll-safe
+// press delay as PressableScale.
+export const PressableFade = forwardRef<
+  View,
+  ComponentProps<typeof Pressable> & { className?: string }
+>(function PressableFade(
+  { onPressIn, onPressOut, style, pressRetentionOffset, ...props },
+  ref,
+) {
+  const [pressed, setPressed] = useState(false);
+  return (
+    <AnimatedPressable
+      {...props}
+      onPressIn={(e) => {
+        setPressed(true);
+        onPressIn?.(e);
+      }}
+      onPressOut={(e) => {
+        setPressed(false);
+        onPressOut?.(e);
+      }}
+      pressRetentionOffset={pressRetentionOffset ?? 16}
+      unstable_pressDelay={props.unstable_pressDelay ?? 90}
+      ref={ref}
+      style={[
+        style as object,
+        {
+          opacity: pressed && !props.disabled ? 0.6 : 1,
+          transitionProperty: "opacity",
+          transitionDuration: 120,
+          transitionTimingFunction: EASE_OUT,
+        },
+      ]}
+    />
+  );
+});

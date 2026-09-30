@@ -4,7 +4,7 @@ import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import {
   KeyboardAvoidingView,
   KeyboardAwareScrollView,
@@ -49,6 +49,7 @@ import {
 import { zodFormResolver } from "@/lib/zod-resolver";
 import { useColors } from "@/lib/theme";
 import { usePickImage } from "@/lib/use-pick-image";
+import { PressableFade, PressableScale } from "@/components/ui/pressable-scale";
 
 const DAYS = [
   ["mon", "Monday"],
@@ -318,7 +319,7 @@ export default function ManageListingScreen() {
                 )}
               </View>
               <View className="flex-1 items-start gap-2">
-                <Pressable
+                <PressableScale
                   className="rounded-full border border-primary px-4 py-2"
                   disabled={uploadingAvatar}
                   onPress={pickAndUploadAvatar}
@@ -326,9 +327,9 @@ export default function ManageListingScreen() {
                   <ThemedText size="sm" tone="brand" weight="medium">
                     {data?.place.avatarUrl ? "Change logo" : "Upload logo"}
                   </ThemedText>
-                </Pressable>
+                </PressableScale>
                 {data?.place.avatarUrl ? (
-                  <Pressable
+                  <PressableFade
                     disabled={uploadingAvatar}
                     hitSlop={6}
                     onPress={removeAvatar}
@@ -336,7 +337,7 @@ export default function ManageListingScreen() {
                     <ThemedText size="sm" tone="muted">
                       Remove
                     </ThemedText>
-                  </Pressable>
+                  </PressableFade>
                 ) : null}
               </View>
             </View>
@@ -508,16 +509,16 @@ export default function ManageListingScreen() {
                         </ThemedText>
                       </View>
                     ) : (
-                      <Pressable
+                      <PressableScale
                         className="absolute bottom-1 left-1 rounded-full bg-surface px-2 py-0.5"
                         onPress={() => void makeCover(photo.id)}
                       >
                         <ThemedText size="xs" weight="medium">
                           Set cover
                         </ThemedText>
-                      </Pressable>
+                      </PressableScale>
                     )}
-                    <Pressable
+                    <PressableFade
                       accessibilityLabel="Remove photo"
                       accessibilityRole="button"
                       className="absolute right-1 top-1 size-6 items-center justify-center rounded-full bg-black/60"
@@ -529,10 +530,10 @@ export default function ManageListingScreen() {
                         icon={Cancel01Icon}
                         size={12}
                       />
-                    </Pressable>
+                    </PressableFade>
                   </View>
                 ))}
-              <Pressable
+              <PressableScale
                 className="items-center justify-center rounded-xl border border-placeholder bg-surface"
                 disabled={uploadingPhoto}
                 onPress={pickAndUploadPhoto}
@@ -548,7 +549,7 @@ export default function ManageListingScreen() {
                     </ThemedText>
                   </View>
                 )}
-              </Pressable>
+              </PressableScale>
             </View>
           </View>
         </KeyboardAwareScrollView>

@@ -3,7 +3,7 @@ import { zodFormResolver } from "@/lib/zod-resolver";
 import { Link, router } from "expo-router";
 import type { Href } from "expo-router";
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -22,6 +22,7 @@ import {
 import { debugLog } from "@/lib/debug";
 import { emailField } from "@/lib/validation";
 import { analytics } from "@/lib/analytics";
+import { PressableFade } from "@/components/ui/pressable-scale";
 
 const accountSchema = z.object({
   email: emailField,
@@ -219,12 +220,12 @@ export default function SignupScreen() {
             selectTextOnFocus
           />
           <View className="flex-row justify-between">
-            <Pressable hitSlop={8} onPress={changeEmail}>
+            <PressableFade hitSlop={8} onPress={changeEmail}>
               <ThemedText size="sm" tone="muted" weight="medium">
                 Change email
               </ThemedText>
-            </Pressable>
-            <Pressable
+            </PressableFade>
+            <PressableFade
               disabled={resendLoading}
               hitSlop={8}
               onPress={resendCode}
@@ -232,7 +233,7 @@ export default function SignupScreen() {
               <ThemedText size="sm" tone="brand" weight="semibold">
                 {resendLoading ? "Sending…" : "Resend code"}
               </ThemedText>
-            </Pressable>
+            </PressableFade>
           </View>
         </>
       ) : (

@@ -1,4 +1,4 @@
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackHeader } from "@/components/ui/screen-header";
@@ -6,6 +6,7 @@ import { SkeletonChips, SkeletonText } from "@/components/ui/skeleton";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useTasteOptionsQuery, useTastePreferences } from "@/features/home";
 import { cn } from "@/lib/cn";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 export default function TastePreferencesScreen() {
   const options = useTasteOptionsQuery();
@@ -52,7 +53,7 @@ export default function TastePreferencesScreen() {
                         option.id,
                       );
                       return (
-                        <Pressable
+                        <PressableScale
                           className={cn(
                             "rounded-full border px-4 py-2.5",
                             selected
@@ -68,7 +69,7 @@ export default function TastePreferencesScreen() {
                           >
                             {option.name}
                           </ThemedText>
-                        </Pressable>
+                        </PressableScale>
                       );
                     })}
                 </View>

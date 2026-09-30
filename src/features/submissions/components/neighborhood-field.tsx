@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 import { FormTextInput } from "@/components/ui/form-field";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useNeighborhoods } from "@/features/taxonomy";
+import { PressableFade } from "@/components/ui/pressable-scale";
 
 type NeighborhoodFieldProps = {
   value: string;
@@ -48,7 +49,7 @@ export function NeighborhoodField({
       {showSuggestions ? (
         <View className="mt-2 overflow-hidden rounded-2xl border border-placeholder bg-surface">
           {suggestions.map((neighborhood, index) => (
-            <Pressable
+            <PressableFade
               className={`px-5 py-3 ${index > 0 ? "border-t border-placeholder" : ""}`}
               key={neighborhood.id}
               onPress={() => {
@@ -57,7 +58,7 @@ export function NeighborhoodField({
               }}
             >
               <ThemedText>{neighborhood.name}</ThemedText>
-            </Pressable>
+            </PressableFade>
           ))}
         </View>
       ) : null}

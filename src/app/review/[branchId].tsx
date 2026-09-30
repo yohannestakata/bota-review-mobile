@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState, type ComponentProps } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import {
   KeyboardAvoidingView,
   KeyboardAwareScrollView,
@@ -54,6 +54,7 @@ import {
   loadReviewDraft,
   saveReviewDraft,
 } from "@/features/branch/review-draft";
+import { PressableFade } from "@/components/ui/pressable-scale";
 
 const MIN_CHARS = 20;
 const MAX_CHARS = 2000;
@@ -577,7 +578,7 @@ export default function WriteReviewScreen() {
               When did you visit?
             </ThemedText>
             <View className="flex-row items-center gap-3">
-              <Pressable
+              <PressableFade
                 className="h-14 flex-1 flex-row items-center gap-3 rounded-xl border border-placeholder bg-surface px-4"
                 onPress={() => setShowDatePicker(true)}
               >
@@ -585,7 +586,7 @@ export default function WriteReviewScreen() {
                 <ThemedText size="sm" tone={visitDate ? "default" : "muted"}>
                   {visitDate ? formatVisitDate(visitDate) : "Optional"}
                 </ThemedText>
-              </Pressable>
+              </PressableFade>
               {visitDate ? (
                 <TextButton
                   accessibilityLabel="Clear visit date"

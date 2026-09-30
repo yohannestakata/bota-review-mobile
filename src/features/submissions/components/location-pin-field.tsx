@@ -1,11 +1,12 @@
 import { Cancel01Icon, Location01Icon } from "@hugeicons/core-free-icons";
 import * as Location from "expo-location";
 import { useState } from "react";
-import { Linking, Pressable, View } from "react-native";
+import { Linking, View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useColors } from "@/lib/theme";
+import { PressableFade, PressableScale } from "@/components/ui/pressable-scale";
 
 export type PinCoords = { lat: number; lng: number };
 
@@ -69,17 +70,17 @@ export function LocationPinField({
               </ThemedText>
             </View>
           </View>
-          <Pressable
+          <PressableFade
             accessibilityLabel="Clear pinned location"
             accessibilityRole="button"
             hitSlop={8}
             onPress={() => onChange(null)}
           >
             <AppIcon color={colors.muted} icon={Cancel01Icon} size={18} />
-          </Pressable>
+          </PressableFade>
         </View>
       ) : (
-        <Pressable
+        <PressableScale
           className="flex-row items-center justify-center gap-2 rounded-xl border border-placeholder bg-background px-4 py-3.5"
           disabled={loading}
           onPress={pin}
@@ -88,7 +89,7 @@ export function LocationPinField({
           <ThemedText weight="medium">
             {loading ? "Getting location…" : "Pin current location"}
           </ThemedText>
-        </Pressable>
+        </PressableScale>
       )}
 
       <ThemedText size="xs" tone="muted">

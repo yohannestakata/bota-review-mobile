@@ -1,9 +1,9 @@
 import { Location01Icon } from "@hugeicons/core-free-icons";
-import { Pressable } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useColors } from "@/lib/theme";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 type LocationPillProps = {
   label: string | null;
@@ -21,7 +21,7 @@ export function LocationPill({ label, status, onPress }: LocationPillProps) {
   }[status];
 
   return (
-    <Pressable
+    <PressableScale
       className="flex-row items-center gap-1.5 self-start rounded-full border border-border bg-surface px-4 py-2"
       hitSlop={6}
       onPress={onPress}
@@ -30,6 +30,6 @@ export function LocationPill({ label, status, onPress }: LocationPillProps) {
       <ThemedText size="sm" weight="medium">
         {text}
       </ThemedText>
-    </Pressable>
+    </PressableScale>
   );
 }

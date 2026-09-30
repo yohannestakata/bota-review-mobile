@@ -8,13 +8,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, ScrollView, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Alert } from "@/components/ui/alert";
@@ -46,6 +40,7 @@ import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useDeviceList } from "@/lib/use-device-list";
 import { useLocation } from "@/lib/use-location";
 import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
+import { PressableFade, PressableScale } from "@/components/ui/pressable-scale";
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value)
@@ -305,21 +300,21 @@ export default function SearchScreen() {
             value={text}
           />
           {text.length > 0 ? (
-            <Pressable
+            <PressableFade
               accessibilityLabel="Clear search"
               accessibilityRole="button"
               hitSlop={8}
               onPress={() => setText("")}
             >
               <AppIcon color={colors.muted} icon={Cancel01Icon} size={18} />
-            </Pressable>
+            </PressableFade>
           ) : null}
         </View>
 
         <View className="flex-row gap-2">
           {/* Styled to match ChipButton (selected = filled) so it reads as part
               of the same row as Nearby / Open now. */}
-          <Pressable
+          <PressableScale
             accessibilityRole="button"
             className={`flex-row items-center gap-2 rounded-full px-4 py-2 ${
               filterCount > 0
@@ -340,7 +335,7 @@ export default function SearchScreen() {
             >
               {filterCount > 0 ? `Filters · ${filterCount}` : "Filters"}
             </ThemedText>
-          </Pressable>
+          </PressableScale>
 
           <ChipButton
             label="Nearby"
@@ -361,7 +356,7 @@ export default function SearchScreen() {
           />
 
           {/* List / Map toggle, pushed to the end of the row. */}
-          <Pressable
+          <PressableScale
             accessibilityLabel={view === "map" ? "Show list" : "Show map"}
             accessibilityRole="button"
             className="size-10 items-center justify-center rounded-full border border-placeholder bg-surface"
@@ -380,7 +375,7 @@ export default function SearchScreen() {
               icon={view === "map" ? ListViewIcon : MapsIcon}
               size={18}
             />
-          </Pressable>
+          </PressableScale>
         </View>
 
         {activeChips.length > 0 ? (
@@ -391,7 +386,7 @@ export default function SearchScreen() {
             showsHorizontalScrollIndicator={false}
           >
             {activeChips.map((chip) => (
-              <Pressable
+              <PressableScale
                 accessibilityLabel={`Remove ${chip.label} filter`}
                 accessibilityRole="button"
                 className="flex-row items-center gap-1.5 rounded-full border border-placeholder bg-surface px-4 py-2"
@@ -403,7 +398,7 @@ export default function SearchScreen() {
                   {chip.label}
                 </ThemedText>
                 <AppIcon color={colors.muted} icon={Cancel01Icon} size={14} />
-              </Pressable>
+              </PressableScale>
             ))}
           </ScrollView>
         ) : null}

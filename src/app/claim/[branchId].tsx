@@ -2,7 +2,7 @@ import { zodFormResolver } from "@/lib/zod-resolver";
 import { CheckmarkBadge01Icon, Clock01Icon } from "@hugeicons/core-free-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import {
   KeyboardAvoidingView,
   KeyboardAwareScrollView,
@@ -33,6 +33,7 @@ import { cn } from "@/lib/cn";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 import { useColors } from "@/lib/theme";
 import { emailField, EMAIL_REGEX } from "@/lib/validation";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 const ROLES = [
   { value: "owner", label: "Owner" },
@@ -343,7 +344,7 @@ export default function ClaimBusinessScreen() {
                   {VERIFICATION_METHODS.map((method) => {
                     const selected = field.value === method.value;
                     return (
-                      <Pressable
+                      <PressableScale
                         key={method.value}
                         className={cn(
                           "rounded-2xl border p-4",
@@ -357,7 +358,7 @@ export default function ClaimBusinessScreen() {
                         <ThemedText size="sm" tone="muted">
                           {method.description}
                         </ThemedText>
-                      </Pressable>
+                      </PressableScale>
                     );
                   })}
                 </View>

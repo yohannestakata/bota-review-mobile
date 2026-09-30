@@ -5,7 +5,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
 import { useEffect, type ReactNode } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import Animated, {
   Easing,
   FadeIn,
@@ -21,6 +21,7 @@ import { ThemedText } from "@/components/ui/themed-text";
 import type { BranchCard } from "@/lib/api";
 import { haptics } from "@/lib/haptics";
 import { useColors } from "@/lib/theme";
+import { PressableScale } from "@/components/ui/pressable-scale";
 
 // Rare-tier moment (once per posted review), purpose: delight. All five stars
 // sit grey from the first frame; the ones the user gave are stamped in green one
@@ -123,10 +124,7 @@ export function ReviewCelebration({
     // as the success — a small crescendo rather than identical ticks.
     const timers = Array.from({ length: rating }, (_, index) =>
       setTimeout(
-        () =>
-          index === rating - 1
-            ? haptics.success()
-            : haptics.star(),
+        () => (index === rating - 1 ? haptics.success() : haptics.star()),
         FILL_START_MS + index * FILL_STAGGER_MS + FILL_MS * LAND_AT,
       ),
     );
@@ -275,7 +273,7 @@ function SuggestionRow({
     .join(" · ");
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityLabel={`Review ${branch.placeName}`}
       accessibilityRole="button"
       className="flex-row items-center gap-3 rounded-2xl bg-surface-muted p-3"
@@ -308,6 +306,6 @@ function SuggestionRow({
         Rate it
       </ThemedText>
       <AppIcon color={colors.primary} icon={ArrowRight01Icon} size={18} />
-    </Pressable>
+    </PressableScale>
   );
 }

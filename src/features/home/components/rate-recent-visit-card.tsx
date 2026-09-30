@@ -1,7 +1,7 @@
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
@@ -13,6 +13,7 @@ import { analytics } from "@/lib/analytics";
 import { useColors } from "@/lib/theme";
 import { useDeviceList } from "@/lib/use-device-list";
 import { useRecentlyViewed } from "@/lib/use-recently-viewed";
+import { PressableFade } from "@/components/ui/pressable-scale";
 
 // Looked it up a few hours ago → they probably went. Two weeks on, the visit is
 // too fuzzy to rate well.
@@ -75,7 +76,7 @@ export function RateRecentVisitCard() {
             Tap or slide to rate your visit.
           </ThemedText>
         </View>
-        <Pressable
+        <PressableFade
           accessibilityLabel={`Don't ask about ${place.name} again`}
           accessibilityRole="button"
           hitSlop={10}
@@ -85,7 +86,7 @@ export function RateRecentVisitCard() {
           }}
         >
           <AppIcon color={colors.muted} icon={Cancel01Icon} size={18} />
-        </Pressable>
+        </PressableFade>
       </View>
       <View className="mt-3">
         <TapToRate

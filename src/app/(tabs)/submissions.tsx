@@ -4,7 +4,7 @@ import { zodFormResolver } from "@/lib/zod-resolver";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import {
   KeyboardAvoidingView,
   KeyboardAwareScrollView,
@@ -37,6 +37,7 @@ import {
 import { useAmenities, useCuisines, useTags } from "@/features/taxonomy";
 import { getErrorMessage } from "@/lib/api";
 import { optionalEmailField } from "@/lib/validation";
+import { PressableFade } from "@/components/ui/pressable-scale";
 
 const submissionSchema = z.object({
   placeName: z.string().trim().min(1, "Place name is required"),
@@ -135,7 +136,7 @@ function SectionToggle({
 }) {
   const colors = useColors();
   return (
-    <Pressable
+    <PressableFade
       className="flex-row items-center justify-between gap-3 border-t border-border py-4"
       onPress={onPress}
     >
@@ -150,7 +151,7 @@ function SectionToggle({
         icon={expanded ? ArrowUp01Icon : ArrowDown01Icon}
         size={20}
       />
-    </Pressable>
+    </PressableFade>
   );
 }
 

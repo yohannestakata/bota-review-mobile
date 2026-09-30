@@ -1,25 +1,26 @@
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 import { ThemedText } from "@/components/ui/themed-text";
 import { openLegal, PRIVACY_POLICY_URL, TERMS_URL } from "@/lib/legal";
+import { PressableFade } from "@/components/ui/pressable-scale";
 
 // Compact "Privacy Policy · Terms of Service" row — for settings/profile.
 export function LegalLinks() {
   return (
     <View className="flex-row items-center justify-center gap-3">
-      <Pressable hitSlop={6} onPress={() => openLegal(PRIVACY_POLICY_URL)}>
+      <PressableFade hitSlop={6} onPress={() => openLegal(PRIVACY_POLICY_URL)}>
         <ThemedText size="xs" tone="muted">
           Privacy Policy
         </ThemedText>
-      </Pressable>
+      </PressableFade>
       <ThemedText size="xs" tone="muted">
         ·
       </ThemedText>
-      <Pressable hitSlop={6} onPress={() => openLegal(TERMS_URL)}>
+      <PressableFade hitSlop={6} onPress={() => openLegal(TERMS_URL)}>
         <ThemedText size="xs" tone="muted">
           Terms of Service
         </ThemedText>
-      </Pressable>
+      </PressableFade>
     </View>
   );
 }

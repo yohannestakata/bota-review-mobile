@@ -1,6 +1,6 @@
 import { BubbleChatIcon } from "@hugeicons/core-free-icons";
 import { router } from "expo-router";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { TextButton } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
 import { getErrorMessage } from "@/lib/api";
 import { usePullToRefresh } from "@/lib/use-pull-to-refresh";
 import { useState } from "react";
+import { PressableFade } from "@/components/ui/pressable-scale";
 
 function statusLabel(status: MyReply["moderationStatus"]): string | null {
   if (status === "pending") return "Under review";
@@ -41,7 +42,7 @@ function ReplyRow({
   const status = statusLabel(reply.moderationStatus);
   return (
     <View className="gap-2 rounded-2xl border border-placeholder bg-surface p-4">
-      <Pressable
+      <PressableFade
         onPress={() => router.push(`/branch/${reply.branchId}`)}
         className="flex-row items-center justify-between gap-2"
       >
@@ -55,7 +56,7 @@ function ReplyRow({
             </ThemedText>
           </View>
         ) : null}
-      </Pressable>
+      </PressableFade>
 
       <ThemedText size="sm">{reply.body}</ThemedText>
 

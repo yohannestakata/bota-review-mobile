@@ -3,7 +3,7 @@ import { zodFormResolver } from "@/lib/zod-resolver";
 import { router } from "expo-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import {
   KeyboardAvoidingView,
   KeyboardAwareScrollView,
@@ -22,6 +22,7 @@ import { getAuthMessage } from "@/lib/auth";
 import { useDiscardConfirm } from "@/lib/use-discard-confirm";
 import { openLegal, PRIVACY_POLICY_URL, TERMS_URL } from "@/lib/legal";
 import { usePickImage } from "@/lib/use-pick-image";
+import { PressableFade } from "@/components/ui/pressable-scale";
 
 const editProfileSchema = z.object({
   firstName: z.string().trim().optional(),
@@ -142,11 +143,11 @@ export default function EditProfileScreen() {
               size={96}
               uri={avatarUri ?? user?.imageUrl}
             />
-            <Pressable hitSlop={8} onPress={pickAvatar}>
+            <PressableFade hitSlop={8} onPress={pickAvatar}>
               <ThemedText tone="brand" weight="semibold">
                 Change photo
               </ThemedText>
-            </Pressable>
+            </PressableFade>
           </View>
 
           <ControlledTextInput
@@ -189,16 +190,16 @@ export default function EditProfileScreen() {
           ) : null}
 
           <View className="mt-2 gap-3 border-t border-border pt-5">
-            <Pressable
+            <PressableFade
               hitSlop={6}
               onPress={() => openLegal(PRIVACY_POLICY_URL)}
             >
               <ThemedText weight="medium">Privacy Policy</ThemedText>
-            </Pressable>
-            <Pressable hitSlop={6} onPress={() => openLegal(TERMS_URL)}>
+            </PressableFade>
+            <PressableFade hitSlop={6} onPress={() => openLegal(TERMS_URL)}>
               <ThemedText weight="medium">Terms of Service</ThemedText>
-            </Pressable>
-            <Pressable
+            </PressableFade>
+            <PressableFade
               disabled={deleting}
               hitSlop={6}
               onPress={onDeleteAccount}
@@ -206,7 +207,7 @@ export default function EditProfileScreen() {
               <ThemedText tone="danger" weight="medium">
                 {deleting ? "Deleting account…" : "Delete account"}
               </ThemedText>
-            </Pressable>
+            </PressableFade>
           </View>
         </KeyboardAwareScrollView>
 
