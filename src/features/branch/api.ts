@@ -13,6 +13,7 @@ export type BranchPhoto = {
   id: string;
   reviewId: string | null;
   url: string;
+  thumbhash?: string | null;
   width: number;
   height: number;
   category: string;
@@ -48,7 +49,13 @@ export type BranchReview = {
     avatarUrl: string | null;
     trustLevel: string;
   };
-  photos: { id: string; url: string; width: number; height: number }[];
+  photos: {
+    id: string;
+    url: string;
+    thumbhash?: string | null;
+    width: number;
+    height: number;
+  }[];
   // Approved replies (owner + user), oldest-first. Optional: older cached
   // responses predate replies.
   replies?: ReviewReply[];

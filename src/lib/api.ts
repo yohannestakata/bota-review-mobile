@@ -241,6 +241,8 @@ export type BranchCard = {
   label: string | null;
   neighborhood: Neighborhood | null;
   coverPhotoUrl: string | null;
+  /** Instant blurred placeholder for the cover (ThumbHash, base64). */
+  coverPhotoThumbhash?: string | null;
   rating: number;
   reviewCount: number;
   priceLevel: number | null;

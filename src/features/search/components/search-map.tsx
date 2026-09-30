@@ -588,6 +588,7 @@ function PlaceCard({
             <Photo
               displayWidth={84}
               style={{ width: "100%", height: "100%" }}
+              thumbhash={branch.coverPhotoThumbhash}
               uri={branch.coverPhotoUrl}
             />
           ) : (

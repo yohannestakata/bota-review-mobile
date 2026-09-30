@@ -77,6 +77,7 @@ export function PublicReviewRow({
                 <Photo
                   displayWidth={96}
                   style={{ width: 96, height: 96, borderRadius: 12 }}
+                  thumbhash={photo.thumbhash}
                   uri={photo.url}
                 />
               </PressableScale>

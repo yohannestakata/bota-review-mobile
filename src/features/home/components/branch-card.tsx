@@ -96,6 +96,7 @@ export function BranchCard({
           <Photo
             displayWidth={layout === "portrait" ? width / 2 : width}
             style={{ width: "100%", height: "100%" }}
+            thumbhash={branch.coverPhotoThumbhash}
             uri={branch.coverPhotoUrl}
           />
         ) : (

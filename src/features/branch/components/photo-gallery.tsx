@@ -32,6 +32,7 @@ import { PressableScale } from "@/components/ui/pressable-scale";
 export type GalleryPhoto = {
   id: string;
   url: string;
+  thumbhash?: string | null;
   category?: string | null;
 };
 
@@ -353,6 +354,7 @@ export function PhotoGallery({
                           borderRadius: 8,
                           opacity: index === current ? 1 : 0.45,
                         }}
+                        thumbhash={item.thumbhash}
                         transition={150}
                         uri={item.url}
                       />

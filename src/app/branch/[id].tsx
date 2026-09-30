@@ -353,6 +353,7 @@ export default function BranchDetailScreen() {
         style={{ flex: 1 }}
       >
         <BranchHero
+          imageThumbhash={coverPhoto?.thumbhash}
           imageUrl={cover}
           onPress={
             data.photos.length > 0
@@ -634,6 +635,7 @@ export default function BranchDetailScreen() {
                                   height: 150,
                                   borderRadius: 16,
                                 }}
+                                thumbhash={photo.thumbhash}
                                 uri={photo.url}
                               />
                             </PressableScale>

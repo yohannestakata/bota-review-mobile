@@ -63,16 +63,20 @@ export function heroPhotoUrl(url: string) {
   return sizedPhotoUrl(url, Dimensions.get("window").width);
 }
 
-// Photos of places: a blurred preview right away, then a short fade into the
+// Photos of places: a blurred preview right away (from the photo's ThumbHash
+// when the API sends one, else a tiny blurred copy from the CDN), then a short fade into the
 // full image. Use for remote place/review photos, not icons or avatars.
 export function Photo({
   uri,
   transition = 250,
   contentFit = "cover",
   displayWidth,
+  thumbhash,
   ...props
 }: Omit<ImageProps, "source" | "placeholder"> & {
   uri: string;
+  /** Drawn instantly with no download; preferred over the blurred URL. */
+  thumbhash?: string | null;
   /** How wide it's shown, in points; picks a right-sized download. */
   displayWidth?: number;
 }) {
@@ -81,7 +85,13 @@ export function Photo({
     <Image
       {...props}
       contentFit={contentFit}
-      placeholder={placeholder ? { uri: placeholder } : undefined}
+      placeholder={
+        thumbhash
+          ? { thumbhash }
+          : placeholder
+            ? { uri: placeholder }
+            : undefined
+      }
       placeholderContentFit="cover"
       source={{ uri: sizedPhotoUrl(uri, displayWidth) }}
       transition={transition}

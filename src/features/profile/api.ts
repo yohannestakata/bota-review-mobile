@@ -84,6 +84,7 @@ export type PublicReview = {
   photos: {
     id: string;
     url: string;
+    thumbhash?: string | null;
     width: number;
     height: number;
   }[];

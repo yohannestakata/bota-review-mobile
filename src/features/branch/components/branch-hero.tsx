@@ -15,11 +15,17 @@ export { HERO_HEIGHT };
 
 type BranchHeroProps = {
   imageUrl: string | null;
+  imageThumbhash?: string | null;
   scrollY: SharedValue<number>;
   onPress?: () => void;
 };
 
-export function BranchHero({ imageUrl, scrollY, onPress }: BranchHeroProps) {
+export function BranchHero({
+  imageUrl,
+  imageThumbhash,
+  scrollY,
+  onPress,
+}: BranchHeroProps) {
   const { width } = useWindowDimensions();
   // Hidden while a card's photo is flying in to cover it (see shared-photo).
   const photoStyle = useAnimatedStyle(() => ({
@@ -70,6 +76,7 @@ export function BranchHero({ imageUrl, scrollY, onPress }: BranchHeroProps) {
           <Animated.View style={[{ flex: 1 }, photoStyle]}>
             <Photo
               displayWidth={width}
+              thumbhash={imageThumbhash}
               style={{ width: "100%", height: "100%" }}
               uri={imageUrl}
             />
