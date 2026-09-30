@@ -7,7 +7,7 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { useFonts } from "expo-font";
 import * as Notifications from "expo-notifications";
 import { ObserveRoot, useObserve } from "expo-observe";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect } from "react";
@@ -37,6 +37,7 @@ import {
   shouldPersistQuery,
 } from "@/lib/query-persistence";
 import { useColors } from "@/lib/theme";
+import { hideSplash, SPLASH_MAX_WAIT_MS, TAB_ROOT_PATHS } from "@/lib/splash";
 
 void SplashScreen.preventAutoHideAsync();
 void WebBrowser.maybeCompleteAuthSession();
@@ -61,6 +62,7 @@ function RootLayout() {
   // Re-render the tree (and colors.* reads) when the system scheme changes.
   const scheme = useColorScheme();
   const { markInteractive } = useObserve();
+  const pathname = usePathname();
   const [fontsLoaded] = useFonts({
     "Outfit-Black": require("../../assets/fonts/Outfit-Black.ttf"),
     "Outfit-Bold": require("../../assets/fonts/Outfit-Bold.ttf"),
@@ -74,12 +76,18 @@ function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
-      debugLog("root", "fonts loaded");
-      void SplashScreen.hideAsync();
-      // App is ready to render and accept input — mark Time to Interactive.
-      markInteractive();
-    }
+    if (!fontsLoaded) return;
+    debugLog("root", "fonts loaded");
+    // App is ready to render and accept input — mark Time to Interactive.
+    markInteractive();
+    // Tabs hide the splash themselves once signed-in state and the cached
+    // feed are ready; any other first screen (a shared link, a notification)
+    // shows as soon as it can draw. Never wait longer than the cap.
+    if (!TAB_ROOT_PATHS.has(pathname)) hideSplash();
+    const cap = setTimeout(hideSplash, SPLASH_MAX_WAIT_MS);
+    return () => clearTimeout(cap);
+    // Only the first screen decides; later navigation doesn't matter.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fontsLoaded, markInteractive]);
 
   useEffect(() => {

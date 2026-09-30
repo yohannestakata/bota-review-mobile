@@ -26,6 +26,7 @@ import {
 import { useMe } from "@/features/profile";
 import { debugLog } from "@/lib/debug";
 import { clearPushRegistration } from "@/lib/push-registration";
+import { hideSplash } from "@/lib/splash";
 
 type SyncState = "pending" | "ready" | "error";
 
@@ -114,7 +115,12 @@ export default function TabLayout() {
         ? "error"
         : "pending";
 
-  if (!isLoaded || isRestoring) {
+  const tabsReady = isLoaded && !isRestoring;
+  useEffect(() => {
+    if (tabsReady) hideSplash();
+  }, [tabsReady]);
+
+  if (!tabsReady) {
     return <TabsLoadingScreen />;
   }
 
