@@ -21,7 +21,7 @@ import { ThemedText } from "@/components/ui/themed-text";
 import {
   branchKeys,
   getBranch,
-  PhotoGrid,
+  PhotoPicker,
   RatingInput,
   ReviewCelebration,
   uploadReviewPhoto,
@@ -573,7 +573,7 @@ export default function WriteReviewScreen() {
             </ThemedText>
             <View className="flex-row items-center gap-3">
               <Pressable
-                className="flex-1 flex-row items-center gap-2 rounded-2xl border border-placeholder bg-surface px-4 py-3"
+                className="h-14 flex-1 flex-row items-center gap-3 rounded-xl border border-placeholder bg-surface px-4"
                 onPress={() => setShowDatePicker(true)}
               >
                 <AppIcon color={colors.muted} icon={Calendar03Icon} size={18} />
@@ -610,17 +610,14 @@ export default function WriteReviewScreen() {
           </View>
 
           {!isEdit ? (
-            <View className="gap-2">
-              <ThemedText size="xl" weight="bold">
-                Add a few photos
-              </ThemedText>
-              <PhotoGrid
-                canAdd={photos.length < MAX_PHOTOS}
-                onAdd={pickPhotos}
-                onRemove={removePhoto}
-                photos={photos}
-              />
-            </View>
+            <PhotoPicker
+              heading
+              label="Add a few photos"
+              max={MAX_PHOTOS}
+              onAdd={pickPhotos}
+              onRemove={removePhoto}
+              photos={photos}
+            />
           ) : null}
         </ScrollView>
 

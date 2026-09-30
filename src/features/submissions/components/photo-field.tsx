@@ -3,7 +3,7 @@ import { useState } from "react";
 import { View } from "react-native";
 
 import { ThemedText } from "@/components/ui/themed-text";
-import { PhotoGrid } from "@/features/branch";
+import { PhotoPicker } from "@/features/branch";
 import type { PickedPhoto } from "@/features/branch/api";
 import { usePickImage } from "@/lib/use-pick-image";
 
@@ -26,7 +26,7 @@ export function PhotoField({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // PhotoGrid renders PickedPhoto[]; expo-image loads the Cloudinary url as the
+  // PhotoPicker renders PickedPhoto[]; expo-image loads the Cloudinary url as the
   // cell source, and removal keys off that same url.
   const gridPhotos: PickedPhoto[] = value.map((photo) => ({
     uri: photo.url,
@@ -67,13 +67,10 @@ export function PhotoField({
 
   return (
     <View className="gap-2">
-      <ThemedText size="sm" weight="medium">
-        Photos (optional)
-      </ThemedText>
-      <PhotoGrid
-        cellSize={72}
+      <PhotoPicker
         adding={busy}
-        canAdd={value.length < MAX_PHOTOS && !busy}
+        label="Photos (optional)"
+        max={MAX_PHOTOS}
         onAdd={add}
         onRemove={remove}
         photos={gridPhotos}

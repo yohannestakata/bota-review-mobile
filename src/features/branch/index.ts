@@ -12,7 +12,7 @@ export { BranchDetailSkeleton } from "./components/branch-detail-skeleton";
 export { BranchHero } from "./components/branch-hero";
 export { BranchMap } from "./components/branch-map";
 export { BranchStickyHeader } from "./components/branch-sticky-header";
-export { PhotoGrid } from "./components/photo-grid";
+export { PhotoPicker } from "./components/photo-picker";
 export { PhotoViewer } from "./components/photo-viewer";
 export { QuickActions } from "./components/quick-actions";
 export { RatingInput } from "./components/rating-input";
