@@ -44,7 +44,10 @@ export function PhotoPicker({
 
   return (
     <View className="gap-2">
-      <View className="flex-row items-baseline justify-between">
+      <View
+        className="flex-row justify-between"
+        style={{ alignItems: "center" }}
+      >
         {heading ? (
           <ThemedText size="xl" weight="bold">
             {label}
@@ -98,11 +101,19 @@ export function PhotoPicker({
               <Pressable
                 accessibilityLabel={`Remove photo ${index + 1}`}
                 accessibilityRole="button"
-                className="absolute right-1 top-1 size-6 items-center justify-center rounded-full bg-black/60"
-                hitSlop={6}
+                className="absolute items-center justify-center rounded-full bg-black/60"
+                hitSlop={10}
                 onPress={() => onRemove(photo.uri)}
+                style={{
+                  top: 4,
+                  right: 4,
+                  width: 20,
+                  height: 20,
+                  borderWidth: 1,
+                  borderColor: "rgba(255,255,255,0.7)",
+                }}
               >
-                <AppIcon color={colors.inverse} icon={Cancel01Icon} size={12} />
+                <AppIcon color={colors.inverse} icon={Cancel01Icon} size={10} />
               </Pressable>
             </View>
           ))}
