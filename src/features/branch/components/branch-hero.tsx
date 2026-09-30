@@ -1,4 +1,4 @@
-import { Pressable } from "react-native";
+import { Pressable, useWindowDimensions } from "react-native";
 
 import { useColors } from "@/lib/theme";
 import { Photo, PhotoFallback } from "@/components/ui/photo";
@@ -20,6 +20,7 @@ type BranchHeroProps = {
 };
 
 export function BranchHero({ imageUrl, scrollY, onPress }: BranchHeroProps) {
+  const { width } = useWindowDimensions();
   // Hidden while a card's photo is flying in to cover it (see shared-photo).
   const photoStyle = useAnimatedStyle(() => ({
     opacity: 1 - heroCovered.get(),
@@ -67,7 +68,11 @@ export function BranchHero({ imageUrl, scrollY, onPress }: BranchHeroProps) {
       >
         {imageUrl ? (
           <Animated.View style={[{ flex: 1 }, photoStyle]}>
-            <Photo style={{ width: "100%", height: "100%" }} uri={imageUrl} />
+            <Photo
+              displayWidth={width}
+              style={{ width: "100%", height: "100%" }}
+              uri={imageUrl}
+            />
           </Animated.View>
         ) : (
           <PhotoFallback iconSize={64} />

@@ -1,6 +1,6 @@
 import { SpoonAndForkIcon } from "@hugeicons/core-free-icons";
 import { Image, type ImageProps } from "expo-image";
-import { View } from "react-native";
+import { Dimensions, PixelRatio, View } from "react-native";
 
 import { AppIcon } from "@/components/ui/huge-icon";
 import { useColors } from "@/lib/theme";
@@ -29,14 +29,53 @@ export function blurPlaceholderUrl(url: string | null | undefined) {
   return undefined;
 }
 
+// Pixel widths we ask the CDN for. A few fixed steps rather than exact sizes,
+// so the same file is reused across screens and stays in the image cache.
+const WIDTH_STEPS = [160, 320, 640, 960, 1280];
+
+/**
+ * The photo at the smallest standard width that stays sharp when shown
+ * `displayWidth` points wide on this screen. Unknown hosts are unchanged.
+ */
+export function sizedPhotoUrl(url: string, displayWidth?: number) {
+  if (!displayWidth) return url;
+  const px = displayWidth * PixelRatio.get();
+  const w = WIDTH_STEPS.find((step) => step >= px) ?? WIDTH_STEPS.at(-1)!;
+  if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
+    return url.replace("/upload/", `/upload/w_${w},c_limit,f_auto,q_auto/`);
+  }
+  if (url.includes("images.unsplash.com")) {
+    try {
+      const u = new URL(url);
+      u.searchParams.set("w", String(w));
+      u.searchParams.set("q", "75");
+      u.searchParams.set("auto", "format");
+      return u.toString();
+    } catch {
+      return url;
+    }
+  }
+  return url;
+}
+
+/** A place's cover at the size the place page's header shows it. */
+export function heroPhotoUrl(url: string) {
+  return sizedPhotoUrl(url, Dimensions.get("window").width);
+}
+
 // Photos of places: a blurred preview right away, then a short fade into the
 // full image. Use for remote place/review photos, not icons or avatars.
 export function Photo({
   uri,
   transition = 250,
   contentFit = "cover",
+  displayWidth,
   ...props
-}: Omit<ImageProps, "source" | "placeholder"> & { uri: string }) {
+}: Omit<ImageProps, "source" | "placeholder"> & {
+  uri: string;
+  /** How wide it's shown, in points; picks a right-sized download. */
+  displayWidth?: number;
+}) {
   const placeholder = blurPlaceholderUrl(uri);
   return (
     <Image
@@ -44,7 +83,7 @@ export function Photo({
       contentFit={contentFit}
       placeholder={placeholder ? { uri: placeholder } : undefined}
       placeholderContentFit="cover"
-      source={{ uri }}
+      source={{ uri: sizedPhotoUrl(uri, displayWidth) }}
       transition={transition}
     />
   );

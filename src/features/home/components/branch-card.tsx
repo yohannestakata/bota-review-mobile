@@ -1,7 +1,7 @@
 import { SparklesIcon } from "@hugeicons/core-free-icons";
 import { shadows, useColors } from "@/lib/theme";
 import { Image } from "expo-image";
-import { View } from "react-native";
+import { useWindowDimensions, View } from "react-native";
 
 import { Photo, PhotoFallback } from "@/components/ui/photo";
 import { FilledStar } from "@/components/ui/filled-star";
@@ -34,6 +34,7 @@ export function BranchCard({
   layout = "wide",
 }: BranchCardProps) {
   const colors = useColors();
+  const { width } = useWindowDimensions();
   const prefetchBranch = usePrefetchBranch();
   const { ref: photoRef, open: flyOpen } = usePhotoFlight();
 
@@ -93,6 +94,7 @@ export function BranchCard({
       >
         {branch.coverPhotoUrl ? (
           <Photo
+            displayWidth={layout === "portrait" ? width / 2 : width}
             style={{ width: "100%", height: "100%" }}
             uri={branch.coverPhotoUrl}
           />

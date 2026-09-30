@@ -57,6 +57,7 @@ export function SiblingCard({ branch, onPress, isSaved }: SiblingCardProps) {
       >
         {branch.coverPhotoUrl ? (
           <Photo
+            displayWidth={196}
             style={{ width: "100%", height: "100%" }}
             uri={branch.coverPhotoUrl}
           />

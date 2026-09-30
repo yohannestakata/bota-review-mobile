@@ -75,6 +75,7 @@ export function PublicReviewRow({
                 onPress={() => setViewerIndex(index)}
               >
                 <Photo
+                  displayWidth={96}
                   style={{ width: 96, height: 96, borderRadius: 12 }}
                   uri={photo.url}
                 />

@@ -3,6 +3,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { useCallback } from "react";
 
+import { heroPhotoUrl } from "@/components/ui/photo";
+
 import { getBranch } from "./api";
 import { branchKeys } from "./keys";
 
@@ -22,7 +24,10 @@ export function usePrefetchBranch() {
         queryFn: () => getBranch(branch.id, getToken),
         staleTime: 60_000,
       });
-      if (branch.coverPhotoUrl) void Image.prefetch(branch.coverPhotoUrl);
+      // The size the page's header shows, so the header finds it cached.
+      if (branch.coverPhotoUrl) {
+        void Image.prefetch(heroPhotoUrl(branch.coverPhotoUrl));
+      }
     },
     [queryClient, getToken],
   );

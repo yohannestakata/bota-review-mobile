@@ -586,6 +586,7 @@ function PlaceCard({
         >
           {branch.coverPhotoUrl ? (
             <Photo
+              displayWidth={84}
               style={{ width: "100%", height: "100%" }}
               uri={branch.coverPhotoUrl}
             />

@@ -10,6 +10,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import { heroPhotoUrl, sizedPhotoUrl } from "@/components/ui/photo";
 import { useColors } from "@/lib/theme";
 
 import { BranchHeaderButtons } from "./components/branch-header-buttons";
@@ -236,9 +237,13 @@ function FlyingPhoto({ flight }: { flight: PhotoFlight }) {
   return (
     <>
       <Animated.View pointerEvents="none" style={style}>
+        {/* Starts as the card's copy (already on screen, so cached) and
+            swaps to the header-size one the tap prefetched. */}
         <Image
           contentFit="cover"
-          source={flight.uri}
+          placeholder={{ uri: sizedPhotoUrl(flight.uri, flight.from.width) }}
+          placeholderContentFit="cover"
+          source={heroPhotoUrl(flight.uri)}
           style={{ width: "100%", height: "100%" }}
         />
         {/* The top edge of the page's sheet, with its rounded corners. */}

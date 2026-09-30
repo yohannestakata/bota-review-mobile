@@ -8,7 +8,6 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useAuth } from "@clerk/clerk-expo";
 import { useColors } from "@/lib/theme";
-import { Image } from "expo-image";
 import { router, type Href, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -33,6 +32,7 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { ExpandableText } from "@/components/ui/expandable-text";
 import { Button, TextButton } from "@/components/ui/button";
+import { Photo } from "@/components/ui/photo";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { SectionTitle } from "@/components/ui/section-title";
 import { Stars } from "@/components/ui/stars";
@@ -627,15 +627,14 @@ export default function BranchDetailScreen() {
                                 )
                               }
                             >
-                              <Image
-                                contentFit="cover"
-                                source={photo.url}
+                              <Photo
+                                displayWidth={220}
                                 style={{
                                   width: 220,
                                   height: 150,
                                   borderRadius: 16,
                                 }}
-                                transition={150}
+                                uri={photo.url}
                               />
                             </PressableScale>
                           );

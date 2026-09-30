@@ -1,5 +1,6 @@
 import { Cancel01Icon, Flag02Icon } from "@hugeicons/core-free-icons";
 import { Image } from "expo-image";
+import { Photo } from "@/components/ui/photo";
 import { useEffect, useRef, useState } from "react";
 import { StatusBar, StyleSheet, useWindowDimensions, View } from "react-native";
 // Gesture Handler's FlatList, so the pager cooperates with pinch/pan inside it
@@ -344,9 +345,8 @@ export function PhotoGallery({
                       hitSlop={{ top: 8, bottom: 8 }}
                       onPress={() => goTo(index)}
                     >
-                      <Image
-                        contentFit="cover"
-                        source={item.url}
+                      <Photo
+                        displayWidth={THUMB}
                         style={{
                           width: THUMB,
                           height: THUMB,
@@ -354,6 +354,7 @@ export function PhotoGallery({
                           opacity: index === current ? 1 : 0.45,
                         }}
                         transition={150}
+                        uri={item.url}
                       />
                     </PressableScale>
                   )}

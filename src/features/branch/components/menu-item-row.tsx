@@ -1,7 +1,7 @@
 import { SpoonAndForkIcon } from "@hugeicons/core-free-icons";
-import { Image } from "expo-image";
 import { View } from "react-native";
 
+import { Photo } from "@/components/ui/photo";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useColors } from "@/lib/theme";
@@ -20,11 +20,11 @@ export function MenuItemRow({
     <View className="flex-row items-start gap-3 py-3">
       {showImage ? (
         item.imageUrl ? (
-          <Image
-            contentFit="cover"
-            source={item.imageUrl}
+          <Photo
+            displayWidth={56}
             style={{ width: 56, height: 56, borderRadius: 12 }}
             transition={150}
+            uri={item.imageUrl}
           />
         ) : (
           <View className="size-14 items-center justify-center rounded-xl bg-primary/10">

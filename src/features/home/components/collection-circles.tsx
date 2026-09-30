@@ -32,6 +32,7 @@ export function CollectionCircles({ items, onPress }: CollectionCirclesProps) {
             <View className="flex-1 overflow-hidden rounded-full bg-placeholder">
               {item.coverImageUrl ? (
                 <Photo
+                  displayWidth={70}
                   style={{ width: "100%", height: "100%" }}
                   uri={item.coverImageUrl}
                 />
