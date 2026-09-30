@@ -12,7 +12,7 @@ export function fieldInputClass(opts?: {
 }): string {
   const { surface = "default", error } = opts ?? {};
   return cn(
-    "h-14 rounded-xl border px-4 py-0 font-outfit text-md text-foreground",
+    "h-14 rounded-xl border px-4 py-0 font-outfit text-sm text-foreground",
     surface === "muted" ? "bg-background" : "bg-surface",
     error ? "border-danger" : "border-placeholder",
   );
@@ -42,7 +42,7 @@ export function TextField({
       maxFontSizeMultiplier={1.6}
       className={cn(
         suffix
-          ? "flex-1 py-0 font-outfit text-md text-foreground"
+          ? "flex-1 py-0 font-outfit text-sm text-foreground"
           : cn(fieldInputClass({ surface, error }), className),
       )}
       placeholderTextColor={placeholderTextColor ?? colors.muted}

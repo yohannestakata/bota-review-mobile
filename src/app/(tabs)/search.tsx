@@ -293,7 +293,7 @@ export default function SearchScreen() {
           <AppIcon color={colors.muted} icon={Search01Icon} size={22} />
           <TextInput
             maxFontSizeMultiplier={1.6}
-            className="flex-1 font-outfit text-md text-foreground"
+            className="flex-1 font-outfit text-sm text-foreground"
             onChangeText={setText}
             placeholder="Coffee? Injera?"
             onSubmitEditing={() => {

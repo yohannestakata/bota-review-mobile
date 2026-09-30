@@ -107,7 +107,7 @@ export function FormTextArea({
       <TextInput
         maxFontSizeMultiplier={1.6}
         className={cn(
-          "mt-2 min-h-24 rounded-xl border bg-surface px-4 py-3 font-outfit text-md text-foreground",
+          "mt-2 min-h-24 rounded-xl border bg-surface px-4 py-3 font-outfit text-sm text-foreground",
           surface === "muted" && "bg-background",
           error ? "border-danger" : "border-placeholder",
           inputClassName,

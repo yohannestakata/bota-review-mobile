@@ -577,7 +577,7 @@ export default function WriteReviewScreen() {
                 onPress={() => setShowDatePicker(true)}
               >
                 <AppIcon color={colors.muted} icon={Calendar03Icon} size={18} />
-                <ThemedText tone={visitDate ? "default" : "muted"}>
+                <ThemedText size="sm" tone={visitDate ? "default" : "muted"}>
                   {visitDate ? formatVisitDate(visitDate) : "Optional"}
                 </ThemedText>
               </Pressable>

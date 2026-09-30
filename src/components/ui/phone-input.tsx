@@ -68,11 +68,13 @@ export function PhoneInput({
           error ? "border-danger" : "border-placeholder",
         )}
       >
-        <ThemedText tone="muted">{COUNTRY_CODE}</ThemedText>
+        <ThemedText size="sm" tone="muted">
+          {COUNTRY_CODE}
+        </ThemedText>
         <View className="mx-3 h-6 w-px bg-border" />
         <TextInput
           maxFontSizeMultiplier={1.6}
-          className="flex-1 py-0 font-outfit text-md text-foreground"
+          className="flex-1 py-0 font-outfit text-sm text-foreground"
           keyboardType="phone-pad"
           maxLength={11}
           onBlur={onBlur}
