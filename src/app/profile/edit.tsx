@@ -3,8 +3,11 @@ import { zodFormResolver } from "@/lib/zod-resolver";
 import { router } from "expo-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Pressable, ScrollView, View } from "react-native";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { Pressable, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  KeyboardAwareScrollView,
+} from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
@@ -61,7 +64,7 @@ export default function EditProfileScreen() {
     }
   }
 
-  const { control, handleSubmit, setError, formState } =
+  const { control, handleSubmit, setError, setFocus, formState } =
     useForm<EditProfileValues>({
       resolver: zodFormResolver(editProfileSchema),
       defaultValues: {
@@ -126,7 +129,8 @@ export default function EditProfileScreen() {
       <ScreenHeader onClose={attemptClose} title="Edit profile" />
 
       <KeyboardAvoidingView behavior="padding" className="flex-1">
-        <ScrollView
+        <KeyboardAwareScrollView
+          bottomOffset={24}
           showsVerticalScrollIndicator={false}
           className="flex-1"
           contentContainerClassName="gap-5 px-6 pt-4"
@@ -147,25 +151,35 @@ export default function EditProfileScreen() {
 
           <ControlledTextInput
             autoCapitalize="words"
+            autoComplete="given-name"
             control={control}
             label="First name"
             name="firstName"
+            onSubmitEditing={() => setFocus("lastName")}
             placeholder="First name"
+            returnKeyType="next"
+            submitBehavior="submit"
           />
           <ControlledTextInput
             autoCapitalize="words"
+            autoComplete="family-name"
             control={control}
             label="Last name"
             name="lastName"
+            onSubmitEditing={() => setFocus("username")}
             placeholder="Last name"
+            returnKeyType="next"
+            submitBehavior="submit"
           />
           <ControlledTextInput
             autoCapitalize="none"
             autoComplete="username"
+            autoCorrect={false}
             control={control}
             label="Username"
             name="username"
             placeholder="yourname"
+            returnKeyType="done"
           />
 
           {formState.errors.root ? (
@@ -194,7 +208,7 @@ export default function EditProfileScreen() {
               </ThemedText>
             </Pressable>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
 
         <View className="px-6 pb-2 pt-2">
           <Button

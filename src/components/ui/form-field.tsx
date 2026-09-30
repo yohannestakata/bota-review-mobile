@@ -1,5 +1,5 @@
 import { EyeIcon, ViewOffIcon } from "@hugeicons/core-free-icons";
-import type { ComponentProps } from "react";
+import type { ComponentProps, Ref } from "react";
 import { useState } from "react";
 import {
   useController,
@@ -23,6 +23,9 @@ type BaseFieldProps = NativeTextInputProps & {
   containerClassName?: string;
   inputClassName?: string;
   surface?: "default" | "muted";
+  /** Show the label as a section heading, for forms laid out as questions. */
+  headingLabel?: boolean;
+  ref?: Ref<TextInput>;
 };
 
 function FieldError({ error }: { error?: string }) {
@@ -96,14 +99,21 @@ export function FormTextArea({
   inputClassName = "",
   placeholderTextColor,
   surface = "default",
+  headingLabel = false,
   ...props
 }: BaseFieldProps) {
   const colors = useColors();
   return (
     <View className={containerClassName}>
-      <ThemedText size="sm" weight="medium">
-        {label}
-      </ThemedText>
+      {headingLabel ? (
+        <ThemedText size="xl" weight="bold">
+          {label}
+        </ThemedText>
+      ) : (
+        <ThemedText size="sm" weight="medium">
+          {label}
+        </ThemedText>
+      )}
       <TextInput
         maxFontSizeMultiplier={1.6}
         className={cn(
@@ -139,14 +149,19 @@ export function ControlledTextInput<T extends FieldValues>({
   name,
   ...props
 }: ControlledFieldProps<T>) {
-  const { field, fieldState } = useController({ control, name });
+  const {
+    field: { ref: inputRef, onBlur, onChange, value },
+    fieldState,
+  } = useController({ control, name });
   return (
     <FormTextInput
       {...props}
       error={fieldState.error?.message}
-      onBlur={field.onBlur}
-      onChangeText={field.onChange}
-      value={field.value ?? ""}
+      onBlur={onBlur}
+      onChangeText={onChange}
+      // Lets the form's setFocus() move to this field (e.g. from "Next").
+      ref={inputRef}
+      value={value ?? ""}
     />
   );
 }

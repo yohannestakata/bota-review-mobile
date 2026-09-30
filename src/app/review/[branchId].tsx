@@ -6,8 +6,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState, type ComponentProps } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { Pressable, ScrollView, View } from "react-native";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { Pressable, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  KeyboardAwareScrollView,
+} from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
@@ -493,7 +496,8 @@ export default function WriteReviewScreen() {
       />
 
       <KeyboardAvoidingView behavior="padding" className="flex-1">
-        <ScrollView
+        <KeyboardAwareScrollView
+          bottomOffset={24}
           showsVerticalScrollIndicator={false}
           className="flex-1"
           contentContainerClassName="gap-6 px-6 pt-4"
@@ -552,6 +556,7 @@ export default function WriteReviewScreen() {
           <View className="gap-2">
             <ControlledTextArea
               control={control}
+              headingLabel
               inputClassName="min-h-40"
               label="Spill the details"
               maxLength={MAX_CHARS}
@@ -620,7 +625,7 @@ export default function WriteReviewScreen() {
               photos={photos}
             />
           ) : null}
-        </ScrollView>
+        </KeyboardAwareScrollView>
 
         <View className="px-6 pb-2 pt-2">
           <Button

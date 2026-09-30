@@ -80,6 +80,7 @@ export default function CompleteProfileScreen() {
       <ControlledTextInput
         autoCapitalize="none"
         autoComplete="username-new"
+        autoCorrect={false}
         control={control}
         label="Username"
         name="username"

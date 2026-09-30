@@ -35,11 +35,12 @@ export default function LoginScreen() {
   const { startSSOFlow } = useSSO();
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const { control, handleSubmit, setError, formState } = useForm<LoginValues>({
-    resolver: zodFormResolver(loginSchema),
-    mode: "onChange",
-    defaultValues: { email: "", password: "" },
-  });
+  const { control, handleSubmit, setError, setFocus, formState } =
+    useForm<LoginValues>({
+      resolver: zodFormResolver(loginSchema),
+      mode: "onChange",
+      defaultValues: { email: "", password: "" },
+    });
 
   const onSubmit = handleSubmit(async (values) => {
     if (!isLoaded) {
@@ -149,8 +150,10 @@ export default function LoginScreen() {
         keyboardType="email-address"
         label="Email"
         name="email"
+        onSubmitEditing={() => setFocus("password")}
         placeholder="you@example.com"
         returnKeyType="next"
+        submitBehavior="submit"
       />
       <ControlledTextInput
         autoCapitalize="none"

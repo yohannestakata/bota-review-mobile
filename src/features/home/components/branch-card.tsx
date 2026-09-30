@@ -151,7 +151,9 @@ export function BranchCard({
         <ThemedText
           className="shrink"
           numberOfLines={1}
-          size="lg"
+          // Two-across rail cards are narrow; a full title matters more there
+          // than the larger size.
+          size={layout === "portrait" ? "md" : "lg"}
           weight="semibold"
         >
           {branch.placeName}

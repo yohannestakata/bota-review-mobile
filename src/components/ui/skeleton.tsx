@@ -64,7 +64,7 @@ const LINE_HEIGHT = {
   xs: 16,
   sm: 19,
   md: 24,
-  lg: 22,
+  lg: 24,
   xl: 26,
   "2xl": 28,
   "3xl": 34,

@@ -23,7 +23,10 @@ export function BranchCardSkeleton({
         className="mt-3"
         style={{ paddingLeft: layout === "portrait" ? 4 : 3 }}
       >
-        <SkeletonText className="w-2/3" size="lg" />
+        <SkeletonText
+          className="w-2/3"
+          size={layout === "portrait" ? "md" : "lg"}
+        />
         <SkeletonText className="w-1/2" size="sm" />
         <View className="mt-0.5">
           <SkeletonText className="w-1/3" size="sm" />

@@ -4,8 +4,11 @@ import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { ActivityIndicator, Pressable, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  KeyboardAwareScrollView,
+} from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
@@ -291,7 +294,8 @@ export default function ManageListingScreen() {
     <SafeAreaView className="flex-1 bg-background">
       <ScreenHeader title="Manage listing" />
       <KeyboardAvoidingView behavior="padding" className="flex-1">
-        <ScrollView
+        <KeyboardAwareScrollView
+          bottomOffset={24}
           showsVerticalScrollIndicator={false}
           className="flex-1"
           contentContainerClassName="gap-7 px-6 pb-10 pt-2"
@@ -487,47 +491,47 @@ export default function ManageListingScreen() {
             >
               {photoCell > 0 &&
                 officialPhotos.map((photo) => (
-                <View
-                  key={photo.id}
-                  className="overflow-hidden rounded-xl"
-                  style={{ width: photoCell, height: photoCell }}
-                >
-                  <Image
-                    contentFit="cover"
-                    source={photo.url}
-                    style={{ width: "100%", height: "100%" }}
-                  />
-                  {photo.isCover ? (
-                    <View className="absolute bottom-1 left-1 rounded-full bg-surface px-2 py-0.5">
-                      <ThemedText size="xs" weight="medium">
-                        Cover
-                      </ThemedText>
-                    </View>
-                  ) : (
-                    <Pressable
-                      className="absolute bottom-1 left-1 rounded-full bg-surface px-2 py-0.5"
-                      onPress={() => void makeCover(photo.id)}
-                    >
-                      <ThemedText size="xs" weight="medium">
-                        Set cover
-                      </ThemedText>
-                    </Pressable>
-                  )}
-                  <Pressable
-                    accessibilityLabel="Remove photo"
-                    accessibilityRole="button"
-                    className="absolute right-1 top-1 size-6 items-center justify-center rounded-full bg-black/60"
-                    hitSlop={4}
-                    onPress={() => confirmRemovePhoto(photo.id)}
+                  <View
+                    key={photo.id}
+                    className="overflow-hidden rounded-xl"
+                    style={{ width: photoCell, height: photoCell }}
                   >
-                    <AppIcon
-                      color={colors.inverse}
-                      icon={Cancel01Icon}
-                      size={12}
+                    <Image
+                      contentFit="cover"
+                      source={photo.url}
+                      style={{ width: "100%", height: "100%" }}
                     />
-                  </Pressable>
-                </View>
-              ))}
+                    {photo.isCover ? (
+                      <View className="absolute bottom-1 left-1 rounded-full bg-surface px-2 py-0.5">
+                        <ThemedText size="xs" weight="medium">
+                          Cover
+                        </ThemedText>
+                      </View>
+                    ) : (
+                      <Pressable
+                        className="absolute bottom-1 left-1 rounded-full bg-surface px-2 py-0.5"
+                        onPress={() => void makeCover(photo.id)}
+                      >
+                        <ThemedText size="xs" weight="medium">
+                          Set cover
+                        </ThemedText>
+                      </Pressable>
+                    )}
+                    <Pressable
+                      accessibilityLabel="Remove photo"
+                      accessibilityRole="button"
+                      className="absolute right-1 top-1 size-6 items-center justify-center rounded-full bg-black/60"
+                      hitSlop={4}
+                      onPress={() => confirmRemovePhoto(photo.id)}
+                    >
+                      <AppIcon
+                        color={colors.inverse}
+                        icon={Cancel01Icon}
+                        size={12}
+                      />
+                    </Pressable>
+                  </View>
+                ))}
               <Pressable
                 className="items-center justify-center rounded-xl border border-placeholder bg-surface"
                 disabled={uploadingPhoto}
@@ -547,7 +551,7 @@ export default function ManageListingScreen() {
               </Pressable>
             </View>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
         <View className="px-6 pb-2 pt-2">
           <Button
             label="Save changes"

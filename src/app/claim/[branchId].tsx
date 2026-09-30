@@ -2,8 +2,11 @@ import { zodFormResolver } from "@/lib/zod-resolver";
 import { CheckmarkBadge01Icon, Clock01Icon } from "@hugeicons/core-free-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { Pressable, ScrollView, View } from "react-native";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { Pressable, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  KeyboardAwareScrollView,
+} from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
@@ -264,7 +267,8 @@ export default function ClaimBusinessScreen() {
       <ScreenHeader onClose={attemptClose} title="Claim this business" />
 
       <KeyboardAvoidingView behavior="padding" className="flex-1">
-        <ScrollView
+        <KeyboardAwareScrollView
+          bottomOffset={24}
           showsVerticalScrollIndicator={false}
           className="flex-1"
           contentContainerClassName="gap-5 px-6 pt-4"
@@ -282,6 +286,8 @@ export default function ClaimBusinessScreen() {
           </ThemedText>
 
           <ControlledTextInput
+            autoCapitalize="words"
+            autoComplete="name"
             control={control}
             label="Your name"
             name="contactName"
@@ -427,7 +433,7 @@ export default function ClaimBusinessScreen() {
               {formState.errors.root.message}
             </ThemedText>
           ) : null}
-        </ScrollView>
+        </KeyboardAwareScrollView>
 
         <View className="px-6 pb-2 pt-2">
           <Button

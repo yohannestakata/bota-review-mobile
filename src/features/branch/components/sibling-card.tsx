@@ -79,8 +79,8 @@ export function SiblingCard({ branch, onPress, isSaved }: SiblingCardProps) {
         <ThemedText
           className="shrink"
           numberOfLines={1}
-          size="lg"
-          weight="medium"
+          size="md"
+          weight="semibold"
         >
           {title}
         </ThemedText>

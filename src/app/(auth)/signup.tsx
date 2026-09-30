@@ -245,18 +245,23 @@ export default function SignupScreen() {
             keyboardType="email-address"
             label="Email"
             name="email"
+            onSubmitEditing={() => accountForm.setFocus("username")}
             placeholder="you@example.com"
             returnKeyType="next"
+            submitBehavior="submit"
           />
           <ControlledTextInput
             autoCapitalize="none"
             autoComplete="username-new"
+            autoCorrect={false}
             control={accountForm.control}
             editable={!accountBusy}
             label="Username"
             name="username"
+            onSubmitEditing={() => accountForm.setFocus("password")}
             placeholder="yourname"
             returnKeyType="next"
+            submitBehavior="submit"
           />
           <ControlledTextInput
             autoCapitalize="none"
