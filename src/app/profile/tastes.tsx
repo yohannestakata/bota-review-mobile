@@ -1,14 +1,13 @@
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackHeader } from "@/components/ui/screen-header";
+import { SkeletonChips, SkeletonText } from "@/components/ui/skeleton";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useTasteOptionsQuery, useTastePreferences } from "@/features/home";
 import { cn } from "@/lib/cn";
-import { useColors } from "@/lib/theme";
 
 export default function TastePreferencesScreen() {
-  const colors = useColors();
   const options = useTasteOptionsQuery();
   const tastes = useTastePreferences();
   const loading = options.isPending || !tastes.ready;
@@ -26,8 +25,13 @@ export default function TastePreferencesScreen() {
         </ThemedText>
 
         {loading ? (
-          <View className="mt-12 items-center">
-            <ActivityIndicator color={colors.muted} />
+          <View className="mt-6 gap-6">
+            {[5, 4, 3].map((count) => (
+              <View className="gap-2" key={count}>
+                <SkeletonText className="w-40" />
+                <SkeletonChips count={count} />
+              </View>
+            ))}
           </View>
         ) : (
           <View className="mt-6 gap-6">

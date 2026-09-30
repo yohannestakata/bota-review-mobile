@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, BackHandler, ScrollView, View } from "react-native";
+import { BackHandler, ScrollView, View } from "react-native";
 import Animated, {
   Easing,
   FadeIn,
@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, TextButton } from "@/components/ui/button";
 import { PressableScale } from "@/components/ui/pressable-scale";
+import { SkeletonChips, SkeletonText } from "@/components/ui/skeleton";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   useTasteOnboarding,
@@ -128,8 +129,14 @@ export default function TasteOnboardingScreen() {
       </View>
 
       {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color={colors.muted} />
+        <View className="px-6 pb-6 pt-8">
+          <SkeletonText className="w-4/5" size="3xl" />
+          <View className="mt-2">
+            <SkeletonText className="w-full" />
+          </View>
+          <View className="mt-8">
+            <SkeletonChips count={8} gap={10} height={45} />
+          </View>
         </View>
       ) : (
         <ScrollView

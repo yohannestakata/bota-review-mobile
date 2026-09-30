@@ -92,3 +92,29 @@ export function SkeletonText({
     </View>
   );
 }
+
+// Varied widths so a row of placeholder chips reads as words, not a grid.
+const CHIP_WIDTHS = [88, 112, 72, 128, 96, 80, 120, 104, 76, 116];
+
+/** Placeholder for a wrapping row of chips of the given height. */
+export function SkeletonChips({
+  count = 6,
+  height = 42,
+  gap = 8,
+}: {
+  count?: number;
+  height?: number;
+  gap?: number;
+}) {
+  return (
+    <View className="flex-row flex-wrap" style={{ gap }}>
+      {Array.from({ length: count }, (_, i) => (
+        <Skeleton
+          className="rounded-full"
+          key={i}
+          style={{ height, width: CHIP_WIDTHS[i % CHIP_WIDTHS.length] }}
+        />
+      ))}
+    </View>
+  );
+}
