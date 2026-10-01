@@ -95,6 +95,30 @@ function initialViewport(width: number, height: number): MapViewport {
 // Tap timestamps, read only from press handlers.
 const now = () => Date.now();
 
+/**
+ * The range holding the middle 80% of matches along one axis (clusters
+ * count as their size). With only a few matches, all of them.
+ */
+function core<T extends { n: number }>(
+  points: T[],
+  value: (p: T) => number,
+): [number, number] {
+  const sorted = [...points].sort((a, b) => value(a) - value(b));
+  const total = sorted.reduce((sum, p) => sum + p.n, 0);
+  if (sorted.length <= 4) {
+    return [value(sorted[0]), value(sorted[sorted.length - 1])];
+  }
+  const at = (share: number) => {
+    let seen = 0;
+    for (const p of sorted) {
+      seen += p.n;
+      if (seen >= total * share) return value(p);
+    }
+    return value(sorted[sorted.length - 1]);
+  };
+  return [at(0.1), at(0.9)];
+}
+
 function countLabel(n: number) {
   return n >= 1000 ? `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}k` : String(n);
 }
@@ -175,8 +199,8 @@ export function SearchMap({
     if (fittedFor.current === filtersKey) return;
     fittedFor.current = filtersKey;
     const all = [
-      ...data.pins,
-      ...data.clusters.map((c) => ({ lat: c.lat, lng: c.lng })),
+      ...data.pins.map((p) => ({ lat: p.lat, lng: p.lng, n: 1 })),
+      ...data.clusters.map((c) => ({ lat: c.lat, lng: c.lng, n: c.count })),
     ];
     if (all.length === 0) return;
     if (all.length === 1) {
@@ -187,20 +211,23 @@ export function SearchMap({
       });
       return;
     }
-    const lngs = all.map((p) => p.lng);
-    const lats = all.map((p) => p.lat);
-    cameraRef.current?.fitBounds(
-      [
-        Math.min(...lngs),
-        Math.min(...lats),
-        Math.max(...lngs),
-        Math.max(...lats),
-      ],
-      {
-        padding: { top: 60, right: 50, bottom: 200, left: 50 },
+    // Frame where most matches are: a stray one far out of town shouldn't
+    // zoom the whole map out.
+    const [west, east] = core(all, (p) => p.lng);
+    const [south, north] = core(all, (p) => p.lat);
+    // Nearly all in one spot: centre on it at street level instead.
+    if (east - west < 0.004 && north - south < 0.004) {
+      cameraRef.current?.easeTo({
+        center: [(west + east) / 2, (south + north) / 2],
+        zoom: 15,
         duration: 400,
-      },
-    );
+      });
+      return;
+    }
+    cameraRef.current?.fitBounds([west, south, east, north], {
+      padding: { top: 60, right: 50, bottom: 200, left: 50 },
+      duration: 400,
+    });
   }, [cityPoints.data, cityPoints.isPlaceholderData, filtered, filtersKey]);
 
   function select(pin: MapPin) {
