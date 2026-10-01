@@ -39,6 +39,8 @@ import { useMapCards, useMapPoints, type MapViewport } from "../queries";
 // Addis Ababa, where the map opens.
 const ADDIS: [number, number] = [38.7578, 9.0301];
 const START_ZOOM = 12;
+// Greater Addis, for finding every match of a search before framing them.
+const CITY: MapViewport = { bbox: [38.6, 8.8, 39.05, 9.15], zoom: 12 };
 
 type Located = BranchCard & { lng: number; lat: number };
 type Selected = Pick<MapPin, "id" | "lat" | "lng" | "name">;
@@ -131,6 +133,16 @@ export function SearchMap({
     initialViewport(width, height * 0.7),
   );
   const points = useMapPoints(filters, viewport);
+  // A search looks across the whole city, not just the view: these are all
+  // its matches, used to frame them and to say when there are none at all.
+  const filtered = Boolean(
+    filters.q.trim().length >= 2 ||
+    filters.neighborhoodId ||
+    filters.cuisineId?.length ||
+    filters.tagId?.length ||
+    filters.openNow,
+  );
+  const cityPoints = useMapPoints(filters, filtered ? CITY : null);
   const pins = useMemo(() => points.data?.pins ?? [], [points.data]);
 
   const clusters = useMemo(() => points.data?.clusters ?? [], [points.data]);
@@ -154,25 +166,17 @@ export function SearchMap({
   const wantsLocate = useRef(false);
   const [locating, setLocating] = useState(false);
 
-  // A new search frames what matched (browsing everything keeps the city).
-  const fitNext = useRef(false);
+  // A new search moves the map to frame all its matches, wherever they are
+  // (browsing everything keeps the current view).
+  const fittedFor = useRef<string | null>(null);
   useEffect(() => {
-    const filtered = Boolean(
-      filters.q.trim().length >= 2 ||
-      filters.neighborhoodId ||
-      filters.cuisineId?.length ||
-      filters.tagId?.length ||
-      filters.openNow,
-    );
-    fitNext.current = filtered;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtersKey]);
-  useEffect(() => {
-    if (!fitNext.current || points.isPlaceholderData || !points.data) return;
-    fitNext.current = false;
+    const data = cityPoints.data;
+    if (!filtered || !data || cityPoints.isPlaceholderData) return;
+    if (fittedFor.current === filtersKey) return;
+    fittedFor.current = filtersKey;
     const all = [
-      ...points.data.pins,
-      ...points.data.clusters.map((c) => ({ lat: c.lat, lng: c.lng })),
+      ...data.pins,
+      ...data.clusters.map((c) => ({ lat: c.lat, lng: c.lng })),
     ];
     if (all.length === 0) return;
     if (all.length === 1) {
@@ -197,7 +201,7 @@ export function SearchMap({
         duration: 400,
       },
     );
-  }, [points.data, points.isPlaceholderData]);
+  }, [cityPoints.data, cityPoints.isPlaceholderData, filtered, filtersKey]);
 
   function select(pin: MapPin) {
     pinPressedAt.current = now();
@@ -285,7 +289,9 @@ export function SearchMap({
   }, [pins, ratingPills, selected?.id]);
   const pinsById = useMemo(() => new Map(pins.map((p) => [p.id, p])), [pins]);
 
-  const empty = points.data && points.data.total === 0;
+  const noMatches =
+    filtered && !cityPoints.isPlaceholderData && cityPoints.data?.total === 0;
+  const empty = noMatches || points.data?.total === 0;
   const firstLoad = !points.data && points.isFetching;
 
   if (!GEBETA_API_KEY) return null;
@@ -497,7 +503,13 @@ export function SearchMap({
               <ActivityIndicator color={colors.muted} size="small" />
             ) : null}
             <ThemedText size="sm" tone="muted" weight="medium">
-              {firstLoad ? "Finding places" : "No places here yet"}
+              {firstLoad
+                ? "Finding places"
+                : noMatches
+                  ? "No matches"
+                  : filtered
+                    ? "No matches in this area"
+                    : "No places here yet"}
             </ThemedText>
           </View>
         </Animated.View>
