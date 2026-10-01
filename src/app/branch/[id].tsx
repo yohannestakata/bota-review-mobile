@@ -295,9 +295,7 @@ export default function BranchDetailScreen() {
   const price = formatMenuPriceRange(data.menuPriceRange);
   const hasRating = data.reviewCount > 0;
   const ratingValue = Number(data.rating);
-  const eyebrow = [capitalize(data.place.type), data.neighborhood?.name]
-    .filter(Boolean)
-    .join("  ·  ");
+  const category = capitalize(data.place.type);
   const chips = [...data.cuisines, ...data.tags];
   // The address without the city (everything here is in Addis). Falls back to
   // the neighbourhood so the location row is always there when we have a pin.
@@ -308,7 +306,13 @@ export default function BranchDetailScreen() {
     return trimmed || data.neighborhood?.name?.trim() || null;
   })();
   // "Near Edna Mall" says more than a street name, where we have it.
-  const locationLine = data.directions ?? shortAddress;
+  // The neighbourhood is added where the line doesn't already say it.
+  const area = data.neighborhood?.name;
+  const locationLine = data.directions
+    ? area
+      ? `${data.directions}, ${area}`
+      : data.directions
+    : (shortAddress ?? area ?? null);
   const mapsUrl =
     data.latitude != null && data.longitude != null
       ? `https://www.google.com/maps/search/?api=1&query=${data.latitude},${data.longitude}`
@@ -368,11 +372,6 @@ export default function BranchDetailScreen() {
           <View className="rounded-t-3xl bg-background pt-6">
             {/* Heading */}
             <View className="gap-2 px-6">
-              {eyebrow ? (
-                <ThemedText size="sm" tone="muted" weight="medium">
-                  {eyebrow}
-                </ThemedText>
-              ) : null}
               <ThemedText className="shrink" size="3xl" weight="bold">
                 {data.place.name}
               </ThemedText>
@@ -389,6 +388,9 @@ export default function BranchDetailScreen() {
                 ) : (
                   <ThemedText tone="muted">New</ThemedText>
                 )}
+                {category ? (
+                  <ThemedText tone="muted">{`·  ${category}`}</ThemedText>
+                ) : null}
                 {price ? (
                   <ThemedText tone="muted">{`·  ${price}`}</ThemedText>
                 ) : null}
