@@ -6,9 +6,9 @@ import { useQuery } from "@tanstack/react-query";
 import { LogBox, useColorScheme } from "react-native";
 
 // Gebeta publishes one light style. We fetch its JSON once and tidy it before
-// use: hide the base map's own restaurant/cafe icons (ours are the tappable
-// places), repair colors MapLibre rejects, and for dark mode derive a dark
-// version by remapping every paint color.
+// use: hide the base map's own places (ours are the tappable ones), repair
+// colors MapLibre rejects, and for dark mode derive a dark version by
+// remapping every paint color.
 
 export const GEBETA_API_KEY = process.env.EXPO_PUBLIC_GEBETA_API_KEY ?? "";
 
@@ -131,14 +131,19 @@ function remap(value: unknown, role: Role): unknown {
 type StyleJson = {
   layers: {
     id: string;
+    "source-layer"?: string;
     paint?: Record<string, unknown>;
     layout?: Record<string, unknown>;
   }[];
   [key: string]: unknown;
 };
 
-// The base map's food and drink icons: they look tappable but aren't ours.
-const HIDDEN_LAYERS = new Set(["poi-restaurant", "poi-fast-food", "poi-cafe"]);
+// The base map's own places (shops, offices, clinics, cafes...): they look
+// tappable but aren't ours, and they crowd our pins. Street and neighbourhood
+// names and the airport stay for orientation.
+function isBasemapPlace(layer: StyleJson["layers"][number]) {
+  return layer["source-layer"] === "poi" || layer.id === "office-labels";
+}
 
 // `rgba()` with only three channels is invalid to MapLibre (it logs "value
 // must be a valid color" and skips the paint); give it an alpha.
@@ -164,7 +169,7 @@ export function tidyStyle(style: StyleJson): StyleJson {
       ...(layer.paint
         ? { paint: repairColors(layer.paint) as Record<string, unknown> }
         : {}),
-      ...(HIDDEN_LAYERS.has(layer.id)
+      ...(isBasemapPlace(layer)
         ? { layout: { ...layer.layout, visibility: "none" } }
         : {}),
     })),
@@ -203,7 +208,7 @@ export function darkenStyle(style: StyleJson): StyleJson {
 export function useMapStyle(): string | StyleSpecification | null {
   const dark = useColorScheme() === "dark";
   const style = useQuery({
-    queryKey: ["gebeta-style", "v2", dark ? "dark" : "light"],
+    queryKey: ["gebeta-style", "v3", dark ? "dark" : "light"],
     queryFn: async () => {
       const res = await fetch(GEBETA_STYLE_URL, {
         headers: { Authorization: `Bearer ${GEBETA_API_KEY}` },
