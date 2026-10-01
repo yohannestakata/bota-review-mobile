@@ -5,8 +5,10 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { LogBox, useColorScheme } from "react-native";
 
-// Gebeta only publishes a light style, so dark mode derives one from it at
-// runtime: fetch the style JSON once, then remap every paint color.
+// Gebeta publishes one light style. We fetch its JSON once and tidy it before
+// use: hide the base map's own restaurant/cafe icons (ours are the tappable
+// places), repair colors MapLibre rejects, and for dark mode derive a dark
+// version by remapping every paint color.
 
 export const GEBETA_API_KEY = process.env.EXPO_PUBLIC_GEBETA_API_KEY ?? "";
 
@@ -127,9 +129,47 @@ function remap(value: unknown, role: Role): unknown {
 }
 
 type StyleJson = {
-  layers: { paint?: Record<string, unknown> }[];
+  layers: {
+    id: string;
+    paint?: Record<string, unknown>;
+    layout?: Record<string, unknown>;
+  }[];
   [key: string]: unknown;
 };
+
+// The base map's food and drink icons: they look tappable but aren't ours.
+const HIDDEN_LAYERS = new Set(["poi-restaurant", "poi-fast-food", "poi-cafe"]);
+
+// `rgba()` with only three channels is invalid to MapLibre (it logs "value
+// must be a valid color" and skips the paint); give it an alpha.
+function repairColors(value: unknown): unknown {
+  if (typeof value === "string") {
+    const m = value.match(/^rgba\(\s*([^,]+),\s*([^,]+),\s*([^,)]+)\s*\)$/);
+    return m ? `rgba(${m[1]}, ${m[2]}, ${m[3]}, 1)` : value;
+  }
+  if (Array.isArray(value)) return value.map(repairColors);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, repairColors(v)]),
+    );
+  }
+  return value;
+}
+
+export function tidyStyle(style: StyleJson): StyleJson {
+  return {
+    ...style,
+    layers: style.layers.map((layer) => ({
+      ...layer,
+      ...(layer.paint
+        ? { paint: repairColors(layer.paint) as Record<string, unknown> }
+        : {}),
+      ...(HIDDEN_LAYERS.has(layer.id)
+        ? { layout: { ...layer.layout, visibility: "none" } }
+        : {}),
+    })),
+  };
+}
 
 export function darkenStyle(style: StyleJson): StyleJson {
   return {
@@ -156,30 +196,28 @@ export function darkenStyle(style: StyleJson): StyleJson {
 }
 
 /**
- * The map style for the current scheme: Gebeta's URL in light mode, a darkened
- * copy of it in dark mode (fetched once and cached for the session). While the
- * dark copy loads, returns null so the map doesn't flash light first.
+ * The tidied map style for the current scheme (light, or a darkened copy),
+ * fetched once and kept with the persisted cache. Returns null while it first
+ * loads so the map doesn't flash an untidied or light version.
  */
 export function useMapStyle(): string | StyleSpecification | null {
   const dark = useColorScheme() === "dark";
-  const darkStyle = useQuery({
-    queryKey: ["gebeta-style", "dark"],
+  const style = useQuery({
+    queryKey: ["gebeta-style", "v2", dark ? "dark" : "light"],
     queryFn: async () => {
       const res = await fetch(GEBETA_STYLE_URL, {
         headers: { Authorization: `Bearer ${GEBETA_API_KEY}` },
       });
       if (!res.ok) throw new Error(`Map style ${res.status}`);
-      return darkenStyle(
-        (await res.json()) as StyleJson,
-      ) as unknown as StyleSpecification;
+      const tidy = tidyStyle((await res.json()) as StyleJson);
+      return (dark ? darkenStyle(tidy) : tidy) as unknown as StyleSpecification;
     },
-    enabled: dark && Boolean(GEBETA_API_KEY),
-    staleTime: Infinity,
+    enabled: Boolean(GEBETA_API_KEY),
+    staleTime: 24 * 60 * 60 * 1000,
     gcTime: Infinity,
   });
 
-  if (!dark) return GEBETA_STYLE_URL;
-  // If the fetch fails, fall back to the light map rather than none.
-  if (darkStyle.isError) return GEBETA_STYLE_URL;
-  return darkStyle.data ?? null;
+  // If the fetch fails, fall back to Gebeta's own style rather than none.
+  if (style.isError) return GEBETA_STYLE_URL;
+  return style.data ?? null;
 }

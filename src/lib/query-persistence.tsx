@@ -57,7 +57,14 @@ export const PERSIST_BUSTER = Constants.expoConfig?.version ?? "1";
 
 // Only what makes the next launch feel instant. Searches, claims, device
 // lists (already on disk) and one-off lookups aren't worth the disk writes.
-const PERSISTED_ROOTS = new Set(["home", "branch", "taxonomy", "profile"]);
+const PERSISTED_ROOTS = new Set([
+  "home",
+  "branch",
+  "taxonomy",
+  "profile",
+  // The cleaned map style, so maps draw at once on the next launch.
+  "gebeta-style",
+]);
 
 export function shouldPersistQuery(query: Query) {
   const root = query.queryKey[0];

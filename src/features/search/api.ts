@@ -22,7 +22,13 @@ export type SearchParams = {
   offset?: number;
 };
 
-export function searchBranches(params: SearchParams, getToken: TokenGetter) {
+/** The filters the map shares with search (no paging, sort or bbox). */
+export type MapFilters = Pick<
+  SearchParams,
+  "q" | "neighborhoodId" | "cuisineId" | "tagId" | "openNow"
+>;
+
+function filterQuery(params: MapFilters) {
   const query = new URLSearchParams();
   query.set("q", params.q);
   if (params.neighborhoodId) {
@@ -33,6 +39,46 @@ export function searchBranches(params: SearchParams, getToken: TokenGetter) {
   if (params.openNow) {
     query.set("openNow", "true");
   }
+  return query;
+}
+
+export type MapPin = {
+  id: string;
+  lat: number;
+  lng: number;
+  rating: string;
+  reviewCount: number;
+  name: string;
+};
+export type MapCluster = { lat: number; lng: number; count: number };
+export type MapPoints = {
+  total: number;
+  pins: MapPin[];
+  clusters: MapCluster[];
+};
+
+/** Every matching place in a viewport, as pins or clusters. */
+export function getMapPoints(
+  filters: MapFilters,
+  bbox: [number, number, number, number],
+  zoom: number,
+  getToken: TokenGetter,
+) {
+  const query = filterQuery(filters);
+  query.set("bbox", bbox.map((n) => n.toFixed(5)).join(","));
+  query.set("zoom", String(zoom));
+  return apiFetch<MapPoints>(`/search/map?${query.toString()}`, getToken);
+}
+
+/** Full cards for places picked on the map, in the order given. */
+export function getCardsByIds(ids: string[], getToken: TokenGetter) {
+  const query = new URLSearchParams();
+  query.set("ids", ids.join(","));
+  return apiFetch<BranchCard[]>(`/search/cards?${query.toString()}`, getToken);
+}
+
+export function searchBranches(params: SearchParams, getToken: TokenGetter) {
+  const query = filterQuery(params);
   if (params.lat !== undefined && params.lng !== undefined) {
     query.set("lat", String(params.lat));
     query.set("lng", String(params.lng));

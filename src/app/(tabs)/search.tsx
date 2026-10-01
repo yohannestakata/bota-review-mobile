@@ -151,6 +151,18 @@ export default function SearchScreen() {
     setNearby(true);
   }
 
+  // The map shows every match in view; it takes the filters, not the list's
+  // paging, sort or area.
+  const mapFilters = useMemo(
+    () => ({
+      q: debouncedQ,
+      neighborhoodId,
+      cuisineId: cuisineIds.length > 0 ? cuisineIds : undefined,
+      tagId: tagIds.length > 0 ? tagIds : undefined,
+      openNow: openNow || undefined,
+    }),
+    [debouncedQ, neighborhoodId, cuisineIds, tagIds, openNow],
+  );
   const search = useSearch(params);
   const pull = usePullToRefresh(() => search.refetch());
   const filterCount =
@@ -410,10 +422,8 @@ export default function SearchScreen() {
             rememberSearch(debouncedQ);
             router.push(`/branch/${branch.id}?source=search_map`);
           }}
-          areaActive={Boolean(area)}
-          loading={search.isFetching && !search.isFetchingNextPage}
+          filters={mapFilters}
           onSearchArea={setArea}
-          results={results}
         />
       ) : (
         <FlashList

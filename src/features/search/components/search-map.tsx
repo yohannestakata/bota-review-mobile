@@ -1,5 +1,7 @@
 import {
   Camera,
+  GeoJSONSource,
+  Layer,
   Map as MapLibreMap,
   ViewAnnotation,
   type CameraRef,
@@ -25,18 +27,21 @@ import { GEBETA_API_KEY, useMapStyle } from "@/features/branch/map-style";
 import { usePrefetchBranch } from "@/features/branch/prefetch";
 import { usePhotoFlight } from "@/features/branch/shared-photo";
 import { useSavedBranchIds } from "@/features/home";
-import { AREA_PAGE_SIZE } from "../queries";
 import type { BranchCard } from "@/lib/api";
 import { haptics } from "@/lib/haptics";
 import { formatMenuPriceRange } from "@/lib/price";
 import { useColors } from "@/lib/theme";
 import { useLocation } from "@/lib/use-location";
 
-// Addis Ababa, for when no result has coordinates yet.
+import type { MapFilters, MapPin } from "../api";
+import { useMapCards, useMapPoints, type MapViewport } from "../queries";
+
+// Addis Ababa, where the map opens.
 const ADDIS: [number, number] = [38.7578, 9.0301];
+const START_ZOOM = 12;
 
 type Located = BranchCard & { lng: number; lat: number };
-type Cluster = { id: string; lng: number; lat: number; members: Located[] };
+type Selected = Pick<MapPin, "id" | "lat" | "lng" | "name">;
 
 const PIN_SHADOW = [
   {
@@ -48,43 +53,11 @@ const PIN_SHADOW = [
   },
 ];
 
-// Pins closer than this on screen merge into one numbered bubble.
-const CLUSTER_RADIUS_PX = 44;
-
-// Web Mercator: lng/lat → pixel position at a zoom level.
-function project(lng: number, lat: number, zoom: number) {
-  const scale = 256 * 2 ** zoom;
-  const sin = Math.sin((lat * Math.PI) / 180);
-  return {
-    x: ((lng + 180) / 360) * scale,
-    y: (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * scale,
-  };
-}
-
-// Greedy screen-space clustering: each pin joins the first cluster whose
-// centre is within the radius at the current zoom, else starts its own.
-function cluster(pins: Located[], zoom: number): Cluster[] {
-  const out: (Cluster & { x: number; y: number })[] = [];
-  for (const pin of pins) {
-    const { x, y } = project(pin.lng, pin.lat, zoom);
-    const near = out.find(
-      (c) => Math.hypot(c.x - x, c.y - y) < CLUSTER_RADIUS_PX,
-    );
-    if (near) {
-      near.members.push(pin);
-    } else {
-      out.push({
-        id: pin.id,
-        lng: pin.lng,
-        lat: pin.lat,
-        x,
-        y,
-        members: [pin],
-      });
-    }
-  }
-  return out;
-}
+// Rating pills are real views; past this many the rest draw as dots, so a
+// busy map stays smooth.
+const MAX_RATING_PILLS = 60;
+// The carousel shows the picked place and its nearest neighbours.
+const CAROUSEL_SIZE = 10;
 
 function located(branches: BranchCard[]): Located[] {
   return branches.flatMap((b) => {
@@ -99,44 +72,91 @@ function located(branches: BranchCard[]): Located[] {
   });
 }
 
+// The viewport before the map reports its own: Web Mercator at a zoom spans
+// this many degrees across `width` points.
+function initialViewport(width: number, height: number): MapViewport {
+  const degPerPt = 360 / (256 * 2 ** START_ZOOM);
+  const halfW = (width / 2) * degPerPt;
+  // Close enough at Addis's latitude (9°N), where Mercator barely stretches.
+  const halfH = (height / 2) * degPerPt;
+  return {
+    bbox: [
+      ADDIS[0] - halfW,
+      ADDIS[1] - halfH,
+      ADDIS[0] + halfW,
+      ADDIS[1] + halfH,
+    ],
+    zoom: START_ZOOM,
+  };
+}
+
+// Tap timestamps, read only from press handlers.
+const now = () => Date.now();
+
+function countLabel(n: number) {
+  return n >= 1000 ? `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}k` : String(n);
+}
+
+function nearest(from: Selected, pins: MapPin[], count: number) {
+  return [...pins]
+    .filter((p) => p.id !== from.id)
+    .sort(
+      (a, b) =>
+        Math.hypot(a.lat - from.lat, a.lng - from.lng) -
+        Math.hypot(b.lat - from.lat, b.lng - from.lng),
+    )
+    .slice(0, count);
+}
+
 /**
- * Search results as pins on a map. Tapping a pin highlights it and shows a
- * compact card for that place at the bottom; tapping the card opens it.
- * The camera frames all pins when the map opens. After that, moving the map
- * (by hand, "center on me", or tapping a cluster) reloads the places inside
- * the visible area once the map settles; the map itself stays put.
+ * Every place matching the search, on a map. The server returns what's in
+ * view: all of it as pins when there are a few hundred or fewer, otherwise
+ * dense areas as clusters with their true counts. Unrated places are small
+ * dots drawn by the map itself; rated ones get a rating pill. Tapping a place
+ * shows a swipeable row of it and its nearest neighbours; tapping a cluster
+ * zooms in. Moving the map also narrows the list view to this area.
  */
 export function SearchMap({
-  results,
+  filters,
   onOpen,
   onSearchArea,
-  areaActive = false,
-  loading = false,
 }: {
-  results: BranchCard[];
+  filters: MapFilters;
   onOpen: (branch: BranchCard) => void;
   onSearchArea?: (bbox: [number, number, number, number]) => void;
-  areaActive?: boolean;
-  /** Results are refreshing (shows a small indicator; pins stay put). */
-  loading?: boolean;
 }) {
-  // A busy area hit the per-request cap: say so, so it isn't mistaken for
-  // "that's everything here".
-  const capped = areaActive && !loading && results.length >= AREA_PAGE_SIZE;
   const colors = useColors();
   const mapStyle = useMapStyle();
   const cameraRef = useRef<CameraRef>(null);
-  const pins = useMemo(() => located(results), [results]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { width, height } = useWindowDimensions();
+  const [viewport, setViewport] = useState<MapViewport>(() =>
+    initialViewport(width, height * 0.7),
+  );
+  const points = useMapPoints(filters, viewport);
+  const pins = useMemo(() => points.data?.pins ?? [], [points.data]);
+
+  const clusters = useMemo(() => points.data?.clusters ?? [], [points.data]);
+
+  // The picked place and its carousel, tied to the search they were made
+  // in: a new search makes an old pick simply not count.
+  const filtersKey = JSON.stringify(filters);
+  const [pick, setPick] = useState<{
+    key: string;
+    selected: Selected;
+    ids: string[];
+  } | null>(null);
+  const active = pick?.key === filtersKey ? pick : null;
+  const selected = active?.selected ?? null;
+  const carouselIds = useMemo(() => active?.ids ?? [], [active?.ids]);
+  const cards = useMapCards(carouselIds);
+  const carouselPins = useMemo(() => located(cards.data ?? []), [cards.data]);
   const pinPressedAt = useRef(0);
-  const selected = pins.find((p) => p.id === selectedId) ?? null;
-  const [zoom, setZoom] = useState(12);
-  const clusters = useMemo(() => cluster(pins, zoom), [pins, zoom]);
+
   const location = useLocation();
   const wantsLocate = useRef(false);
   const [locating, setLocating] = useState(false);
-  // Moves the app starts on purpose (center on me, cluster tap) should load
-  // their area too; the initial fit-to-results must not.
+  // Moves the app starts on purpose (center on me, cluster tap) count as the
+  // user's, for narrowing the list to this area.
   const loadNextMove = useRef(false);
   const areaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
@@ -146,12 +166,82 @@ export function SearchMap({
     [],
   );
 
+  // A new search frames what matched (browsing everything keeps the city).
+  const fitNext = useRef(false);
+  useEffect(() => {
+    const filtered = Boolean(
+      filters.q.trim().length >= 2 ||
+      filters.neighborhoodId ||
+      filters.cuisineId?.length ||
+      filters.tagId?.length ||
+      filters.openNow,
+    );
+    fitNext.current = filtered;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtersKey]);
+  useEffect(() => {
+    if (!fitNext.current || points.isPlaceholderData || !points.data) return;
+    fitNext.current = false;
+    const all = [
+      ...points.data.pins,
+      ...points.data.clusters.map((c) => ({ lat: c.lat, lng: c.lng })),
+    ];
+    if (all.length === 0) return;
+    if (all.length === 1) {
+      cameraRef.current?.easeTo({
+        center: [all[0].lng, all[0].lat],
+        zoom: 15,
+        duration: 400,
+      });
+      return;
+    }
+    const lngs = all.map((p) => p.lng);
+    const lats = all.map((p) => p.lat);
+    cameraRef.current?.fitBounds(
+      [
+        Math.min(...lngs),
+        Math.min(...lats),
+        Math.max(...lngs),
+        Math.max(...lats),
+      ],
+      {
+        padding: { top: 60, right: 50, bottom: 200, left: 50 },
+        duration: 400,
+      },
+    );
+  }, [points.data, points.isPlaceholderData]);
+
+  function select(pin: MapPin) {
+    pinPressedAt.current = now();
+    haptics.select();
+    // Keep the row if the pin is already in it; otherwise build it around
+    // this place.
+    setPick({
+      key: filtersKey,
+      selected: pin,
+      ids: carouselIds.includes(pin.id)
+        ? carouselIds
+        : [pin.id, ...nearest(pin, pins, CAROUSEL_SIZE - 1).map((p) => p.id)],
+    });
+  }
+
+  function zoomInto(lng: number, lat: number) {
+    pinPressedAt.current = now();
+    haptics.select();
+    loadNextMove.current = true;
+    cameraRef.current?.easeTo({
+      center: [lng, lat],
+      zoom: viewport.zoom + 2,
+      duration: 400,
+    });
+  }
+
   function flyToMe() {
     loadNextMove.current = true;
     if (location.coords) {
       cameraRef.current?.easeTo({
         center: [location.coords.lng, location.coords.lat],
-        zoom: Math.max(zoom, 14),
+        zoom: Math.max(viewport.zoom, 14),
         duration: 500,
       });
       return;
@@ -178,37 +268,39 @@ export function SearchMap({
     }
   }, [location.coords]);
 
-  // Frame every pin (leaving room for the card) once the map has loaded, and
-  // again whenever the result set changes.
-  const [mapReady, setMapReady] = useState(false);
-  const boundsKey = pins.map((p) => p.id).join(",");
-  useEffect(() => {
-    if (!mapReady || pins.length === 0 || areaActive) return;
-    if (pins.length === 1) {
-      cameraRef.current?.easeTo({
-        center: [pins[0].lng, pins[0].lat],
-        zoom: 15,
-        duration: 400,
-      });
-      return;
-    }
-    const lngs = pins.map((p) => p.lng);
-    const lats = pins.map((p) => p.lat);
-    cameraRef.current?.fitBounds(
-      [
-        Math.min(...lngs),
-        Math.min(...lats),
-        Math.max(...lngs),
-        Math.max(...lats),
+  // Rated places get pills (the best ones, if there are many) and clusters
+  // are numbered bubbles; the many remaining places are dots drawn by the map
+  // renderer itself. (Cluster numbers aren't a map text layer: loading map
+  // fonts for one crashes MapLibre on iOS.)
+  const ratingPills = useMemo(
+    () =>
+      pins
+        .filter((p) => p.reviewCount > 0 && p.id !== selected?.id)
+        .slice(0, MAX_RATING_PILLS),
+    [pins, selected?.id],
+  );
+  const shapes = useMemo((): GeoJSON.FeatureCollection => {
+    const pillIds = new Set(ratingPills.map((p) => p.id));
+    return {
+      type: "FeatureCollection",
+      features: [
+        ...pins
+          .filter((p) => !pillIds.has(p.id) && p.id !== selected?.id)
+          .map(
+            (p): GeoJSON.Feature => ({
+              type: "Feature",
+              id: p.id,
+              geometry: { type: "Point", coordinates: [p.lng, p.lat] },
+              properties: { kind: "place", id: p.id },
+            }),
+          ),
       ],
-      {
-        padding: { top: 60, right: 50, bottom: 200, left: 50 },
-        duration: 400,
-      },
-    );
-    // Only when the set of places changes, not on every render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [boundsKey, mapReady]);
+    };
+  }, [pins, ratingPills, selected?.id]);
+  const pinsById = useMemo(() => new Map(pins.map((p) => [p.id, p])), [pins]);
+
+  const empty = points.data && points.data.total === 0;
+  const firstLoad = !points.data && points.isFetching;
 
   if (!GEBETA_API_KEY) return null;
 
@@ -220,32 +312,64 @@ export function SearchMap({
           compass={false}
           logo={false}
           mapStyle={mapStyle}
-          onDidFinishLoadingMap={() => setMapReady(true)}
-          // Re-cluster at whole-zoom steps once the camera settles.
           onRegionDidChange={(e) => {
-            const z = Math.round(e.nativeEvent.zoom * 2) / 2;
-            if (z !== zoom) setZoom(z);
-            // Load what's in view shortly after a deliberate move settles
-            // (a quick follow-up pan restarts the wait).
+            const { bounds, zoom } = e.nativeEvent;
+            setViewport({ bbox: bounds, zoom });
+            // Narrow the list view to this area after a deliberate move
+            // settles (a quick follow-up pan restarts the wait).
             const deliberate =
               e.nativeEvent.userInteraction || loadNextMove.current;
             if (!deliberate || !onSearchArea) return;
             loadNextMove.current = false;
-            const bounds = e.nativeEvent.bounds;
             if (areaTimer.current) clearTimeout(areaTimer.current);
             areaTimer.current = setTimeout(() => onSearchArea(bounds), 500);
           }}
           onPress={() => {
             // A pin tap also reaches the map; don't let it undo the selection.
-            if (Date.now() - pinPressedAt.current < 400) return;
-            setSelectedId(null);
+            if (now() - pinPressedAt.current < 400) return;
+            setPick(null);
           }}
           style={{ flex: 1 }}
         >
           <Camera
-            initialViewState={{ center: ADDIS, zoom: 12 }}
+            initialViewState={{ center: ADDIS, zoom: START_ZOOM }}
             ref={cameraRef}
           />
+
+          <GeoJSONSource
+            data={shapes}
+            hitbox={{ top: 12, right: 12, bottom: 12, left: 12 }}
+            id="places"
+            onPress={(e) => {
+              const feature = e.nativeEvent.features[0];
+              if (!feature?.geometry || feature.geometry.type !== "Point") {
+                return;
+              }
+              const pin = pinsById.get(String(feature.properties?.id));
+              if (pin) select(pin);
+            }}
+          >
+            <Layer
+              filter={["==", ["get", "kind"], "place"]}
+              id="place-dots"
+              paint={{
+                "circle-color": colors.primary,
+                "circle-radius": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  12,
+                  4.5,
+                  17,
+                  7,
+                ],
+                "circle-stroke-color": colors.surface,
+                "circle-stroke-width": 2,
+              }}
+              type="circle"
+            />
+          </GeoJSONSource>
+
           {location.coords ? (
             <ViewAnnotation
               anchor="center"
@@ -264,91 +388,95 @@ export function SearchMap({
               />
             </ViewAnnotation>
           ) : null}
-          {clusters.map((group) => {
-            if (group.members.length > 1) {
-              return (
-                <ViewAnnotation
-                  anchor="center"
-                  id={`cluster-${group.id}`}
-                  key={`cluster-${group.id}-${group.members.length}`}
-                  lngLat={[group.lng, group.lat]}
-                  onPress={() => {
-                    pinPressedAt.current = Date.now();
-                    haptics.select();
-                    loadNextMove.current = true;
-                    // Zoom in until this group starts to split apart.
-                    cameraRef.current?.easeTo({
-                      center: [group.lng, group.lat],
-                      zoom: zoom + 2,
-                      duration: 400,
-                    });
-                  }}
-                >
-                  <View
-                    className="items-center justify-center rounded-full"
-                    style={{
-                      boxShadow: PIN_SHADOW,
-                      minWidth: 34,
-                      height: 34,
-                      paddingHorizontal: 8,
-                      backgroundColor: colors.primary,
-                      borderWidth: 2,
-                      borderColor: colors.surface,
-                    }}
-                  >
-                    <ThemedText size="sm" tone="inverse" weight="bold">
-                      {group.members.length}
-                    </ThemedText>
-                  </View>
-                </ViewAnnotation>
-              );
-            }
-            const pin = group.members[0];
-            const isSelected = pin.id === selectedId;
+
+          {clusters.map((c) => {
+            const size = c.count >= 500 ? 46 : c.count >= 50 ? 40 : 34;
             return (
               <ViewAnnotation
                 anchor="center"
-                id={pin.id}
-                key={`${pin.id}-${isSelected ? "on" : "off"}`}
-                lngLat={[pin.lng, pin.lat]}
-                onPress={() => {
-                  pinPressedAt.current = Date.now();
-                  haptics.select();
-                  setSelectedId(pin.id);
-                }}
+                id={`cluster-${c.lng}-${c.lat}`}
+                key={`cluster-${c.lng}-${c.lat}-${c.count}`}
+                lngLat={[c.lng, c.lat]}
+                onPress={() => zoomInto(c.lng, c.lat)}
               >
                 <View
-                  className="flex-row items-center gap-1 rounded-full"
+                  className="items-center justify-center rounded-full"
                   style={{
-                    paddingHorizontal: 9,
-                    paddingVertical: 4,
-                    backgroundColor: isSelected
-                      ? colors.primary
-                      : colors.surface,
-                    // A clear outline + soft shadow so white pins stand out on
-                    // the light map (the old hairline border disappeared).
-                    borderWidth: 1.5,
-                    borderColor: isSelected ? colors.surface : colors.muted,
                     boxShadow: PIN_SHADOW,
+                    minWidth: size,
+                    height: size,
+                    paddingHorizontal: 8,
+                    backgroundColor: colors.primary,
+                    borderWidth: 2,
+                    borderColor: colors.surface,
                   }}
                 >
-                  <FilledStar
-                    color={isSelected ? colors.inverse : colors.rating}
-                    size={11}
-                  />
-                  <ThemedText
-                    size="xs"
-                    tone={isSelected ? "inverse" : "default"}
-                    weight="semibold"
-                  >
-                    {pin.reviewCount > 0
-                      ? Number(pin.rating).toFixed(1)
-                      : "New"}
+                  <ThemedText size="sm" tone="inverse" weight="bold">
+                    {countLabel(c.count)}
                   </ThemedText>
                 </View>
               </ViewAnnotation>
             );
           })}
+
+          {ratingPills.map((pin) => (
+            <ViewAnnotation
+              anchor="center"
+              id={pin.id}
+              key={pin.id}
+              lngLat={[pin.lng, pin.lat]}
+              onPress={() => select(pin)}
+            >
+              <View
+                className="flex-row items-center gap-1 rounded-full"
+                style={{
+                  paddingHorizontal: 9,
+                  paddingVertical: 4,
+                  backgroundColor: colors.surface,
+                  borderWidth: 1.5,
+                  borderColor: colors.muted,
+                  boxShadow: PIN_SHADOW,
+                }}
+              >
+                <FilledStar color={colors.rating} size={11} />
+                <ThemedText size="xs" weight="semibold">
+                  {Number(pin.rating).toFixed(1)}
+                </ThemedText>
+              </View>
+            </ViewAnnotation>
+          ))}
+
+          {/* The picked place, named, so it's clear which one the card is. */}
+          {selected ? (
+            <ViewAnnotation
+              anchor="center"
+              id="selected"
+              key={`selected-${selected.id}`}
+              lngLat={[selected.lng, selected.lat]}
+            >
+              <View
+                className="flex-row items-center rounded-full"
+                style={{
+                  maxWidth: 200,
+                  paddingHorizontal: 11,
+                  paddingVertical: 5,
+                  backgroundColor: colors.primary,
+                  borderWidth: 2,
+                  borderColor: colors.surface,
+                  boxShadow: PIN_SHADOW,
+                }}
+              >
+                <ThemedText
+                  numberOfLines={1}
+                  size="xs"
+                  tone="inverse"
+                  weight="semibold"
+                >
+                  {selected.name}
+                </ThemedText>
+              </View>
+            </ViewAnnotation>
+          ) : null}
         </MapLibreMap>
       ) : (
         <View className="flex-1 bg-placeholder" />
@@ -364,8 +492,8 @@ export function SearchMap({
         </ThemedText>
       </View>
 
-      {/* One status pill: loading takes priority, then "nothing here". */}
-      {loading || pins.length === 0 || capped ? (
+      {/* One status pill: first load, then "nothing here". */}
+      {firstLoad || empty ? (
         <Animated.View
           entering={FadeIn.duration(160)}
           exiting={FadeOut.duration(120)}
@@ -387,23 +515,17 @@ export function SearchMap({
               boxShadow: PIN_SHADOW,
             }}
           >
-            {loading ? (
+            {firstLoad ? (
               <ActivityIndicator color={colors.muted} size="small" />
             ) : null}
             <ThemedText size="sm" tone="muted" weight="medium">
-              {loading
-                ? "Finding places"
-                : capped
-                  ? "Top 50 here. Zoom in for more."
-                  : areaActive
-                    ? "No places in this area yet"
-                    : "No places with a location to show"}
+              {firstLoad ? "Finding places" : "No places here yet"}
             </ThemedText>
           </View>
         </Animated.View>
       ) : null}
 
-      {/* Center on me — above the preview card when one is showing. */}
+      {/* Center on me — above the cards when they're showing. */}
       <PressableScale
         accessibilityLabel="Show my location"
         accessibilityRole="button"
@@ -429,18 +551,30 @@ export function SearchMap({
         )}
       </PressableScale>
 
-      {selected ? (
+      {selected && carouselPins.some((p) => p.id === selected.id) ? (
         <ResultCarousel
           onOpen={onOpen}
           onSelect={(pin) => {
-            setSelectedId(pin.id);
-            // Follow the swipe without zooming or triggering an area reload.
+            setPick((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    selected: {
+                      id: pin.id,
+                      lat: pin.lat,
+                      lng: pin.lng,
+                      name: pin.placeName,
+                    },
+                  }
+                : prev,
+            );
+            // Follow the swipe without zooming.
             cameraRef.current?.easeTo({
               center: [pin.lng, pin.lat],
               duration: 350,
             });
           }}
-          pins={pins}
+          pins={carouselPins}
           selectedId={selected.id}
         />
       ) : null}
