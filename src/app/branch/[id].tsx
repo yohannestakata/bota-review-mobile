@@ -299,15 +299,16 @@ export default function BranchDetailScreen() {
     .filter(Boolean)
     .join("  ·  ");
   const chips = [...data.cuisines, ...data.tags];
-  // The address without the city (everything here is in Addis), and hidden
-  // when it only repeats the neighbourhood the top line already shows.
+  // The address without the city (everything here is in Addis). Falls back to
+  // the neighbourhood so the location row is always there when we have a pin.
   const shortAddress = (() => {
     const trimmed = (data.addressText ?? "")
       .replace(/,?\s*addis\s+ababa(,?\s*ethiopia)?\s*$/i, "")
       .trim();
-    const area = data.neighborhood?.name?.trim().toLowerCase();
-    return trimmed && trimmed.toLowerCase() !== area ? trimmed : null;
+    return trimmed || data.neighborhood?.name?.trim() || null;
   })();
+  // "Near Edna Mall" says more than a street name, where we have it.
+  const locationLine = data.directions ?? shortAddress;
   const mapsUrl =
     data.latitude != null && data.longitude != null
       ? `https://www.google.com/maps/search/?api=1&query=${data.latitude},${data.longitude}`
@@ -396,7 +397,7 @@ export default function BranchDetailScreen() {
               {/* Open status and address on one row. The status is short and
                 what people check first, so it never truncates; the address
                 takes what's left and ends in "..." if it's long. */}
-              {status || shortAddress ? (
+              {status || locationLine ? (
                 <View className="flex-row items-center gap-4">
                   {status ? (
                     <View className="shrink-0 flex-row items-center gap-1.5">
@@ -420,9 +421,9 @@ export default function BranchDetailScreen() {
                       </ThemedText>
                     </View>
                   ) : null}
-                  {shortAddress ? (
+                  {locationLine ? (
                     <PressableFade
-                      accessibilityLabel={`Address: ${shortAddress}. Get directions`}
+                      accessibilityLabel={`${locationLine}. Get directions`}
                       accessibilityRole="link"
                       className="flex-1 flex-row items-center gap-1.5"
                       disabled={!mapsUrl}
@@ -439,7 +440,7 @@ export default function BranchDetailScreen() {
                         numberOfLines={1}
                         tone="muted"
                       >
-                        {shortAddress}
+                        {locationLine}
                       </ThemedText>
                     </PressableFade>
                   ) : null}

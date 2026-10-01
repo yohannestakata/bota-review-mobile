@@ -75,6 +75,8 @@ export type BranchDetail = {
   slug: string;
   label: string | null;
   addressText: string | null;
+  /** "Near Edna Mall": written by a person, or from the nearest landmark. */
+  directions: string | null;
   latitude: string | null;
   longitude: string | null;
   phone: string | null;

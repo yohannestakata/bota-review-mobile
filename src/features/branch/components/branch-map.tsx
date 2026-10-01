@@ -86,7 +86,7 @@ export function BranchMap({
         pointerEvents="none"
       >
         <ThemedText size="xs" tone="muted">
-          © Gebeta Maps
+          © Gebeta Maps · © OpenStreetMap
         </ThemedText>
       </View>
     </View>
