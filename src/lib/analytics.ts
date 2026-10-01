@@ -37,7 +37,6 @@ export type AnalyticsEvents = {
   taste_onboarding_finished: { picks: number; skipped: boolean };
   // Search: list vs map, and map-area loads.
   search_view_changed: { view: "list" | "map" };
-  map_area_searched: { result_count: number };
 };
 
 export type AnalyticsEventName = keyof AnalyticsEvents;

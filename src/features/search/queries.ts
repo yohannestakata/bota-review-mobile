@@ -57,9 +57,6 @@ export function useMapCards(ids: string[]) {
 }
 
 const PAGE_SIZE = 20;
-/** Map-area searches fetch more at once (the server's max): a map shows a
- * whole area, not a scrolling list. */
-export const AREA_PAGE_SIZE = 50;
 
 export function useSearch(params: SearchParams) {
   const { getToken } = useAuth();
@@ -68,11 +65,10 @@ export function useSearch(params: SearchParams) {
     params.cuisineId?.length ||
     params.tagId?.length ||
     params.openNow ||
-    params.bbox ||
     (params.sort !== undefined && params.sort !== "rating"),
   );
   const isBrowse = params.q.trim().length < 2 && !hasFilters;
-  const pageSize = params.bbox ? AREA_PAGE_SIZE : PAGE_SIZE;
+  const pageSize = PAGE_SIZE;
 
   return useInfiniteQuery({
     queryKey: isBrowse ? searchKeys.browse() : searchKeys.results(params),

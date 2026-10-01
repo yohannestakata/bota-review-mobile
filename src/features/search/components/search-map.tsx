@@ -114,16 +114,14 @@ function nearest(from: Selected, pins: MapPin[], count: number) {
  * dense areas as clusters with their true counts. Unrated places are small
  * dots drawn by the map itself; rated ones get a rating pill. Tapping a place
  * shows a swipeable row of it and its nearest neighbours; tapping a cluster
- * zooms in. Moving the map also narrows the list view to this area.
+ * zooms in.
  */
 export function SearchMap({
   filters,
   onOpen,
-  onSearchArea,
 }: {
   filters: MapFilters;
   onOpen: (branch: BranchCard) => void;
-  onSearchArea?: (bbox: [number, number, number, number]) => void;
 }) {
   const colors = useColors();
   const mapStyle = useMapStyle();
@@ -155,16 +153,6 @@ export function SearchMap({
   const location = useLocation();
   const wantsLocate = useRef(false);
   const [locating, setLocating] = useState(false);
-  // Moves the app starts on purpose (center on me, cluster tap) count as the
-  // user's, for narrowing the list to this area.
-  const loadNextMove = useRef(false);
-  const areaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (areaTimer.current) clearTimeout(areaTimer.current);
-    },
-    [],
-  );
 
   // A new search frames what matched (browsing everything keeps the city).
   const fitNext = useRef(false);
@@ -228,7 +216,6 @@ export function SearchMap({
   function zoomInto(lng: number, lat: number) {
     pinPressedAt.current = now();
     haptics.select();
-    loadNextMove.current = true;
     cameraRef.current?.easeTo({
       center: [lng, lat],
       zoom: viewport.zoom + 2,
@@ -237,7 +224,6 @@ export function SearchMap({
   }
 
   function flyToMe() {
-    loadNextMove.current = true;
     if (location.coords) {
       cameraRef.current?.easeTo({
         center: [location.coords.lng, location.coords.lat],
@@ -315,14 +301,6 @@ export function SearchMap({
           onRegionDidChange={(e) => {
             const { bounds, zoom } = e.nativeEvent;
             setViewport({ bbox: bounds, zoom });
-            // Narrow the list view to this area after a deliberate move
-            // settles (a quick follow-up pan restarts the wait).
-            const deliberate =
-              e.nativeEvent.userInteraction || loadNextMove.current;
-            if (!deliberate || !onSearchArea) return;
-            loadNextMove.current = false;
-            if (areaTimer.current) clearTimeout(areaTimer.current);
-            areaTimer.current = setTimeout(() => onSearchArea(bounds), 500);
           }}
           onPress={() => {
             // A pin tap also reaches the map; don't let it undo the selection.

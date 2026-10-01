@@ -57,10 +57,6 @@ export default function SearchScreen() {
   const [sort, setSort] = useState<Exclude<SearchSort, "distance">>("rating");
   const [openNow, setOpenNow] = useState(false);
   const [view, setView] = useState<"list" | "map">("list");
-  // The visible map area, set as the map moves; cleared when leaving the map.
-  const [area, setArea] = useState<
-    [number, number, number, number] | undefined
-  >(undefined);
   const [nearbyWanted, setNearby] = useState(false);
   const filterSheetRef = useRef<FilterSheetRef>(null);
 
@@ -118,7 +114,6 @@ export default function SearchScreen() {
       sort: sortByDistance ? ("distance" as const) : sort,
       lat: coords?.lat,
       lng: coords?.lng,
-      bbox: area,
     }),
     [
       debouncedQ,
@@ -130,7 +125,6 @@ export default function SearchScreen() {
       sort,
       coords?.lat,
       coords?.lng,
-      area,
     ],
   );
 
@@ -152,7 +146,7 @@ export default function SearchScreen() {
   }
 
   // The map shows every match in view; it takes the filters, not the list's
-  // paging, sort or area.
+  // paging or sort.
   const mapFilters = useMemo(
     () => ({
       q: debouncedQ,
@@ -175,8 +169,7 @@ export default function SearchScreen() {
     debouncedQ.length >= 2 ||
     filterCount > 0 ||
     openNow ||
-    sortByDistance ||
-    Boolean(area);
+    sortByDistance;
   const resultPages = search.data?.pages;
   const results = useMemo(() => {
     const unique = new Map<string, BranchCardData>();
@@ -184,16 +177,6 @@ export default function SearchScreen() {
     return [...unique.values()];
   }, [resultPages]);
   const firstPageCount = search.data?.pages[0]?.length ?? 0;
-
-  // One event per map-area load, once its results are in.
-  const trackedArea = useRef<string | null>(null);
-  useEffect(() => {
-    if (!area || search.isFetching) return;
-    const key = area.join(",");
-    if (trackedArea.current === key) return;
-    trackedArea.current = key;
-    analytics.track("map_area_searched", { result_count: results.length });
-  }, [area, search.isFetching, results.length]);
 
   // search_submitted / search_no_results — fire once per settled query (not per
   // keystroke), only for real text searches of 2+ characters.
@@ -248,7 +231,6 @@ export default function SearchScreen() {
     setSort("rating");
     setOpenNow(false);
     setNearby(false);
-    setArea(undefined);
   }
 
   // Removable chips for each applied sheet filter (neighborhood/cuisine/tag).
@@ -256,13 +238,6 @@ export default function SearchScreen() {
   // own toggle chips in the row above.
   const activeChips: { key: string; label: string; onRemove: () => void }[] =
     [];
-  if (area) {
-    activeChips.push({
-      key: "area",
-      label: "This map area",
-      onRemove: () => setArea(undefined),
-    });
-  }
   if (neighborhoodId) {
     const match = neighborhoods.data?.find((n) => n.id === neighborhoodId);
     activeChips.push({
@@ -379,7 +354,6 @@ export default function SearchScreen() {
               const next = view === "map" ? "list" : "map";
               analytics.track("search_view_changed", { view: next });
               setView(next);
-              setArea(undefined);
             }}
           >
             <AppIcon
@@ -423,7 +397,6 @@ export default function SearchScreen() {
             router.push(`/branch/${branch.id}?source=search_map`);
           }}
           filters={mapFilters}
-          onSearchArea={setArea}
         />
       ) : (
         <FlashList
