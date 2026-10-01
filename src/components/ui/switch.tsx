@@ -15,8 +15,8 @@ const PADDING = 3;
 const TRAVEL = TRACK_WIDTH - THUMB_SIZE - PADDING * 2;
 
 // Themed switch — replaces RN's built-in Switch, which looks different per
-// platform and ignores our color tokens. Off = border track, on = foreground
-// track, white thumb (matches the app's monochrome controls).
+// platform and ignores our color tokens. Off = grey track, on = brand track,
+// white thumb, so both states read clearly in light and dark mode.
 export function Switch({
   value,
   onValueChange,
@@ -38,7 +38,7 @@ export function Switch({
     backgroundColor: interpolateColor(
       progress.value,
       [0, 1],
-      [colors.border, colors.foreground],
+      [colors.subtle, colors.primary],
     ),
   }));
 

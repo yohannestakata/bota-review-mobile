@@ -332,10 +332,10 @@ export function PhotoSourceHost() {
             cameraStyle,
           ]}
         >
-          {cameraLive ? (
+          {/* Removed (not just paused) under the taken photo: on some Android
+              phones a paused preview still draws over the status bar. */}
+          {cameraLive && phase !== "review" ? (
             <CameraView
-              // Paused under the taken photo.
-              active={phase !== "review"}
               enableTorch={false}
               facing={facing}
               flash={flash}
