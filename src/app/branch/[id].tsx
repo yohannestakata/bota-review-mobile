@@ -394,13 +394,11 @@ export default function BranchDetailScreen() {
                 ) : null}
               </View>
 
-              {/* Open status and address on one row. The status is short and
-                what people check first, so it never truncates; the address
-                takes what's left and ends in "..." if it's long. */}
+              {/* Open status, then where it is, each on its own line. */}
               {status || locationLine ? (
-                <View className="flex-row items-center gap-4">
+                <View className="gap-1.5">
                   {status ? (
-                    <View className="shrink-0 flex-row items-center gap-1.5">
+                    <View className="flex-row items-center gap-1.5">
                       <AppIcon
                         color={
                           {
@@ -425,7 +423,7 @@ export default function BranchDetailScreen() {
                     <PressableFade
                       accessibilityLabel={`${locationLine}. Get directions`}
                       accessibilityRole="link"
-                      className="flex-1 flex-row items-center gap-1.5"
+                      className="flex-row items-center gap-1.5 self-start"
                       disabled={!mapsUrl}
                       hitSlop={8}
                       onPress={() => mapsUrl && void Linking.openURL(mapsUrl)}
@@ -437,7 +435,7 @@ export default function BranchDetailScreen() {
                       />
                       <ThemedText
                         className="shrink"
-                        numberOfLines={1}
+                        numberOfLines={2}
                         tone="muted"
                       >
                         {locationLine}
