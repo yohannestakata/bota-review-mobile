@@ -14,6 +14,7 @@ import {
   getHome,
   getPlace,
   getSavedBranchIds,
+  type HomeBranchSection,
   getSaves,
   getTastePreferences,
   getTasteOptions,
@@ -51,6 +52,31 @@ export function useSaves() {
   });
 }
 
+// The order "For you" was first shown in this session. A fresher list (the
+// cached one is shown at launch, then re-ranked a moment later) keeps it, so
+// cards don't swap places under the user's thumb; new places join the end.
+let forYouOrder: string[] | null = null;
+
+/** Let the next list set a new order (pull to refresh asks for a re-rank). */
+export function resetForYouOrder() {
+  forYouOrder = null;
+}
+
+function keepForYouOrder(section: HomeBranchSection): HomeBranchSection {
+  if (!forYouOrder) {
+    forYouOrder = section.items.map((item) => item.id);
+    return section;
+  }
+  const rank = new Map(forYouOrder.map((id, i) => [id, i]));
+  const items = [...section.items].sort(
+    (a, b) =>
+      (rank.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+      (rank.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+  );
+  forYouOrder = items.map((item) => item.id);
+  return { ...section, items };
+}
+
 export function useForYou(coords: { lat: number; lng: number } | null) {
   const { getToken, isLoaded, isSignedIn, userId } = useAuth();
   // Guests: built from the tastes picked on this device.
@@ -84,6 +110,7 @@ export function useForYou(coords: { lat: number; lng: number } | null) {
     enabled: isLoaded && (isSignedIn === true || guestIds.length > 0),
     // Keep showing the last list while a new location/view refetches.
     placeholderData: keepPreviousData,
+    select: keepForYouOrder,
   });
 }
 

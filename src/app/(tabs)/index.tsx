@@ -20,6 +20,7 @@ import {
   homeGreeting,
   LocationPill,
   RateRecentVisitCard,
+  resetForYouOrder,
   TastePickerCard,
   useHomeFeed,
   useTasteOnboarding,
@@ -65,7 +66,7 @@ export default function Index() {
   const pull = usePullToRefresh(() =>
     Promise.all([
       home.refetch(),
-      forYou.refetch(),
+      (resetForYouOrder(), forYou.refetch()),
       ...(isSignedIn ? [saved.refetch()] : []),
     ]),
   );

@@ -6,7 +6,10 @@ import { Photo } from "@/components/ui/photo";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { Stars } from "@/components/ui/stars";
 import { ThemedText } from "@/components/ui/themed-text";
-import { CollapsibleReviewText, PhotoViewer } from "@/features/branch";
+// Direct paths, not the "@/features/branch" index: that index pulls in
+// branch queries, which import from profile, which would loop back here.
+import { PhotoViewer } from "@/features/branch/components/photo-viewer";
+import { CollapsibleReviewText } from "@/features/branch/components/review-row";
 import { formatRelativeDate } from "@/lib/format-date";
 import { useColors } from "@/lib/theme";
 
