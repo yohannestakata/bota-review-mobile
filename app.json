@@ -5,11 +5,13 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": ["mobile", "bota"],
+    "scheme": [
+      "mobile",
+      "bota"
+    ],
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "com.botareview.bota",
-      "associatedDomains": ["applinks:bota-review-api.onrender.com"]
+      "bundleIdentifier": "com.botareview.bota"
     },
     "android": {
       "adaptiveIcon": {
@@ -31,9 +33,16 @@
           "action": "VIEW",
           "autoVerify": true,
           "data": [
-            { "scheme": "https", "host": "bota-review-api.onrender.com", "pathPrefix": "/p/" }
+            {
+              "scheme": "https",
+              "host": "bota-review-api.onrender.com",
+              "pathPrefix": "/p/"
+            }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -119,7 +128,9 @@
             "enableShrinkResourcesInReleaseBuilds": true
           }
         }
-      ]
+      ],
+      "./plugins/with-min-pod-deployment-target",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
