@@ -50,6 +50,7 @@ import { zodFormResolver } from "@/lib/zod-resolver";
 import { useColors } from "@/lib/theme";
 import { usePickImage } from "@/lib/use-pick-image";
 import { PressableFade, PressableScale } from "@/components/ui/pressable-scale";
+import { askPhotoCategory } from "@/features/branch/ask-photo-category";
 
 const DAYS = [
   ["mon", "Monday"],
@@ -208,8 +209,11 @@ export default function ManageListingScreen() {
       return;
     }
     if (result.status !== "picked") return;
-    const photo = result.images[0];
-    if (!photo) return;
+    const picked = result.images[0];
+    if (!picked) return;
+    const category = await askPhotoCategory();
+    if (!category) return;
+    const photo = { ...picked, category };
 
     setUploadingPhoto(true);
     try {

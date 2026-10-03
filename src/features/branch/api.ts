@@ -341,7 +341,7 @@ export async function uploadOwnerPhoto(
         url: uploaded.secure_url,
         width: uploaded.width,
         height: uploaded.height,
-        category: "food",
+        category: photo.category ?? "food",
       }),
     });
   } catch (error) {
@@ -377,7 +377,9 @@ export async function uploadOwnerAvatar(
     { method: "POST", body: form },
   );
   if (!uploadResponse.ok) {
-    throw new Error(`Cloudinary upload failed: status ${uploadResponse.status}`);
+    throw new Error(
+      `Cloudinary upload failed: status ${uploadResponse.status}`,
+    );
   }
 
   const uploaded = (await uploadResponse.json()) as {
@@ -501,6 +503,21 @@ export function deleteCloudinaryPhoto(publicId: string, getToken: TokenGetter) {
   );
 }
 
+// What a photo shows. Same set as the API's photo_category enum.
+export const PHOTO_CATEGORIES = [
+  { value: "food", label: "Food" },
+  { value: "drink", label: "Drink" },
+  { value: "interior", label: "Inside" },
+  { value: "exterior", label: "Outside" },
+  { value: "menu", label: "Menu" },
+  { value: "ambience", label: "Vibe" },
+] as const;
+export type PhotoCategory = (typeof PHOTO_CATEGORIES)[number]["value"];
+
+export function photoCategoryLabel(category: string | null | undefined) {
+  return PHOTO_CATEGORIES.find((c) => c.value === category)?.label ?? null;
+}
+
 export type PickedPhoto = {
   uri: string;
   width: number;
@@ -508,6 +525,8 @@ export type PickedPhoto = {
   fileName?: string | null;
   mimeType?: string | null;
   base64?: string | null;
+  /** What the photo shows; food unless the person picked something else. */
+  category?: PhotoCategory;
 };
 
 // Uploads one picked image: gets a signed payload, pushes the file straight to
@@ -578,7 +597,7 @@ export async function uploadReviewPhoto(
         url: uploaded.secure_url,
         width: uploaded.width,
         height: uploaded.height,
-        category: "food",
+        category: photo.category ?? "food",
         reviewId,
       }),
     });

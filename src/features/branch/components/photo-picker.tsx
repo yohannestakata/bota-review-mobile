@@ -1,5 +1,6 @@
 import {
   Add01Icon,
+  ArrowDown01Icon,
   Camera01Icon,
   Cancel01Icon,
 } from "@hugeicons/core-free-icons";
@@ -11,7 +12,12 @@ import { AppIcon } from "@/components/ui/huge-icon";
 import { ThemedText } from "@/components/ui/themed-text";
 import { useColors } from "@/lib/theme";
 
-import type { PickedPhoto } from "../api";
+import { askPhotoCategory } from "../ask-photo-category";
+import {
+  photoCategoryLabel,
+  type PhotoCategory,
+  type PickedPhoto,
+} from "../api";
 import { PressableFade, PressableScale } from "@/components/ui/pressable-scale";
 
 const THUMB = 72;
@@ -29,6 +35,8 @@ type PhotoPickerProps = {
   heading?: boolean;
   /** Size thumbnails so `max` of them fill the row, instead of 72pt. */
   fill?: boolean;
+  /** Shows each photo's category under it, tappable to change. */
+  onCategoryChange?: (uri: string, category: PhotoCategory) => void;
 };
 
 // Add-photos control for forms. Empty, it's one row styled like a text field
@@ -44,6 +52,7 @@ export function PhotoPicker({
   onRemove,
   heading = false,
   fill = false,
+  onCategoryChange,
 }: PhotoPickerProps) {
   const colors = useColors();
   const [rowWidth, setRowWidth] = useState(0);
@@ -102,34 +111,63 @@ export function PhotoPicker({
           style={{ gap: GAP }}
         >
           {photos.map((photo, index) => (
-            <View
-              className="overflow-hidden rounded-xl bg-placeholder"
-              key={photo.uri}
-              style={{ width: thumb, height: thumb }}
-            >
-              <Image
-                accessibilityLabel={`Photo ${index + 1}`}
-                contentFit="cover"
-                source={photo.uri}
-                style={{ width: "100%", height: "100%" }}
-              />
-              <PressableFade
-                accessibilityLabel={`Remove photo ${index + 1}`}
-                accessibilityRole="button"
-                className="absolute items-center justify-center rounded-full bg-black/60"
-                hitSlop={10}
-                onPress={() => onRemove(photo.uri)}
-                style={{
-                  top: 4,
-                  right: 4,
-                  width: 20,
-                  height: 20,
-                  borderWidth: 1,
-                  borderColor: "rgba(255,255,255,0.7)",
-                }}
+            <View className="gap-1" key={photo.uri} style={{ width: thumb }}>
+              <View
+                className="overflow-hidden rounded-xl bg-placeholder"
+                style={{ width: thumb, height: thumb }}
               >
-                <AppIcon color={colors.inverse} icon={Cancel01Icon} size={10} />
-              </PressableFade>
+                <Image
+                  accessibilityLabel={`Photo ${index + 1}`}
+                  contentFit="cover"
+                  source={photo.uri}
+                  style={{ width: "100%", height: "100%" }}
+                />
+                <PressableFade
+                  accessibilityLabel={`Remove photo ${index + 1}`}
+                  accessibilityRole="button"
+                  className="absolute items-center justify-center rounded-full bg-black/60"
+                  hitSlop={10}
+                  onPress={() => onRemove(photo.uri)}
+                  style={{
+                    top: 4,
+                    right: 4,
+                    width: 20,
+                    height: 20,
+                    borderWidth: 1,
+                    borderColor: "rgba(255,255,255,0.7)",
+                  }}
+                >
+                  <AppIcon
+                    color={colors.inverse}
+                    icon={Cancel01Icon}
+                    size={10}
+                  />
+                </PressableFade>
+              </View>
+              {onCategoryChange ? (
+                <PressableFade
+                  accessibilityHint="Changes what this photo is labelled as"
+                  accessibilityLabel={`Photo ${index + 1}: ${photoCategoryLabel(photo.category ?? "food")}`}
+                  accessibilityRole="button"
+                  className="flex-row items-center justify-center gap-0.5"
+                  hitSlop={6}
+                  onPress={async () => {
+                    const picked = await askPhotoCategory(
+                      photo.category ?? "food",
+                    );
+                    if (picked) onCategoryChange(photo.uri, picked);
+                  }}
+                >
+                  <ThemedText numberOfLines={1} size="xs" tone="muted">
+                    {photoCategoryLabel(photo.category ?? "food")}
+                  </ThemedText>
+                  <AppIcon
+                    color={colors.muted}
+                    icon={ArrowDown01Icon}
+                    size={12}
+                  />
+                </PressableFade>
+              ) : null}
             </View>
           ))}
 

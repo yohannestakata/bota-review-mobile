@@ -622,6 +622,13 @@ export default function WriteReviewScreen() {
               label="Add a few photos"
               max={MAX_PHOTOS}
               onAdd={pickPhotos}
+              onCategoryChange={(uri, category) =>
+                setPhotos((prev) =>
+                  prev.map((photo) =>
+                    photo.uri === uri ? { ...photo, category } : photo,
+                  ),
+                )
+              }
               onRemove={removePhoto}
               photos={photos}
             />

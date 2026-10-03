@@ -28,6 +28,7 @@ import { ThemedText } from "@/components/ui/themed-text";
 
 import { ZoomableImage } from "./zoomable-image";
 import { PressableScale } from "@/components/ui/pressable-scale";
+import { photoCategoryLabel } from "../api";
 
 export type GalleryPhoto = {
   id: string;
@@ -43,8 +44,11 @@ const DISMISS_DISTANCE = 120;
 const DISMISS_VELOCITY = 900;
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
 
-function capitalize(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
+// "interior" → "Inside"; unknown values fall back to a capitalized word.
+function categoryCaption(value: string) {
+  return (
+    photoCategoryLabel(value) ?? value.charAt(0).toUpperCase() + value.slice(1)
+  );
 }
 
 /**
@@ -323,7 +327,7 @@ export function PhotoGallery({
                   tone="inverse"
                   weight="medium"
                 >
-                  {capitalize(category)}
+                  {categoryCaption(category)}
                 </ThemedText>
               ) : null}
               {photos.length > 1 ? (
