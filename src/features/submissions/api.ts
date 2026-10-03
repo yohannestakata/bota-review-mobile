@@ -60,7 +60,11 @@ export type PlaceMissingDetails = {
   // Set when the submitter matched an existing place; the tip becomes a new
   // branch of that place instead of a duplicate place.
   existingPlaceId?: string;
+  /** Picked from the list; `neighborhood` is the typed name either way. */
+  neighborhoodId?: string;
   neighborhood?: string;
+  /** A street or landmark, e.g. "Edna Mall". */
+  near?: string;
   description?: string;
   contactPhone?: string;
   contactEmail?: string;

@@ -19,6 +19,7 @@ import { ChipGroup } from "@/components/ui/chip-group";
 import {
   ControlledTextArea,
   ControlledTextInput,
+  FormTextInput,
 } from "@/components/ui/form-field";
 import { AppIcon } from "@/components/ui/huge-icon";
 import { ControlledPhoneInput } from "@/components/ui/phone-input";
@@ -44,35 +45,42 @@ import { getErrorMessage } from "@/lib/api";
 import { optionalEmailField } from "@/lib/validation";
 import { PressableFade } from "@/components/ui/pressable-scale";
 
-const submissionSchema = z.object({
-  placeName: z.string().trim().min(1, "Place name is required"),
-  existingPlaceId: z.string().optional(),
-  neighborhood: z.string().trim().optional(),
-  description: z.string().trim().optional(),
-  contactPhone: z.string().trim().optional(),
-  contactEmail: optionalEmailField,
-  type: z.string().optional(),
-  hours: z.array(
-    z.object({
-      day: z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
-      open: z.string(),
-      close: z.string(),
-    }),
-  ),
-  menu: z.array(z.object({ name: z.string(), price: z.number().optional() })),
-  cuisines: z.array(z.string()),
-  tags: z.array(z.string()),
-  coords: z.object({ lat: z.number(), lng: z.number() }).nullable(),
-  photos: z.array(
-    z.object({
-      publicId: z.string(),
-      url: z.string(),
-      width: z.number(),
-      height: z.number(),
-    }),
-  ),
-  helpfulDetails: z.array(z.string()),
-});
+const submissionSchema = z
+  .object({
+    placeName: z.string().trim().min(1, "Place name is required"),
+    existingPlaceId: z.string().optional(),
+    neighborhoodId: z.string().optional(),
+    neighborhood: z.string().trim().optional(),
+    near: z.string().trim().max(200).optional(),
+    description: z.string().trim().optional(),
+    contactPhone: z.string().trim().optional(),
+    contactEmail: optionalEmailField,
+    type: z.string().optional(),
+    hours: z.array(
+      z.object({
+        day: z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
+        open: z.string(),
+        close: z.string(),
+      }),
+    ),
+    menu: z.array(z.object({ name: z.string(), price: z.number().optional() })),
+    cuisines: z.array(z.string()),
+    tags: z.array(z.string()),
+    coords: z.object({ lat: z.number(), lng: z.number() }).nullable(),
+    photos: z.array(
+      z.object({
+        publicId: z.string(),
+        url: z.string(),
+        width: z.number(),
+        height: z.number(),
+      }),
+    ),
+    helpfulDetails: z.array(z.string()),
+  })
+  .refine((v) => !v.existingPlaceId || Boolean(v.neighborhood?.trim()), {
+    message: "Which area is this location in?",
+    path: ["neighborhood"],
+  });
 
 const EXTRA_SECTIONS = [
   {
@@ -104,7 +112,9 @@ type SubmissionValues = z.infer<typeof submissionSchema>;
 const DEFAULT_VALUES: SubmissionValues = {
   placeName: "",
   existingPlaceId: "",
+  neighborhoodId: "",
   neighborhood: "",
+  near: "",
   description: "",
   contactPhone: "",
   contactEmail: "",
@@ -205,6 +215,8 @@ export default function SubmissionsScreen() {
       if (values.existingPlaceId)
         details.existingPlaceId = values.existingPlaceId;
       if (values.neighborhood) details.neighborhood = values.neighborhood;
+      if (values.neighborhoodId) details.neighborhoodId = values.neighborhoodId;
+      if (values.near) details.near = values.near;
       if (values.description) details.description = values.description;
       if (values.contactPhone) details.contactPhone = values.contactPhone;
       if (values.contactEmail) details.contactEmail = values.contactEmail;
@@ -317,9 +329,26 @@ export default function SubmissionsScreen() {
           <Controller
             control={control}
             name="neighborhood"
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <NeighborhoodField
+                error={fieldState.error?.message}
                 onChangeText={field.onChange}
+                onMatch={(id) => setValue("neighborhoodId", id ?? "")}
+                // Another location of a place is told apart by its area.
+                required={Boolean(existingPlaceId)}
+                value={field.value ?? ""}
+              />
+            )}
+          />
+          <Controller
+            control={control}
+            name="near"
+            render={({ field }) => (
+              <FormTextInput
+                autoCapitalize="words"
+                label="Near (optional)"
+                onChangeText={field.onChange}
+                placeholder="e.g. Edna Mall, or Cameroon Street"
                 value={field.value ?? ""}
               />
             )}

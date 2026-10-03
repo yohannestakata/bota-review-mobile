@@ -22,7 +22,8 @@ export type NotificationType =
   | "saved_place_update" // 7 a saved place added a location / reopened
   | "report_resolved" // 8 a reported issue was resolved
   | "new_collection" // 10 a newly curated collection
-  | "place_live"; // 11 a place you suggested was published
+  | "place_live" // 11 a place you suggested was published
+  | "suggestion_closed"; // 12 a place you suggested couldn't be added
 
 /**
  * Send the user to the right screen for a tapped notification. Safe to call
@@ -44,6 +45,11 @@ export function routeFromNotification(data: NotificationData | undefined) {
 
     case "review_status":
       router.push("/profile/reviews");
+      return;
+
+    // Nothing to open; back to Add, in case they know another spot.
+    case "suggestion_closed":
+      router.push("/submissions");
       return;
 
     case "claim_approved":

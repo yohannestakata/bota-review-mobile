@@ -9,6 +9,10 @@ import { PressableFade } from "@/components/ui/pressable-scale";
 type NeighborhoodFieldProps = {
   value: string;
   onChangeText: (value: string) => void;
+  /** The listed neighborhood it matches, or null for one that isn't listed. */
+  onMatch: (neighborhoodId: string | null) => void;
+  required?: boolean;
+  error?: string;
 };
 
 // Creatable autocomplete: suggests existing neighborhoods as the user types but
@@ -16,9 +20,20 @@ type NeighborhoodFieldProps = {
 export function NeighborhoodField({
   value,
   onChangeText,
+  onMatch,
+  required,
+  error,
 }: NeighborhoodFieldProps) {
   const neighborhoods = useNeighborhoods();
   const [focused, setFocused] = useState(false);
+  // Typing a listed name exactly counts as picking it.
+  const change = (text: string) => {
+    onChangeText(text);
+    const q = text.trim().toLowerCase();
+    onMatch(
+      neighborhoods.data?.find((n) => n.name.toLowerCase() === q)?.id ?? null,
+    );
+  };
 
   const suggestions = useMemo(() => {
     const q = value.trim().toLowerCase();
@@ -38,9 +53,10 @@ export function NeighborhoodField({
     <View>
       <FormTextInput
         autoCapitalize="words"
-        label="Neighborhood (optional)"
+        error={error}
+        label={required ? "Neighborhood" : "Neighborhood (optional)"}
         onBlur={() => setTimeout(() => setFocused(false), 150)}
-        onChangeText={onChangeText}
+        onChangeText={change}
         onFocus={() => setFocused(true)}
         placeholder="e.g. Bole"
         value={value}
@@ -54,6 +70,7 @@ export function NeighborhoodField({
               key={neighborhood.id}
               onPress={() => {
                 onChangeText(neighborhood.name);
+                onMatch(neighborhood.id);
                 setFocused(false);
               }}
             >
