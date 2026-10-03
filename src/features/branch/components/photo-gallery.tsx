@@ -29,6 +29,10 @@ import { ThemedText } from "@/components/ui/themed-text";
 import { ZoomableImage } from "./zoomable-image";
 import { PressableScale } from "@/components/ui/pressable-scale";
 import { photoCategoryLabel } from "../api";
+import {
+  DEFAULT_PHOTO_CATEGORIES,
+  usePhotoCategories,
+} from "@/features/taxonomy";
 
 export type GalleryPhoto = {
   id: string;
@@ -43,13 +47,6 @@ const STRIP_PADDING = 16;
 const DISMISS_DISTANCE = 120;
 const DISMISS_VELOCITY = 900;
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
-
-// "interior" → "Inside"; unknown values fall back to a capitalized word.
-function categoryCaption(value: string) {
-  return (
-    photoCategoryLabel(value) ?? value.charAt(0).toUpperCase() + value.slice(1)
-  );
-}
 
 /**
  * Full-screen photo gallery shared by the place gallery route and the review
@@ -187,6 +184,8 @@ export function PhotoGallery({
     ],
   }));
 
+  const photoCategories = usePhotoCategories();
+
   // Controls fade out while tapped away or while dragging to close.
   const chromeStyle = useAnimatedStyle(() => ({
     opacity:
@@ -195,7 +194,11 @@ export function PhotoGallery({
   }));
 
   const photo = photos[current];
-  const category = photo?.category;
+  // Caption from the admin-edited list ("interior" -> "Inside").
+  const category = photoCategoryLabel(
+    photoCategories.data ?? DEFAULT_PHOTO_CATEGORIES,
+    photo?.category,
+  );
 
   return (
     <View style={StyleSheet.absoluteFill}>
@@ -327,7 +330,7 @@ export function PhotoGallery({
                   tone="inverse"
                   weight="medium"
                 >
-                  {categoryCaption(category)}
+                  {category}
                 </ThemedText>
               ) : null}
               {photos.length > 1 ? (

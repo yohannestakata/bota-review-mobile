@@ -284,6 +284,18 @@ export function getTags(getToken: TokenGetter) {
   return apiFetch<Tag[]>("/tags", getToken);
 }
 
+// Small editable lists (edited in the admin): the groups tags are filed under
+// in search filters, and what a photo can be labelled as. In display order.
+export type LookupItem = { key: string; name: string; displayOrder: number };
+
+export function getTagGroups(getToken: TokenGetter) {
+  return apiFetch<LookupItem[]>("/tag-groups", getToken);
+}
+
+export function getPhotoCategories(getToken: TokenGetter) {
+  return apiFetch<LookupItem[]>("/photo-categories", getToken);
+}
+
 // A published place as returned by the place search (GET /places?q=). Used to
 // dedupe "missing place" tips: if the place already exists, the submitter is
 // really adding a new branch to it.

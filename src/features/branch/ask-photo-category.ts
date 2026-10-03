@@ -1,19 +1,22 @@
 import { Alert } from "@/components/ui/alert";
+import type { LookupItem } from "@/lib/api";
 
-import { PHOTO_CATEGORIES, type PhotoCategory } from "./api";
+import type { PhotoCategory } from "./api";
 
-// Asks what a photo shows. Resolves with the pick, or null on Cancel.
+// Asks what a photo shows, from the admin-edited list. Resolves with the
+// pick, or null on Cancel.
 export function askPhotoCategory(
+  categories: readonly LookupItem[],
   current?: PhotoCategory,
 ): Promise<PhotoCategory | null> {
   return new Promise((resolve) => {
     Alert.alert("What's in this photo?", "It's shown as the photo's caption.", [
-      ...PHOTO_CATEGORIES.map((category) => ({
+      ...categories.map((category) => ({
         text:
-          category.value === current
-            ? `${category.label} (current)`
-            : category.label,
-        onPress: () => resolve(category.value),
+          category.key === current
+            ? `${category.name} (current)`
+            : category.name,
+        onPress: () => resolve(category.key),
       })),
       {
         text: "Cancel",

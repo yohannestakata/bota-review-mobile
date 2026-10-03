@@ -45,6 +45,8 @@ import {
   useCuisines,
   useNeighborhoods,
   useTags,
+  usePhotoCategories,
+  DEFAULT_PHOTO_CATEGORIES,
 } from "@/features/taxonomy";
 import { zodFormResolver } from "@/lib/zod-resolver";
 import { useColors } from "@/lib/theme";
@@ -107,6 +109,7 @@ export default function ManageListingScreen() {
   const neighborhoods = useNeighborhoods();
   const cuisines = useCuisines();
   const tags = useTags();
+  const photoCategories = usePhotoCategories();
   const amenities = useAmenities();
   const update = useUpdateOwnerInfo(id);
   const data = branch.data;
@@ -211,7 +214,9 @@ export default function ManageListingScreen() {
     if (result.status !== "picked") return;
     const picked = result.images[0];
     if (!picked) return;
-    const category = await askPhotoCategory();
+    const category = await askPhotoCategory(
+      photoCategories.data ?? DEFAULT_PHOTO_CATEGORIES,
+    );
     if (!category) return;
     const photo = { ...picked, category };
 

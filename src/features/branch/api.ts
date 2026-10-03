@@ -2,6 +2,7 @@ import {
   apiFetch,
   type BranchCard,
   type Cuisine,
+  type LookupItem,
   type Neighborhood,
   type Tag,
   type TokenGetter,
@@ -503,19 +504,26 @@ export function deleteCloudinaryPhoto(publicId: string, getToken: TokenGetter) {
   );
 }
 
-// What a photo shows. Same set as the API's photo_category enum.
-export const PHOTO_CATEGORIES = [
-  { value: "food", label: "Food" },
-  { value: "drink", label: "Drink" },
-  { value: "interior", label: "Inside" },
-  { value: "exterior", label: "Outside" },
-  { value: "menu", label: "Menu" },
-  { value: "ambience", label: "Vibe" },
-] as const;
-export type PhotoCategory = (typeof PHOTO_CATEGORIES)[number]["value"];
+/** A photo category's key ('food'...); the list is edited in the admin. */
+export type PhotoCategory = string;
 
-export function photoCategoryLabel(category: string | null | undefined) {
-  return PHOTO_CATEGORIES.find((c) => c.value === category)?.label ?? null;
+/** A category's name from the list, or the key capitalised if it's unknown. */
+export function photoCategoryLabel(
+  categories: readonly LookupItem[],
+  key: string | null | undefined,
+) {
+  if (!key) return null;
+  return (
+    categories.find((c) => c.key === key)?.name ??
+    key.charAt(0).toUpperCase() + key.slice(1)
+  );
+}
+
+/** Food if it's still on the list, otherwise the first category. */
+export function defaultPhotoCategory(categories: readonly LookupItem[]) {
+  return (
+    (categories.find((c) => c.key === "food") ?? categories[0])?.key ?? "food"
+  );
 }
 
 export type PickedPhoto = {

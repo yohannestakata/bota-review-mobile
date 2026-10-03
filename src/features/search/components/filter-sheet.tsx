@@ -19,6 +19,7 @@ import { View } from "react-native";
 import { Button, ChipButton, TextButton } from "@/components/ui/button";
 import { ThemedText } from "@/components/ui/themed-text";
 import type { Cuisine, Neighborhood, Tag } from "@/lib/api";
+import { useTagGroups } from "@/features/taxonomy";
 import { useColors } from "@/lib/theme";
 
 import type { SearchSort } from "../api";
@@ -32,12 +33,6 @@ const SORT_OPTIONS: {
   { value: "review_count", label: "Most reviewed" },
   { value: "recently_verified", label: "Recently verified" },
   { value: "newest", label: "Newly added" },
-];
-const TAG_GROUPS: { category: Tag["category"]; label: string }[] = [
-  { category: "vibe", label: "Vibe" },
-  { category: "diet", label: "Dietary" },
-  { category: "time", label: "Good for" },
-  { category: "practical", label: "Features" },
 ];
 
 export type FilterSheetRef = { present: () => void };
@@ -87,6 +82,8 @@ export const FilterSheet = forwardRef<FilterSheetRef, FilterSheetProps>(
     ref,
   ) {
     const colors = useColors();
+    // Tag sections follow the groups edited in the admin, in their order.
+    const tagGroups = useTagGroups().data ?? [];
     const sheetRef = useRef<ComponentRef<typeof BottomSheetModal>>(null);
 
     // Present imperatively from the parent's button press (gorhom's recommended
@@ -193,15 +190,13 @@ export const FilterSheet = forwardRef<FilterSheetRef, FilterSheetProps>(
               </Section>
             ) : null}
 
-            {TAG_GROUPS.map((group) => {
-              const groupTags = tags.filter(
-                (t) => t.category === group.category,
-              );
+            {tagGroups.map((group) => {
+              const groupTags = tags.filter((t) => t.category === group.key);
               if (groupTags.length === 0) {
                 return null;
               }
               return (
-                <Section key={group.category} title={group.label}>
+                <Section key={group.key} title={group.name}>
                   {groupTags.map((tag) => (
                     <ChipButton
                       key={tag.id}

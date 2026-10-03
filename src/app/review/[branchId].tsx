@@ -27,6 +27,7 @@ import {
   PhotoPicker,
   RatingInput,
   ReviewCelebration,
+  defaultPhotoCategory,
   uploadReviewPhoto,
   useCreateReview,
   useReview,
@@ -55,6 +56,10 @@ import {
   saveReviewDraft,
 } from "@/features/branch/review-draft";
 import { PressableFade } from "@/components/ui/pressable-scale";
+import {
+  DEFAULT_PHOTO_CATEGORIES,
+  usePhotoCategories,
+} from "@/features/taxonomy";
 
 const MIN_CHARS = 20;
 const MAX_CHARS = 2000;
@@ -129,6 +134,7 @@ export default function WriteReviewScreen() {
   }>();
   const { getToken, userId } = useAuth();
   const pickImage = usePickImage();
+  const photoCategories = usePhotoCategories();
   const isEdit = Boolean(reviewId);
   const createReview = useCreateReview(branchId);
   const updateReview = useUpdateReview();
@@ -300,7 +306,16 @@ export default function WriteReviewScreen() {
       return;
     }
     if (result.status === "picked") {
-      setPhotos((prev) => [...prev, ...result.images].slice(0, MAX_PHOTOS));
+      // New photos start as Food (or the first category); tap to change.
+      const category = defaultPhotoCategory(
+        photoCategories.data ?? DEFAULT_PHOTO_CATEGORIES,
+      );
+      setPhotos((prev) =>
+        [
+          ...prev,
+          ...result.images.map((image) => ({ ...image, category })),
+        ].slice(0, MAX_PHOTOS),
+      );
     }
   }
 

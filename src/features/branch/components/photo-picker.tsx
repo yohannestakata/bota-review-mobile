@@ -14,11 +14,16 @@ import { useColors } from "@/lib/theme";
 
 import { askPhotoCategory } from "../ask-photo-category";
 import {
+  defaultPhotoCategory,
   photoCategoryLabel,
   type PhotoCategory,
   type PickedPhoto,
 } from "../api";
 import { PressableFade, PressableScale } from "@/components/ui/pressable-scale";
+import {
+  DEFAULT_PHOTO_CATEGORIES,
+  usePhotoCategories,
+} from "@/features/taxonomy";
 
 const THUMB = 72;
 const GAP = 8;
@@ -55,6 +60,8 @@ export function PhotoPicker({
   onCategoryChange,
 }: PhotoPickerProps) {
   const colors = useColors();
+  const categories = usePhotoCategories().data ?? DEFAULT_PHOTO_CATEGORIES;
+  const fallback = defaultPhotoCategory(categories);
   const [rowWidth, setRowWidth] = useState(0);
   const thumb =
     fill && rowWidth > 0
@@ -147,19 +154,20 @@ export function PhotoPicker({
               {onCategoryChange ? (
                 <PressableFade
                   accessibilityHint="Changes what this photo is labelled as"
-                  accessibilityLabel={`Photo ${index + 1}: ${photoCategoryLabel(photo.category ?? "food")}`}
+                  accessibilityLabel={`Photo ${index + 1}: ${photoCategoryLabel(categories, photo.category ?? fallback)}`}
                   accessibilityRole="button"
                   className="flex-row items-center justify-center gap-0.5"
                   hitSlop={6}
                   onPress={async () => {
                     const picked = await askPhotoCategory(
-                      photo.category ?? "food",
+                      categories,
+                      photo.category ?? fallback,
                     );
                     if (picked) onCategoryChange(photo.uri, picked);
                   }}
                 >
                   <ThemedText numberOfLines={1} size="xs" tone="muted">
-                    {photoCategoryLabel(photo.category ?? "food")}
+                    {photoCategoryLabel(categories, photo.category ?? fallback)}
                   </ThemedText>
                   <AppIcon
                     color={colors.muted}
