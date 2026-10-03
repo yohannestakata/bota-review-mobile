@@ -292,6 +292,10 @@ export function getTagGroups(getToken: TokenGetter) {
   return apiFetch<LookupItem[]>("/tag-groups", getToken);
 }
 
+export function getClaimPlatforms(getToken: TokenGetter) {
+  return apiFetch<LookupItem[]>("/claim-platforms", getToken);
+}
+
 export function getPlaceTypes(getToken: TokenGetter) {
   return apiFetch<LookupItem[]>("/place-types", getToken);
 }

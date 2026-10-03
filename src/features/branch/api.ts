@@ -410,7 +410,8 @@ export type ClaimVerificationMethod =
   | "phone_call"
   | "manual_review";
 
-export type ClaimVerificationPlatform = "instagram" | "facebook" | "tiktok";
+/** A claim platform's key (an editable list). */
+export type ClaimVerificationPlatform = string;
 
 export type CreateClaimBody = {
   contactName: string;

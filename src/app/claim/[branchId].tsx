@@ -25,8 +25,8 @@ import {
   useOwnClaims,
   type CreateClaimBody,
   type ClaimVerificationMethod,
-  type ClaimVerificationPlatform,
 } from "@/features/branch";
+import { useClaimPlatforms } from "@/features/taxonomy";
 import { analytics } from "@/lib/analytics";
 import { getErrorCode, getErrorMessage } from "@/lib/api";
 import { cn } from "@/lib/cn";
@@ -71,15 +71,6 @@ const VERIFICATION_METHODS: {
   },
 ];
 
-const SOCIAL_PLATFORMS: {
-  value: ClaimVerificationPlatform;
-  label: string;
-}[] = [
-  { value: "instagram", label: "Instagram" },
-  { value: "facebook", label: "Facebook" },
-  { value: "tiktok", label: "TikTok" },
-];
-
 const claimSchema = z
   .object({
     contactName: z.string().trim().min(1, "Your name is required"),
@@ -93,9 +84,7 @@ const claimSchema = z
       "phone_call",
       "manual_review",
     ]),
-    verificationPlatform: z
-      .enum(["instagram", "facebook", "tiktok"])
-      .optional(),
+    verificationPlatform: z.string().optional(),
     verificationEvidence: z.string().trim().optional(),
   })
   .superRefine((data, ctx) => {
@@ -170,6 +159,7 @@ function ClaimStatusScreen({ verified }: { verified: boolean }) {
 }
 
 export default function ClaimBusinessScreen() {
+  const platforms = useClaimPlatforms().data ?? [];
   const { branchId, name } = useLocalSearchParams<{
     branchId: string;
     name?: string;
@@ -202,9 +192,9 @@ export default function ClaimBusinessScreen() {
   const isSocial = verificationMethod === "social_media";
   const needsEvidence = verificationMethod === "business_email" || isSocial;
 
-  const platformLabel = SOCIAL_PLATFORMS.find(
-    (p) => p.value === verificationPlatform,
-  )?.label;
+  const platformLabel = platforms.find(
+    (p) => p.key === verificationPlatform,
+  )?.name;
 
   const onSubmit = handleSubmit((values) => {
     const body: CreateClaimBody = {
@@ -377,12 +367,12 @@ export default function ClaimBusinessScreen() {
                 render={({ field, fieldState }) => (
                   <View className="gap-2">
                     <View className="flex-row flex-wrap gap-2">
-                      {SOCIAL_PLATFORMS.map((platform) => (
+                      {platforms.map((platform) => (
                         <ChipButton
-                          key={platform.value}
-                          label={platform.label}
-                          onPress={() => field.onChange(platform.value)}
-                          selected={field.value === platform.value}
+                          key={platform.key}
+                          label={platform.name}
+                          onPress={() => field.onChange(platform.key)}
+                          selected={field.value === platform.key}
                         />
                       ))}
                     </View>

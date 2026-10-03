@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import {
   getAmenities,
+  getClaimPlatforms,
   getCuisines,
   getFoodCategories,
   getNeighborhoods,
@@ -28,6 +29,7 @@ export const taxonomyKeys = {
   tagGroups: () => [...taxonomyKeys.all, "tag-groups"] as const,
   photoCategories: () => [...taxonomyKeys.all, "photo-categories"] as const,
   placeTypes: () => [...taxonomyKeys.all, "place-types"] as const,
+  claimPlatforms: () => [...taxonomyKeys.all, "claim-platforms"] as const,
 };
 
 // What the lists started as. Shown until the live lists load (or when
@@ -73,6 +75,23 @@ export function placeTypeName(types: LookupItem[] | undefined, key: string) {
     types?.find((t) => t.key === key)?.name ??
     key.charAt(0).toUpperCase() + key.slice(1).replace(/-/g, " ")
   );
+}
+
+const DEFAULT_CLAIM_PLATFORMS: LookupItem[] = [
+  { key: "instagram", name: "Instagram", displayOrder: 0 },
+  { key: "facebook", name: "Facebook", displayOrder: 1 },
+  { key: "tiktok", name: "TikTok", displayOrder: 2 },
+];
+
+/** Social platforms an owner can verify a claim through, in order. */
+export function useClaimPlatforms() {
+  const { getToken } = useAuth();
+  return useQuery({
+    queryKey: taxonomyKeys.claimPlatforms(),
+    queryFn: () => getClaimPlatforms(getToken),
+    staleTime: STALE_TIME,
+    placeholderData: DEFAULT_CLAIM_PLATFORMS,
+  });
 }
 
 export function useCuisines() {
