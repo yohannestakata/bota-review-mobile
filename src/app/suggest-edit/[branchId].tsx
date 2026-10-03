@@ -145,8 +145,8 @@ function submissionNote(values: SuggestEditValues) {
 
 function taxonomyChanges(selected: string[], current: string[]) {
   return {
-    add: selected.filter((slug) => !current.includes(slug)),
-    remove: current.filter((slug) => !selected.includes(slug)),
+    add: selected.filter((id) => !current.includes(id)),
+    remove: current.filter((id) => !selected.includes(id)),
   };
 }
 
@@ -198,9 +198,9 @@ export default function SuggestEditScreen() {
   const isTagsField = selectedField?.value === "Tags/amenities";
   const isPhotosField = selectedField?.value === "Photos";
   const isPhotoReport = isPhotosField && Boolean(values.reportedPhotoId);
-  const currentTags = branch.data?.tags.map((item) => item.slug) ?? [];
+  const currentTags = branch.data?.tags.map((item) => item.id) ?? [];
   const currentAmenities =
-    branch.data?.amenities.map((item) => item.slug) ?? [];
+    branch.data?.amenities.map((item) => item.id) ?? [];
   const tagChanges = taxonomyChanges(values.tags, currentTags);
   const amenityChanges = taxonomyChanges(values.amenities, currentAmenities);
   const hasTaxonomyChanges =
@@ -358,13 +358,13 @@ export default function SuggestEditScreen() {
                         if (field.value === "Tags/amenities") {
                           setValue(
                             "tags",
-                            (branch.data?.tags ?? []).map((tag) => tag.slug),
+                            (branch.data?.tags ?? []).map((tag) => tag.id),
                             { shouldValidate: true },
                           );
                           setValue(
                             "amenities",
                             (branch.data?.amenities ?? []).map(
-                              (amenity) => amenity.slug,
+                              (amenity) => amenity.id,
                             ),
                             { shouldValidate: true },
                           );
@@ -430,7 +430,7 @@ export default function SuggestEditScreen() {
                             <ChipGroup
                               onChange={field.onChange}
                               options={tagsQuery.data.map((tag) => ({
-                                value: tag.slug,
+                                value: tag.id,
                                 label: tag.name,
                               }))}
                               value={field.value}
@@ -451,7 +451,7 @@ export default function SuggestEditScreen() {
                             <ChipGroup
                               onChange={field.onChange}
                               options={amenitiesQuery.data.map((amenity) => ({
-                                value: amenity.slug,
+                                value: amenity.id,
                                 label: amenity.name,
                               }))}
                               value={field.value}

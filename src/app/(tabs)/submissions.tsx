@@ -409,7 +409,7 @@ export default function SubmissionsScreen() {
                                 <ChipGroup
                                   onChange={field.onChange}
                                   options={cuisines.data.map((cuisine) => ({
-                                    value: cuisine.slug,
+                                    value: cuisine.id,
                                     label: cuisine.name,
                                   }))}
                                   value={field.value}
@@ -497,7 +497,7 @@ export default function SubmissionsScreen() {
                                 <ChipGroup
                                   onChange={field.onChange}
                                   options={tags.data.map((tag) => ({
-                                    value: tag.slug,
+                                    value: tag.id,
                                     label: tag.name,
                                   }))}
                                   value={field.value}
@@ -519,7 +519,7 @@ export default function SubmissionsScreen() {
                                 <ChipGroup
                                   onChange={field.onChange}
                                   options={amenities.data.map((amenity) => ({
-                                    value: amenity.slug,
+                                    value: amenity.id,
                                     label: amenity.name,
                                   }))}
                                   value={field.value}
