@@ -7,6 +7,7 @@ import {
   getFoodCategories,
   getNeighborhoods,
   getPhotoCategories,
+  getPlaceTypes,
   getTagGroups,
   getTags,
   type LookupItem,
@@ -26,6 +27,7 @@ export const taxonomyKeys = {
   amenities: () => [...taxonomyKeys.all, "amenities"] as const,
   tagGroups: () => [...taxonomyKeys.all, "tag-groups"] as const,
   photoCategories: () => [...taxonomyKeys.all, "photo-categories"] as const,
+  placeTypes: () => [...taxonomyKeys.all, "place-types"] as const,
 };
 
 // What the lists started as. Shown until the live lists load (or when
@@ -45,6 +47,33 @@ export const DEFAULT_PHOTO_CATEGORIES: LookupItem[] = [
   { key: "menu", name: "Menu", displayOrder: 4 },
   { key: "ambience", name: "Vibe", displayOrder: 5 },
 ];
+
+const DEFAULT_PLACE_TYPES: LookupItem[] = [
+  { key: "restaurant", name: "Restaurant", displayOrder: 0 },
+  { key: "cafe", name: "Café", displayOrder: 1 },
+  { key: "bakery", name: "Bakery", displayOrder: 2 },
+  { key: "bar", name: "Bar", displayOrder: 3 },
+  { key: "other", name: "Other", displayOrder: 4 },
+];
+
+/** What kind of place something is (Restaurant, Café…), in the admin's order. */
+export function usePlaceTypes() {
+  const { getToken } = useAuth();
+  return useQuery({
+    queryKey: taxonomyKeys.placeTypes(),
+    queryFn: () => getPlaceTypes(getToken),
+    staleTime: STALE_TIME,
+    placeholderData: DEFAULT_PLACE_TYPES,
+  });
+}
+
+/** "cafe" → "Café"; a type no longer listed shows its key, capitalised. */
+export function placeTypeName(types: LookupItem[] | undefined, key: string) {
+  return (
+    types?.find((t) => t.key === key)?.name ??
+    key.charAt(0).toUpperCase() + key.slice(1).replace(/-/g, " ")
+  );
+}
 
 export function useCuisines() {
   const { getToken } = useAuth();

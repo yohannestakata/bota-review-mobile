@@ -34,7 +34,12 @@ import {
   useReportMissingPlace,
   type PlaceMissingDetails,
 } from "@/features/submissions";
-import { useAmenities, useCuisines, useTags } from "@/features/taxonomy";
+import {
+  useAmenities,
+  useCuisines,
+  usePlaceTypes,
+  useTags,
+} from "@/features/taxonomy";
 import { getErrorMessage } from "@/lib/api";
 import { optionalEmailField } from "@/lib/validation";
 import { PressableFade } from "@/components/ui/pressable-scale";
@@ -46,7 +51,7 @@ const submissionSchema = z.object({
   description: z.string().trim().optional(),
   contactPhone: z.string().trim().optional(),
   contactEmail: optionalEmailField,
-  type: z.enum(["restaurant", "cafe", "bakery", "bar"]).optional(),
+  type: z.string().optional(),
   hours: z.array(
     z.object({
       day: z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
@@ -68,16 +73,6 @@ const submissionSchema = z.object({
   ),
   helpfulDetails: z.array(z.string()),
 });
-
-const PLACE_TYPES: {
-  value: "restaurant" | "cafe" | "bakery" | "bar";
-  label: string;
-}[] = [
-  { value: "restaurant", label: "Restaurant" },
-  { value: "cafe", label: "Café" },
-  { value: "bakery", label: "Bakery" },
-  { value: "bar", label: "Bar" },
-];
 
 const EXTRA_SECTIONS = [
   {
@@ -160,6 +155,10 @@ export default function SubmissionsScreen() {
   const report = useReportMissingPlace();
   const amenities = useAmenities();
   const cuisines = useCuisines();
+  // "Other" is the fallback when nothing is picked, so it isn't offered.
+  const placeTypes = (usePlaceTypes().data ?? []).filter(
+    (t) => t.key !== "other",
+  );
   const tags = useTags();
 
   const [moreOpen, setMoreOpen] = useState(false);
@@ -378,18 +377,18 @@ export default function SubmissionsScreen() {
                             name="type"
                             render={({ field }) => (
                               <View className="flex-row flex-wrap gap-2">
-                                {PLACE_TYPES.map((option) => (
+                                {placeTypes.map((option) => (
                                   <ChipButton
-                                    key={option.value}
-                                    label={option.label}
+                                    key={option.key}
+                                    label={option.name}
                                     onPress={() =>
                                       field.onChange(
-                                        field.value === option.value
+                                        field.value === option.key
                                           ? undefined
-                                          : option.value,
+                                          : option.key,
                                       )
                                     }
-                                    selected={field.value === option.value}
+                                    selected={field.value === option.key}
                                   />
                                 ))}
                               </View>

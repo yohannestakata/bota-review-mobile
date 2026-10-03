@@ -292,6 +292,10 @@ export function getTagGroups(getToken: TokenGetter) {
   return apiFetch<LookupItem[]>("/tag-groups", getToken);
 }
 
+export function getPlaceTypes(getToken: TokenGetter) {
+  return apiFetch<LookupItem[]>("/place-types", getToken);
+}
+
 export function getPhotoCategories(getToken: TokenGetter) {
   return apiFetch<LookupItem[]>("/photo-categories", getToken);
 }

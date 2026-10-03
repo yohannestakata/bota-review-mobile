@@ -66,7 +66,8 @@ export type PlaceMissingDetails = {
   contactEmail?: string;
   latitude?: number;
   longitude?: number;
-  type?: "restaurant" | "cafe" | "bakery" | "bar";
+  /** A place type's key (an editable list). */
+  type?: string;
   hours?: SubmissionHoursEntry[];
   menu?: SubmissionMenuItem[];
   cuisines?: string[];

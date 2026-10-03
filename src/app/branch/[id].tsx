@@ -1,3 +1,4 @@
+import { placeTypeName, usePlaceTypes } from "@/features/taxonomy";
 import {
   Add01Icon,
   ArrowRight01Icon,
@@ -95,10 +96,6 @@ function Divider() {
   return <View className="mx-6 h-px bg-border" />;
 }
 
-function capitalize(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
 // Opens the coordinates in the platform's default maps app: Apple Maps on iOS,
 // the geo: intent (default maps app) on Android, Google Maps on web.
 function openInDefaultMaps(
@@ -149,6 +146,7 @@ function RatingBreakdown({
 
 export default function BranchDetailScreen() {
   const colors = useColors();
+  const placeTypes = usePlaceTypes();
   const { isLoaded, isSignedIn } = useAuth();
   const { id, source } = useLocalSearchParams<{
     id: string;
@@ -295,7 +293,7 @@ export default function BranchDetailScreen() {
   const price = formatMenuPriceRange(data.menuPriceRange);
   const hasRating = data.reviewCount > 0;
   const ratingValue = Number(data.rating);
-  const category = capitalize(data.place.type);
+  const category = placeTypeName(placeTypes.data, data.place.type);
   const chips = [...data.cuisines, ...data.tags];
   // The address without the city (everything here is in Addis). Falls back to
   // the neighbourhood so the location row is always there when we have a pin.
