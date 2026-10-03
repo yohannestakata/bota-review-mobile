@@ -74,6 +74,8 @@ export type BranchDetail = {
   id: string;
   placeId: string;
   slug: string;
+  /** The public link, e.g. …/p/wow-burger-bole-3f2a9c1b. */
+  shareUrl?: string;
   label: string | null;
   addressText: string | null;
   /** "Near Edna Mall": written by a person, or from the nearest landmark. */

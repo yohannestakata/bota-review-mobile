@@ -457,6 +457,7 @@ export default function BranchDetailScreen() {
             <View className="mt-5 px-6">
               <QuickActions
                 branchId={data.id}
+                shareUrl={data.shareUrl}
                 latitude={data.latitude}
                 longitude={data.longitude}
                 name={data.place.name}

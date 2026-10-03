@@ -10,18 +10,21 @@ import { analytics } from "@/lib/analytics";
 
 type QuickActionsProps = {
   branchId: string;
+  /** From the API; links read like …/p/wow-burger-bole-3f2a9c1b. */
+  shareUrl?: string;
   name: string;
   phone: string | null;
   latitude: string | null;
   longitude: string | null;
 };
 
-// Public share links; the page unfurls in chats and opens the app if installed.
-// botareview.com expired; the backend's free Render host serves share pages.
+// Fallback for an API that doesn't send shareUrl yet. Share pages unfurl in
+// chats and open the app if installed.
 const SHARE_BASE_URL = "https://bota-review-api.onrender.com";
 
 export function QuickActions({
   branchId,
+  shareUrl,
   name,
   phone,
   latitude,
@@ -49,7 +52,7 @@ export function QuickActions({
     analytics.track("share_clicked", { branch_id: branchId });
     // The link unfurls into a rich preview in chats and opens the app when
     // it's installed (see backend ShareController).
-    const url = `${SHARE_BASE_URL}/p/${branchId}`;
+    const url = shareUrl ?? `${SHARE_BASE_URL}/p/${branchId}`;
     void Share.share(
       Platform.OS === "ios"
         ? { message: `Check out ${name} on Bota`, url }
