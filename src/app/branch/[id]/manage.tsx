@@ -151,6 +151,14 @@ export default function ManageListingScreen() {
       group.items.map((item) => ({
         name: item.name,
         price: Number(item.price),
+        ...(item.sizes
+          ? {
+              sizes: item.sizes.map((size) => ({
+                label: size.label,
+                price: Number(size.price),
+              })),
+            }
+          : {}),
         ...(item.category ? { category: item.category } : {}),
         ...(item.imageUrl ? { imageUrl: item.imageUrl } : {}),
         ...(item.cloudinaryPublicId

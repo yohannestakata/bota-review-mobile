@@ -22,6 +22,8 @@ type Item = {
   id: string;
   name: string;
   price: string;
+  // An existing item's sizes: kept as they are, its price comes from them.
+  sizes?: SubmissionMenuItem["sizes"];
   category: string;
   customCategory: boolean;
   imageUrl?: string;
@@ -46,7 +48,8 @@ function toItems(items: Item[]): SubmissionMenuItem[] {
       const next: SubmissionMenuItem = { name: item.name.trim() };
       if (item.category.trim()) next.category = item.category.trim();
       const price = item.price.trim();
-      if (price) next.price = Number(price);
+      if (item.sizes) next.sizes = item.sizes;
+      else if (price) next.price = Number(price);
       if (item.imageUrl && item.publicId) {
         next.imageUrl = item.imageUrl;
         next.publicId = item.publicId;
@@ -85,6 +88,7 @@ export function MenuField({
           id: itemId(),
           name: item.name,
           price: item.price == null ? "" : String(item.price),
+          sizes: item.sizes,
           category: item.category ?? "",
           customCategory: Boolean(
             item.category && !CATEGORIES.includes(item.category),
@@ -198,21 +202,27 @@ export function MenuField({
                 surface="muted"
                 value={item.name}
               />
-              <TextField
-                className="w-24"
-                keyboardType="number-pad"
-                onChangeText={(price) =>
-                  setItem(item.id, { price: price.replace(/\D/g, "") })
-                }
-                placeholder="0"
-                suffix={
-                  <ThemedText size="sm" tone="muted">
-                    Br
-                  </ThemedText>
-                }
-                surface="muted"
-                value={item.price}
-              />
+              {item.sizes ? (
+                <ThemedText className="w-24 text-center" size="sm" tone="muted">
+                  {`${item.sizes.length} sizes`}
+                </ThemedText>
+              ) : (
+                <TextField
+                  className="w-24"
+                  keyboardType="number-pad"
+                  onChangeText={(price) =>
+                    setItem(item.id, { price: price.replace(/\D/g, "") })
+                  }
+                  placeholder="0"
+                  suffix={
+                    <ThemedText size="sm" tone="muted">
+                      Br
+                    </ThemedText>
+                  }
+                  surface="muted"
+                  value={item.price}
+                />
+              )}
               {!singleItem && items.length > 1 ? (
                 <PressableFade
                   accessibilityLabel="Remove menu item"

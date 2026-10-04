@@ -116,12 +116,17 @@ export function getBranchReviews(branchId: string, getToken: TokenGetter) {
   return apiFetch<BranchReview[]>(`/branches/${branchId}/reviews`, getToken);
 }
 
+// A priced size of a menu item ("Small", "545.00"), in menu order.
+export type MenuItemSize = { label: string; price: string };
+
 export type MenuItem = {
   id: string;
   menuId: string;
   name: string;
   description: string | null;
+  // The lowest price; for an item with sizes, the smallest size's.
   price: string;
+  sizes: MenuItemSize[] | null;
   category: string | null;
   imageUrl: string | null;
   cloudinaryPublicId: string | null;

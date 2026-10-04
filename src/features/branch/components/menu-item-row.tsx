@@ -40,6 +40,13 @@ export function MenuItemRow({
         >
           {item.name}
         </ThemedText>
+        {item.sizes ? (
+          <ThemedText size="sm" weight="medium">
+            {item.sizes
+              .map((size) => `${size.label} ${formatBirr(size.price)}`)
+              .join(" · ")}
+          </ThemedText>
+        ) : null}
         {item.description ? (
           <ThemedText numberOfLines={2} size="sm" tone="muted">
             {item.description}
@@ -52,9 +59,11 @@ export function MenuItemRow({
         ) : null}
       </View>
 
-      <ThemedText className="w-16 text-right" weight="medium">
-        {formatBirr(item.price)}
-      </ThemedText>
+      {item.sizes ? null : (
+        <ThemedText className="w-16 text-right" weight="medium">
+          {formatBirr(item.price)}
+        </ThemedText>
+      )}
     </View>
   );
 }

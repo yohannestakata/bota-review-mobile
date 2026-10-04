@@ -32,6 +32,8 @@ export type SubmissionMenuItem = {
   name: string;
   category?: string;
   price?: number;
+  // An existing item's sizes, kept as-is when an owner edits the menu.
+  sizes?: { label: string; price: number }[];
   // A photo the submitter uploaded for this item (Cloudinary ref), attached to
   // the menu item on approve.
   imageUrl?: string;
