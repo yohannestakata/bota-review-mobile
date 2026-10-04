@@ -29,6 +29,12 @@
         "SENTRY_ALLOW_FAILURE": "true",
         "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
+    },
+    "production-apk": {
+      "extends": "production",
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {
