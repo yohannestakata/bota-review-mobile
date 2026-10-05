@@ -34,6 +34,14 @@
       "extends": "production",
       "android": {
         "buildType": "apk"
+      },
+      "environment": "preview",
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://bota-review-api.onrender.com/v1",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_YXJ0aXN0aWMtYmVhci04MC5jbGVyay5hY2NvdW50cy5kZXYk",
+        "SENTRY_ALLOW_FAILURE": "true",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     }
   },
