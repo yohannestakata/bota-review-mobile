@@ -205,7 +205,9 @@ export default function SignupScreen() {
     >
       {pendingVerification ? (
         <>
+          {/* Own key: same slot as the email field, but a different form. */}
           <ControlledTextInput
+            key="code"
             autoComplete="one-time-code"
             autoFocus
             control={verifyForm.control}
@@ -239,6 +241,7 @@ export default function SignupScreen() {
       ) : (
         <>
           <ControlledTextInput
+            key="email"
             autoCapitalize="none"
             autoComplete="email"
             control={accountForm.control}
