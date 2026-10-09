@@ -12,6 +12,7 @@ import { AuthDivider, AuthError } from "@/components/auth/auth-feedback";
 import { GoogleMark } from "@/components/auth/google-mark";
 import { Button } from "@/components/ui/button";
 import { ControlledTextInput } from "@/components/ui/form-field";
+import { PressableFade } from "@/components/ui/pressable-scale";
 import { ThemedText } from "@/components/ui/themed-text";
 import {
   getAuthMessage,
@@ -30,10 +31,18 @@ const loginSchema = z.object({
 
 type LoginValues = z.infer<typeof loginSchema>;
 
+const codeSchema = z.object({
+  code: z.string().trim().min(6, "Enter the 6-digit code"),
+});
+
+type CodeValues = z.infer<typeof codeSchema>;
+
 export default function LoginScreen() {
   const { isLoaded, setActive, signIn } = useSignIn();
   const { startSSOFlow } = useSSO();
   const [googleLoading, setGoogleLoading] = useState(false);
+  // Signing in on a new device: Clerk emails a code to confirm it's them.
+  const [codeSentTo, setCodeSentTo] = useState<string | null>(null);
 
   const { control, handleSubmit, setError, setFocus, formState } =
     useForm<LoginValues>({
@@ -41,6 +50,17 @@ export default function LoginScreen() {
       mode: "onChange",
       defaultValues: { email: "", password: "" },
     });
+  const codeForm = useForm<CodeValues>({
+    resolver: zodFormResolver(codeSchema),
+    mode: "onChange",
+    defaultValues: { code: "" },
+  });
+
+  async function finish(sessionId: string | null) {
+    await setActive?.({ session: sessionId });
+    analytics.track("signed_in", { method: "email" });
+    router.replace("/");
+  }
 
   const onSubmit = handleSubmit(async (values) => {
     if (!isLoaded) {
@@ -53,10 +73,17 @@ export default function LoginScreen() {
         password: values.password,
       });
 
+      const emailFactor = result.supportedSecondFactors?.find(
+        (factor) => factor.strategy === "email_code",
+      );
       if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        analytics.track("signed_in", { method: "email" });
-        router.replace("/");
+        await finish(result.createdSessionId);
+      } else if (result.status === "needs_second_factor" && emailFactor) {
+        await signIn.prepareSecondFactor({
+          strategy: "email_code",
+          emailAddressId: emailFactor.emailAddressId,
+        });
+        setCodeSentTo(emailFactor.safeIdentifier);
       } else {
         setError("root", {
           message:
@@ -71,6 +98,86 @@ export default function LoginScreen() {
       setError("root", { message: getAuthMessage(err) });
     }
   });
+
+  const onVerify = codeForm.handleSubmit(async ({ code }) => {
+    if (!isLoaded) {
+      return;
+    }
+    try {
+      const result = await signIn.attemptSecondFactor({
+        strategy: "email_code",
+        code,
+      });
+      if (result.status === "complete") {
+        await finish(result.createdSessionId);
+      } else {
+        codeForm.setError("root", {
+          message: "That code didn't match. Give it another go.",
+        });
+      }
+    } catch (err) {
+      codeForm.setError("root", { message: getAuthMessage(err) });
+    }
+  });
+
+  async function resendCode() {
+    const emailFactor = signIn?.supportedSecondFactors?.find(
+      (factor) => factor.strategy === "email_code",
+    );
+    if (!emailFactor) return;
+    try {
+      await signIn?.prepareSecondFactor({
+        strategy: "email_code",
+        emailAddressId: emailFactor.emailAddressId,
+      });
+    } catch (err) {
+      codeForm.setError("root", { message: getAuthMessage(err) });
+    }
+  }
+
+  if (codeSentTo) {
+    return (
+      <AuthScreen
+        body={`We sent a 6-digit code to ${codeSentTo} to confirm it's you on this device.`}
+        footer={null}
+        title="Check your email"
+      >
+        <ControlledTextInput
+          key="code"
+          autoComplete="one-time-code"
+          autoFocus
+          control={codeForm.control}
+          editable={!codeForm.formState.isSubmitting}
+          keyboardType="number-pad"
+          label="Verification code"
+          maxLength={6}
+          name="code"
+          onSubmitEditing={onVerify}
+          placeholder="123456"
+          returnKeyType="done"
+        />
+        <View className="flex-row justify-between">
+          <PressableFade hitSlop={8} onPress={() => setCodeSentTo(null)}>
+            <ThemedText size="sm" tone="muted" weight="medium">
+              Back
+            </ThemedText>
+          </PressableFade>
+          <PressableFade hitSlop={8} onPress={resendCode}>
+            <ThemedText size="sm" tone="brand" weight="semibold">
+              Resend code
+            </ThemedText>
+          </PressableFade>
+        </View>
+        <AuthError message={codeForm.formState.errors.root?.message} />
+        <Button
+          disabled={!isLoaded || !codeForm.formState.isValid}
+          label="Log in"
+          loading={codeForm.formState.isSubmitting}
+          onPress={onVerify}
+        />
+      </AuthScreen>
+    );
+  }
 
   async function onGooglePress() {
     if (googleLoading) {
